@@ -1,7 +1,7 @@
 'use client'
 import React from "react";
 import {styled} from '@mui/material/styles';
-import {Box, Button, LinearProgress} from "@mui/material";
+import {Box, Button, LinearProgress, Stack, Paper} from "@mui/material";
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import DownloadIcon from '@mui/icons-material/Download';
 import prettyBytes from 'pretty-bytes';
@@ -99,31 +99,40 @@ export default function Home() {
 
     return (
         <React.Fragment>
-            {file && <p>File: {file.name}</p>}
+            <Paper variant="outlined" sx={{ my: { xs: 2, md: 4 }, p: { xs: 1, md: 3 } }}>
+                <Stack spacing={1}>
+                    {file && <Box>File: {file.name}</Box>}
 
-            <Button
-                component="label"
-                role={undefined}
-                variant="contained"
-                startIcon={<UploadFileIcon />}
-                loading={loadingState !== null && !loadDone}
-            >
-                Upload font file
-                <VisuallyHiddenInput
-                    type="file"
-                    onChange={(event) => handleFileChange(event)}
-                />
-            </Button>
+                    <Box display={"flex"}>
+                        <Stack spacing={0}>
+                            <Button
+                                component="label"
+                                role={undefined}
+                                variant="contained"
+                                startIcon={<UploadFileIcon />}
+                                loading={loadingState !== null && !loadDone}
+                            >
+                                Upload font file
+                                <VisuallyHiddenInput
+                                    type="file"
+                                    onChange={(event) => handleFileChange(event)}
+                                />
+                            </Button>
+                            {loadingState && !loadDone && <LinearProgress />}
+                        </Stack>
+                    </Box>
 
-            {loadingState && <Box>
-                {!loadDone && <LinearProgress />}
-                <p>Loading: {loadingState}</p>
-            </Box>}
+                    {loadingState && <Box>Loading: {loadingState}</Box>}
+                </Stack>
+            </Paper>
 
-            {loadDone && ttx && <ShowFontContents
-                ttx={ttx}
-                orig_filename={file ? `${file.name}` : "font.ttf"}
-            />}
+            <Paper variant="outlined" sx={{ my: { xs: 2, md: 4 }, p: { xs: 1, md: 3 } }}>
+                {loadDone && ttx &&
+                    <ShowFontContents
+                        ttx={ttx}
+                        orig_filename={file ? `${file.name}` : "font.ttf"}
+                    />}
+            </Paper>
         </React.Fragment>
     );
 }
@@ -133,6 +142,41 @@ function ShowFontContents(
     {ttx, orig_filename}: Readonly<{
         ttx: TTXObject,
         orig_filename: string
+    }>
+) {
+    function array<T>(x: T | Array<T>): Array<T> {
+        if (Array.isArray(x)) {
+            return x;
+        }
+        return [x];
+    }
+
+    const font_name = JSONPath.query(ttx, '$.ttFont.name.namerecord[?(@.@_nameID == "4")]')[0]['#text'];
+    const font_version = JSONPath.query(ttx, '$.ttFont.name.namerecord[?(@.@_nameID == "5")]')[0]['#text'];
+    const number_of_glyphs = array(JSONPath.query(ttx, '$.ttFont.GlyphOrder.GlyphID')[0]).length;
+
+    const fdarray = array(JSONPath.query(ttx, '$.ttFont.CFF.CFFFont.FDArray.FontDict')[0]);
+    const charstrings = array(JSONPath.query(ttx, '$.ttFont.CFF.CFFFont.CharStrings.CharString')[0]);
+    const os2 = JSONPath.query(ttx, '$.ttFont.OS_2')[0];
+
+    return (
+        <Stack>
+            <Box><strong>Font</strong>: {font_name}</Box>
+            <Box><strong>Version</strong>: {font_version}</Box>
+            <Box><strong>Number of glyphs</strong>: {number_of_glyphs}</Box>
+            <Box>
+                <GlyphView charstring={charstrings[10386]} fdarray={fdarray} os2={os2} />
+            </Box>
+            <DownloadFontButton ttx={ttx} orig_filename={orig_filename}/>
+        </Stack>
+    );
+}
+
+
+function DownloadFontButton(
+    {ttx, orig_filename} : Readonly<{
+        ttx: TTXObject;
+        orig_filename: string;
     }>
 ) {
     const [downloadState, setDownloadState] = React.useState<string | null>(null);
@@ -204,39 +248,23 @@ function ShowFontContents(
         }
     }
 
-    function array<T>(x: T | Array<T>): Array<T> {
-        if (Array.isArray(x)) {
-            return x;
-        }
-        return [x];
-    }
-
-    const font_name = JSONPath.query(ttx, '$.ttFont.name.namerecord[?(@.@_nameID == "4")]')[0]['#text'];
-    const font_version = JSONPath.query(ttx, '$.ttFont.name.namerecord[?(@.@_nameID == "5")]')[0]['#text'];
-    const number_of_glyphs = array(JSONPath.query(ttx, '$.ttFont.GlyphOrder.GlyphID')[0]).length;
-
-    const fdarray = array(JSONPath.query(ttx, '$.ttFont.CFF.CFFFont.FDArray.FontDict')[0]);
-    const charstrings = array(JSONPath.query(ttx, '$.ttFont.CFF.CFFFont.CharStrings.CharString')[0]);
-    const os2 = JSONPath.query(ttx, '$.ttFont.OS_2')[0];
-
     return (
-        <React.Fragment>
-            <p><strong>Font</strong>: {font_name}</p>
-            <p><strong>Version</strong>: {font_version}</p>
-            <p><strong>Number of glyphs</strong>: {number_of_glyphs}</p>
-            <GlyphView charstring={charstrings[10377]} fdarray={fdarray} os2={os2} />
-            <Button
-                variant="contained"
-                startIcon={<DownloadIcon />}
-                onClick={() => downloadFont()}
-                loading={downloadState !== null && !downloadDone}
-            >
-                Download font
-            </Button>
-            {downloadState && <Box>
-                {!downloadDone && <LinearProgress />}
-                <p>Download status: {downloadState}</p>
-            </Box>}
-        </React.Fragment>
+        <Stack spacing={1}>
+            <Box display={"flex"}>
+                <Stack spacing={0}>
+                    <Button
+                        variant="contained"
+                        startIcon={<DownloadIcon />}
+                        onClick={() => downloadFont()}
+                        loading={downloadState !== null && !downloadDone}
+                    >
+                        Download font
+                    </Button>
+                    {downloadState && !downloadDone && <LinearProgress />}
+                </Stack>
+            </Box>
+            {downloadState &&
+                <Box>Download status: {downloadState}</Box>}
+        </Stack>
     );
 }
