@@ -19,21 +19,19 @@ export async function POST(req: Request) {
         // Write the file to a temporary location
         const outputStream = fs.createWriteStream(tmpFileOrNull.name);
 
-        console.log("Writing to file: " + tmpFileOrNull.name);
+        console.log("Writing font to file: " + tmpFileOrNull.name);
 
         const reader = inputFile.stream().getReader();
-        function handleChunk({ value, done }: ReadableStreamReadResult<Uint8Array<ArrayBufferLike>>) {
+        while (true) {
+            const {value, done} = await reader.read();  // start reading
             if (done) {
-                return;
+                break;
             }
+
             outputStream.write(value);
-
-            // retreive next chunk
-            reader.read().then(handleChunk);
         }
-        await reader.read().then(handleChunk);  // start reading
 
-        console.log("File written to: " + tmpFileOrNull.name);
+        console.log("Font file written to: " + tmpFileOrNull.name);
 
         const result = convertFont(tmpFileOrNull.name).pipeThrough(new CompressionStream("gzip"));
 
@@ -42,6 +40,7 @@ export async function POST(req: Request) {
     catch (err) {
         let message = "Unknown Error";
         if (err instanceof Error) {
+            console.error(err);
             message = err.message;
         }
         return Response.json({ error: message }, { status: 500 });
