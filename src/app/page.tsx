@@ -7,8 +7,11 @@ import DownloadIcon from '@mui/icons-material/Download';
 import prettyBytes from 'pretty-bytes';
 import {XMLParser} from "fast-xml-parser";
 import { JSONPath } from '@astronautlabs/jsonpath';
+import Grid from '@mui/material/Grid2';
+
 import {TTXObject} from "./TTXObject";
-import {GlyphView} from "@/app/GlyphView";
+import {LayoutView} from "./LayoutView";
+import {leadingLayouts} from "./jamo_layouts";
 
 
 const VisuallyHiddenInput = styled('input')({
@@ -126,57 +129,92 @@ export default function Home() {
                 </Stack>
             </Paper>
 
+            {loadDone && ttx &&
+                <CompositionLayouts
+                    ttx={ttx}
+                    origFilename={file ? `${file.name}` : "font.ttf"}
+                />}
+        </React.Fragment>
+    );
+}
+
+
+function array<T>(x: T | Array<T>): Array<T> {
+    if (Array.isArray(x)) {
+        return x;
+    }
+    return [x];
+}
+
+
+function CompositionLayouts(
+    {ttx, origFilename}: Readonly<{
+        ttx: TTXObject,
+        origFilename: string
+    }>
+) {
+    const fdarray = array(JSONPath.query(ttx, '$.ttFont.CFF.CFFFont.FDArray.FontDict')[0]);
+    const charstrings = array(JSONPath.query(ttx, '$.ttFont.CFF.CFFFont.CharStrings.CharString')[0]);
+    const os2 = JSONPath.query(ttx, '$.ttFont.OS_2')[0];
+
+    return (
+        <React.Fragment>
             <Paper variant="outlined" sx={{ my: { xs: 2, md: 4 }, p: { xs: 1, md: 3 } }}>
-                {loadDone && ttx &&
-                    <ShowFontContents
-                        ttx={ttx}
-                        orig_filename={file ? `${file.name}` : "font.ttf"}
-                    />}
+                <ShowFontSummary
+                    ttx={ttx}
+                    origFilename={origFilename}
+                />
+            </Paper>
+
+            <Paper variant="outlined" sx={{ my: { xs: 2, md: 4 }, p: { xs: 1, md: 3 } }}>
+                <Grid container spacing={2}>
+                    {leadingLayouts.map((layout, idx) =>
+                        <Grid key={idx} size={4}>
+                            <Paper variant="elevation">
+                                <Stack>
+                                    <LayoutView
+                                        layout={layout}
+                                        fdarray={fdarray}
+                                        charstrings={charstrings}
+                                        os2={os2}
+                                    />
+                                    {layout.name}
+                                </Stack>
+                            </Paper>
+                        </Grid>
+                    )}
+                </Grid>
             </Paper>
         </React.Fragment>
     );
 }
 
 
-function ShowFontContents(
-    {ttx, orig_filename}: Readonly<{
+function ShowFontSummary(
+    {ttx, origFilename}: Readonly<{
         ttx: TTXObject,
-        orig_filename: string
+        origFilename: string
     }>
 ) {
-    function array<T>(x: T | Array<T>): Array<T> {
-        if (Array.isArray(x)) {
-            return x;
-        }
-        return [x];
-    }
-
-    const font_name = JSONPath.query(ttx, '$.ttFont.name.namerecord[?(@.@_nameID == "4")]')[0]['#text'];
-    const font_version = JSONPath.query(ttx, '$.ttFont.name.namerecord[?(@.@_nameID == "5")]')[0]['#text'];
-    const number_of_glyphs = array(JSONPath.query(ttx, '$.ttFont.GlyphOrder.GlyphID')[0]).length;
-
-    const fdarray = array(JSONPath.query(ttx, '$.ttFont.CFF.CFFFont.FDArray.FontDict')[0]);
-    const charstrings = array(JSONPath.query(ttx, '$.ttFont.CFF.CFFFont.CharStrings.CharString')[0]);
-    const os2 = JSONPath.query(ttx, '$.ttFont.OS_2')[0];
+    const fontName = JSONPath.query(ttx, '$.ttFont.name.namerecord[?(@.@_nameID == "4")]')[0]['#text'];
+    const fontVersion = JSONPath.query(ttx, '$.ttFont.name.namerecord[?(@.@_nameID == "5")]')[0]['#text'];
+    const numberOfGlyphs = array(JSONPath.query(ttx, '$.ttFont.GlyphOrder.GlyphID')[0]).length;
 
     return (
         <Stack>
-            <Box><strong>Font</strong>: {font_name}</Box>
-            <Box><strong>Version</strong>: {font_version}</Box>
-            <Box><strong>Number of glyphs</strong>: {number_of_glyphs}</Box>
-            <Box>
-                <GlyphView charstring={charstrings[10386]} fdarray={fdarray} os2={os2} />
-            </Box>
-            <DownloadFontButton ttx={ttx} orig_filename={orig_filename}/>
+            <Box><strong>Font</strong>: {fontName}</Box>
+            <Box><strong>Version</strong>: {fontVersion}</Box>
+            <Box><strong>Number of glyphs</strong>: {numberOfGlyphs}</Box>
+            <DownloadFontButton ttx={ttx} origFilename={origFilename}/>
         </Stack>
     );
 }
 
 
 function DownloadFontButton(
-    {ttx, orig_filename} : Readonly<{
+    {ttx, origFilename} : Readonly<{
         ttx: TTXObject;
-        orig_filename: string;
+        origFilename: string;
     }>
 ) {
     const [downloadState, setDownloadState] = React.useState<string | null>(null);
@@ -225,16 +263,16 @@ function DownloadFontButton(
             });
 
             const streamSaver = await import('streamsaver');
-            const fileStream = streamSaver.createWriteStream(orig_filename);
+            const fileStream = streamSaver.createWriteStream(origFilename);
 
-            let download_length = 0;
+            let downloadLength = 0;
             await response.body
                 ?.pipeThrough(new DecompressionStream('gzip'))
                 .pipeThrough(new TransformStream({
                     transform(chunk, controller) {
-                        download_length += chunk.length;
+                        downloadLength += chunk.length;
                         controller.enqueue(chunk);
-                        setDownloadState("Downloading: " + prettyBytes(download_length));
+                        setDownloadState("Downloading: " + prettyBytes(downloadLength));
                     },
                 }))
                 .pipeTo(fileStream);
