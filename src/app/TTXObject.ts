@@ -7,7 +7,10 @@ export type TTXObject = {
             }[]
         },
         GlyphOrder: {
-            GlyphID: string[]
+            GlyphID: {
+                "@_id": string,
+                "@_name": string,
+            }[]
         }
     }
 };
@@ -28,4 +31,11 @@ export type FontDict = {
 export type OS2 = {
     sTypoAscender: { '@_value': string },
     sTypoDescender: { '@_value': string },
+};
+
+export type Cmap4 = {
+    map: {
+        "@_code": string,
+        "@_name": string,
+    }[];
 };

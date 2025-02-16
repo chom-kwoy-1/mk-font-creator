@@ -1,3 +1,5 @@
+import {Charstring, FontDict} from "@/app/TTXObject";
+
 export type Point = {
     x: number,
     y: number,
@@ -20,10 +22,21 @@ export type Glyph = {
 };
 
 export function parseGlyph(
-    defaultWidth: number,
-    nominalWidth: number,
-    lines: (number | string)[][]
+    charstring: Charstring,
+    fdarray: FontDict[],
 ): Glyph {
+    const fdSelectIndex = parseInt(charstring['@_fdSelectIndex']);
+    const fontDict = fdarray[fdSelectIndex];
+    const defaultWidth = parseInt(fontDict.Private.defaultWidthX['@_value']);
+    const nominalWidth = parseInt(fontDict.Private.nominalWidthX['@_value']);
+
+    const lines = charstring['#text'].split("\n").map((line) => {
+        return line.trim().split(' ').map((token) => {
+            const num = parseInt(token);
+            return Number.isNaN(num) ? token : num;
+        });
+    });
+
     const glyph: Glyph = {
         paths: [],
         width: defaultWidth,
@@ -51,8 +64,9 @@ export function parseGlyph(
 
     for (let opIdx = 0; opIdx < lines.length; opIdx++) {
         const line = lines[opIdx];
-        const op = line[line.length - 1] as string;
-        const stack = line.slice(0, -1) as number[];
+        const op_idx = line.findIndex((token) => typeof token === 'string');
+        const op = line[op_idx] as string;
+        const stack = line.slice(0, op_idx) as number[];
 
         if (opIdx === 0) {
             const isEvenOp = ['hstem', 'hstemhm', 'vstem', 'vstemhm',
@@ -356,9 +370,12 @@ export function parseGlyph(
                 curveto(ct1, ct2, pos);
             }
         }
+        else if (['hstem', 'vstem', 'hstemhm', 'vstemhm', 'hintmask', 'cntrmask'].includes(op)) {
+            // Ignore hint operators for now
+        }
         else if (op === 'endchar') {
             if (stack.length !== 0) {
-                throw Error("Invalid number of arguments for endchar.");
+                throw Error("Stack not empty when finishing glyph.");
             }
             break;
         }

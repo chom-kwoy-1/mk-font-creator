@@ -9,9 +9,11 @@ import {XMLParser} from "fast-xml-parser";
 import { JSONPath } from '@astronautlabs/jsonpath';
 import Grid from '@mui/material/Grid2';
 
-import {TTXObject} from "./TTXObject";
-import {LayoutView} from "./LayoutView";
-import {leadingLayouts} from "./jamo_layouts";
+import {Charstring, Cmap4, FontDict, OS2, TTXObject} from "@/app/TTXObject";
+import {LayoutView} from "@/app/LayoutView";
+import {leadingLayouts} from "@/app/jamo_layouts";
+import {parseGlyph} from "@/app/parse_glyph";
+import {findCharstringByCodepoint} from "@/app/font_utils";
 
 
 const VisuallyHiddenInput = styled('input')({
@@ -153,9 +155,51 @@ function CompositionLayouts(
         origFilename: string
     }>
 ) {
-    const fdarray = array(JSONPath.query(ttx, '$.ttFont.CFF.CFFFont.FDArray.FontDict')[0]);
-    const charstrings = array(JSONPath.query(ttx, '$.ttFont.CFF.CFFFont.CharStrings.CharString')[0]);
-    const os2 = JSONPath.query(ttx, '$.ttFont.OS_2')[0];
+    const isLoaded = React.useRef(false);
+    const fdarray = React.useRef<FontDict[]>(null);
+    const charstrings = React.useRef<Charstring[]>(null);
+    const os2 = React.useRef<OS2>(null);
+    const cmap4 = React.useRef<Cmap4>(null);
+
+    const [myLeadingLayouts, setMyLeadingLayouts] = React.useState(structuredClone(leadingLayouts));
+
+    React.useEffect(() => {
+        isLoaded.current = true;
+        fdarray.current = array(JSONPath.query(ttx, '$.ttFont.CFF.CFFFont.FDArray.FontDict')[0]);
+        charstrings.current = array(JSONPath.query(ttx, '$.ttFont.CFF.CFFFont.CharStrings.CharString')[0]);
+        os2.current = JSONPath.query(ttx, '$.ttFont.OS_2')[0];
+        cmap4.current = JSONPath.query(ttx, '$.ttFont.cmap.cmap_format_4[?(@.@_platformID == "0")]')[0];
+
+        console.log("Resetting leading layouts");
+
+        const newLeadingLayouts = leadingLayouts
+            .map((layout) => {
+                const newLayout = structuredClone(layout);
+                newLayout.glyphs = new Map(newLayout.glyphs.entries().map(
+                    ([jamo, origGlyph]) => {
+                        if (origGlyph === null) {
+                            // Set default glyph with Unicode codepoint, if exists
+                            const cs = findCharstringByCodepoint(
+                                jamo.codePointAt(0) as number,
+                                cmap4.current as Cmap4,
+                                charstrings.current as Charstring[],
+                            );
+                            const glyph = parseGlyph(cs, fdarray.current as FontDict[]);
+                            return [jamo, glyph];
+                        }
+                        return [jamo, origGlyph];
+                    }));
+                return newLayout;
+            });
+
+        setMyLeadingLayouts(newLeadingLayouts);
+    }, [ttx]);
+
+    console.log(myLeadingLayouts);
+
+    if (!isLoaded.current) {
+        return <div>Loading...</div>;
+    }
 
     return (
         <React.Fragment>
@@ -168,15 +212,21 @@ function CompositionLayouts(
 
             <Paper variant="outlined" sx={{ my: { xs: 2, md: 4 }, p: { xs: 1, md: 3 } }}>
                 <Grid container spacing={2}>
-                    {leadingLayouts.map((layout, idx) =>
+                    {myLeadingLayouts.map((layout, idx) =>
                         <Grid key={idx} size={4}>
                             <Paper variant="elevation">
                                 <Stack>
                                     <LayoutView
                                         layout={layout}
-                                        fdarray={fdarray}
-                                        charstrings={charstrings}
-                                        os2={os2}
+                                        setLayout={(newLayout) => {
+                                            setMyLeadingLayouts(
+                                                myLeadingLayouts.map((l, i) => i === idx ? newLayout : l)
+                                            );
+                                        }}
+                                        fdarray={fdarray.current as FontDict[]}
+                                        charstrings={charstrings.current as Charstring[]}
+                                        os2={os2.current as OS2}
+                                        cmap4={cmap4.current as Cmap4}
                                     />
                                     {layout.name}
                                 </Stack>
