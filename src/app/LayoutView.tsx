@@ -1,7 +1,7 @@
 import React from "react";
 import {Box, FormControl, InputLabel, MenuItem, Select, Stack} from "@mui/material";
 import Konva from "konva";
-import { Stage, Layer, Rect, Line } from 'react-konva';
+import {Stage, Layer, Rect, Line, Group} from 'react-konva';
 import Grid from '@mui/material/Grid2';
 
 import {Layout, Divider, JamoElement, ResizedGlyph} from "@/app/jamo_layouts";
@@ -342,26 +342,27 @@ function DrawDivider(
                     bottom={bottom}
                     {...props}
                 />
-                <Line
-                    x={position.x}
-                    y={position.y}
-                    points={[
-                        ...rescale({x: x, y: top}),
-                        ...rescale({x: x, y: bottom}),
-                    ]}
-                    stroke="green"
+                <Group
                     draggable={true}
                     onDragStart={(e) => {
-                        console.log("onDragStart");
                         setIsDragging(true);
+                    }}
+                    onDragMove={(e) => {
+                        e.target.setPosition({x: e.target.x(), y: 0});
                     }}
                     onDragEnd={(e) => {
                         setIsDragging(false);
-                        console.log("onDragEnd", e.target.x(), e.target.y(), e.target.dragDistance());
-                        e.target.setPosition({x: e.target.x(), y: 0});
-                        setPosition({x: e.target.x(), y: 0});
-                    }}
-                />
+                        e.target.setPosition({x: 0, y: 0});
+                    }}>
+                    <Line
+                        points={[
+                            ...rescale({x: x, y: top}),
+                            ...rescale({x: x, y: bottom}),
+                        ]}
+                        stroke="green"
+                        hitStrokeWidth={10}
+                    />
+                </Group>
             </React.Fragment>
         );
     }
