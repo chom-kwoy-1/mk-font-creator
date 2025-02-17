@@ -33,11 +33,19 @@ type MixedDivider = {
     rest: JamoElement | Divider,
 };
 
+type ResizedGlyph = {
+    glyph: Glyph,
+    left: number,
+    right: number,
+    top: number,
+    bottom: number,
+};
+
 export type Layout = {
     name: string,
     focus: string,
     dividers: Divider,
-    glyphs: Map<string, Glyph | null>,
+    glyphs: Map<string, ResizedGlyph | null>,
 };
 
 export const leadingLayouts: Layout[] = [

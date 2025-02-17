@@ -1,5 +1,5 @@
 import React from 'react';
-import { Layer, Line } from 'react-konva';
+import {Line} from 'react-konva';
 import {Glyph, Point} from "@/app/parse_glyph";
 
 export function GlyphView(
@@ -9,7 +9,7 @@ export function GlyphView(
     }>
 ) {
     return (
-        <Layer>
+        <React.Fragment>
             {glyph.paths.map((path, pathIdx) => {
                 return (
                     <Line
@@ -32,6 +32,6 @@ export function GlyphView(
                     />
                 );
             })}
-        </Layer>
+        </React.Fragment>
     );
 }
