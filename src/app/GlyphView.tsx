@@ -1,5 +1,5 @@
 import React from 'react';
-import {Line} from 'react-konva';
+import {Circle, Line, Rect} from 'react-konva';
 import {Glyph, Point} from "@/app/parse_glyph";
 import Konva from "konva";
 
@@ -33,6 +33,39 @@ export function GlyphView(
                         {...props}
                     />
                 );
+            })}
+            {glyph.paths.map((path, pathIdx) => {
+                const points = [path.start, ...path.segments.map((segment) => segment.p)];
+                const controls = path.segments.flatMap((segment) => [segment.ct1, segment.ct2]);
+                return (
+                    <React.Fragment key={pathIdx}>
+                        {points.map((point, pointIdx) => {
+                            return (
+                                <Rect
+                                    key={pointIdx}
+                                    x={rescale(point)[0] - 2}
+                                    y={rescale(point)[1] - 2}
+                                    width={4}
+                                    height={4}
+                                    stroke="blue"
+                                    strokeWidth={1}
+                                />
+                            );
+                        })}
+                        {controls.map((control, controlIdx) => {
+                            return (
+                                <Circle
+                                    key={controlIdx}
+                                    x={rescale(control)[0]}
+                                    y={rescale(control)[1]}
+                                    radius={2}
+                                    stroke="brown"
+                                    strokeWidth={1}
+                                />
+                            );
+                        })}
+                    </React.Fragment>
+                )
             })}
         </React.Fragment>
     );
