@@ -11,7 +11,7 @@ import Grid from '@mui/material/Grid2';
 
 import {Charstring, Cmap4, FontDict, OS2, TTXObject} from "@/app/TTXObject";
 import {LayoutView} from "@/app/LayoutView";
-import {leadingLayouts} from "@/app/jamo_layouts";
+import {jamoLayouts} from "@/app/jamo_layouts";
 import {parseGlyph} from "@/app/parse_glyph";
 import {findCharstringByCodepoint} from "@/app/font_utils";
 
@@ -161,7 +161,7 @@ function CompositionLayouts(
     const os2 = React.useRef<OS2>(null);
     const cmap4 = React.useRef<Cmap4>(null);
 
-    const [myLeadingLayouts, setMyLeadingLayouts] = React.useState(structuredClone(leadingLayouts));
+    const [curLayouts, setCurLayouts] = React.useState(structuredClone(jamoLayouts));
 
     React.useEffect(() => {
         isLoaded.current = true;
@@ -172,7 +172,7 @@ function CompositionLayouts(
 
         console.log("Resetting leading layouts");
 
-        const newLeadingLayouts = leadingLayouts
+        const newLayouts = jamoLayouts
             .map((layout) => {
                 const newLayout = structuredClone(layout);
                 newLayout.glyphs = new Map(newLayout.glyphs.entries().map(
@@ -196,7 +196,7 @@ function CompositionLayouts(
                 return newLayout;
             });
 
-        setMyLeadingLayouts(newLeadingLayouts);
+        setCurLayouts(newLayouts);
     }, [ttx]);
 
     if (!isLoaded.current) {
@@ -214,16 +214,17 @@ function CompositionLayouts(
 
             <Paper variant="outlined" sx={{ my: { xs: 2, md: 4 }, p: { xs: 1, md: 3 } }}>
                 <Grid container spacing={2}>
-                    {myLeadingLayouts.map((layout, idx) =>
+                    {curLayouts.map((layout, idx) =>
                         <Grid key={idx} size={4}>
                             <Paper variant="elevation">
                                 <LayoutView
                                     layout={layout}
                                     setLayout={(newLayout) => {
-                                        setMyLeadingLayouts(
-                                            myLeadingLayouts.map((l, i) => i === idx ? newLayout : l)
+                                        setCurLayouts(
+                                            curLayouts.map((l, i) => i === idx ? newLayout : l)
                                         );
                                     }}
+                                    otherLayouts={curLayouts}
                                     fdarray={fdarray.current as FontDict[]}
                                     charstrings={charstrings.current as Charstring[]}
                                     os2={os2.current as OS2}
