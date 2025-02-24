@@ -97,7 +97,7 @@ export const exampleJamo: ExampleJamo = {
     'triple-leading': 'ᄢ',
     'single-right-vowel': 'ᅡ',
     'double-right-vowel': 'ᅢ',
-    'single-bottom-vowel': 'ᅩ',
+    'single-bottom-vowel': 'ᅮ',
     'double-bottom-vowel': 'ᆂ',
     'single-mixed-vowel': 'ᅪ',
     'double-mixed-vowel': 'ᅫ',

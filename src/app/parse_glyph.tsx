@@ -1,4 +1,5 @@
 import {Charstring, FontDict} from "@/app/TTXObject";
+import {Bezier} from "bezier-js";
 
 export type Point = {
     x: number,
@@ -384,5 +385,93 @@ export function parseGlyph(
         }
     }
 
-    return glyph;
+    return correctDirection(glyph);
+}
+
+function correctDirection(glyph: Glyph): Glyph {
+    const newGlyph = structuredClone(glyph);
+    const outsidePath = {x: 2000, y: 2000};
+
+    newGlyph.paths = newGlyph.paths.map((path) => {
+        const windingDir = windingDirection(path);
+
+        let n = numIntersections(
+            newGlyph.paths.filter((otherPath) => !Object.is(otherPath, path)),
+            {p1: outsidePath, p2: path.start},
+        );
+
+        console.log(n, windingDir);
+
+        if (n % 2 === 0 && windingDir === 'CW' ||
+            n % 2 === 1 && windingDir === 'CCW') {
+            return reversePath(path);
+        }
+
+        return path;
+    });
+
+    return newGlyph;
+}
+
+function reversePath(path: Path): Path {
+    const newPath: Path = {
+        start: structuredClone(path.segments[path.segments.length - 1].p),
+        segments: [],
+    };
+
+    for (let i = path.segments.length - 1; i >= 1; i--) {
+        newPath.segments.push({
+            ct1: structuredClone(path.segments[i].ct2),
+            ct2: structuredClone(path.segments[i].ct1),
+            p: structuredClone(path.segments[i - 1].p),
+        });
+    }
+    newPath.segments.push({
+        ct1: structuredClone(path.segments[0].ct2),
+        ct2: structuredClone(path.segments[0].ct1),
+        p: structuredClone(path.start),
+    });
+
+    return newPath;
+}
+
+function numIntersections(
+    paths: Path[],
+    line: {p1: Point, p2: Point},
+): number {
+    let numIntersections = 0;
+    for (const path of paths) {
+        let lastPoint = path.start;
+        for (const segment of path.segments) {
+            const bezier = new Bezier([
+                lastPoint, segment.ct1, segment.ct2, segment.p,
+            ]);
+            const intersections = bezier.intersects(line);
+            numIntersections += intersections.length;
+            lastPoint = segment.p;
+        }
+        const bezier = new Bezier([
+            lastPoint, path.start, path.start, path.start
+        ]);
+        const intersections = bezier.intersects(line);
+        numIntersections += intersections.length;
+    }
+    return numIntersections;
+}
+
+function windingDirection(path: Path): string {
+    let windingNum = 0;
+    let lastPoint = path.start;
+    for (const segment of path.segments) {
+        windingNum += winding(lastPoint, segment.ct1);
+        windingNum += winding(segment.ct1, segment.ct2);
+        windingNum += winding(segment.ct2, segment.p);
+        lastPoint = segment.p;
+    }
+    windingNum += winding(lastPoint, path.start);
+    return windingNum > 0? 'CW' : 'CCW';
+}
+
+function winding(p1: Point, p2: Point): number {
+    return (p2.x - p1.x) * (p2.y + p1.y);
 }

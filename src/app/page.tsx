@@ -11,8 +11,13 @@ import Grid from '@mui/material/Grid2';
 
 import {Charstring, Cmap4, FontDict, OS2, TTXObject} from "@/app/TTXObject";
 import {LayoutView} from "@/app/LayoutView";
-import {jamoLayouts} from "@/app/jamo_layouts";
+import {jamoLayouts, ResizedGlyph} from "@/app/jamo_layouts";
 import {initLayouts} from "@/app/init_layouts";
+import {ResizedGlyphView} from "@/app/ResizedGlyphView";
+import {parseGlyph, Point} from "@/app/parse_glyph";
+import {Layer, Stage} from "react-konva";
+import {findCharstringByCodepoint} from "@/app/font_utils";
+import {uniToPua} from "@/app/pua_uni_conv";
 
 
 const VisuallyHiddenInput = styled('input')({
@@ -154,7 +159,7 @@ function CompositionLayouts(
         origFilename: string
     }>
 ) {
-    const isLoaded = React.useRef(false);
+    const [isLoaded, setIsLoaded] = React.useState(false);
     const fdarray = React.useRef<FontDict[]>(null);
     const charstrings = React.useRef<Charstring[]>(null);
     const os2 = React.useRef<OS2>(null);
@@ -162,61 +167,113 @@ function CompositionLayouts(
 
     const [curLayouts, setCurLayouts] = React.useState(structuredClone(jamoLayouts));
 
+    const debug = true;
+
     React.useEffect(() => {
-        isLoaded.current = true;
         fdarray.current = array(JSONPath.query(ttx, '$.ttFont.CFF.CFFFont.FDArray.FontDict')[0]);
         charstrings.current = array(JSONPath.query(ttx, '$.ttFont.CFF.CFFFont.CharStrings.CharString')[0]);
         os2.current = JSONPath.query(ttx, '$.ttFont.OS_2')[0];
         cmap4.current = JSONPath.query(ttx, '$.ttFont.cmap.cmap_format_4[?(@.@_platformID == "0")]')[0];
 
-        console.log("Resetting layouts");
-        setCurLayouts(initLayouts(
-            cmap4.current as Cmap4,
-            charstrings.current as Charstring[],
-            fdarray.current as FontDict[],
-            os2.current as OS2,
-        ));
+        if (!debug) {
+            console.log("Resetting layouts");
+            setCurLayouts(initLayouts(
+                cmap4.current as Cmap4,
+                charstrings.current as Charstring[],
+                fdarray.current as FontDict[],
+                os2.current as OS2,
+            ));
+        }
+
+        setIsLoaded(true);
     }, [ttx]);
 
-    if (!isLoaded.current) {
+    const [left, setLeft] = React.useState<number>(-250);
+    const [bottom, setBottom] = React.useState<number>(-400);
+    const [viewWidth, setViewWidth] = React.useState<number>(1500);
+
+    if (!isLoaded) {
         return <div>Loading...</div>;
     }
+    else if (charstrings.current && fdarray.current && cmap4.current) {
+        if (debug) {
+            const aspectRatio = 1.;
+            const canvasWidth = 400, canvasHeight = aspectRatio * 400;
 
-    return (
-        <React.Fragment>
-            <Paper variant="outlined" sx={{ my: { xs: 2, md: 4 }, p: { xs: 1, md: 3 } }}>
-                <ShowFontSummary
-                    ttx={ttx}
-                    origFilename={origFilename}
-                />
-            </Paper>
+            const minCanvasSide = Math.min(canvasWidth, canvasHeight);
+            const scale = minCanvasSide / viewWidth;
 
-            <Paper variant="outlined" sx={{ my: { xs: 2, md: 4 }, p: { xs: 1, md: 3 } }}>
-                <Grid container spacing={2}>
-                    {curLayouts.map((layout, idx) =>
-                        <Grid key={idx} size={4}>
-                            <Paper variant="elevation">
-                                <LayoutView
-                                    layout={layout}
-                                    setLayout={(newLayout) => {
-                                        setCurLayouts(
-                                            curLayouts.map((l, i) => i === idx ? newLayout : l)
-                                        );
-                                    }}
-                                    otherLayouts={curLayouts}
-                                    fdarray={fdarray.current as FontDict[]}
-                                    charstrings={charstrings.current as Charstring[]}
-                                    os2={os2.current as OS2}
-                                    cmap4={cmap4.current as Cmap4}
-                                    showPoints={true}
-                                />
-                            </Paper>
+            function rescale(p: Point): number[] {
+                let x = (p.x - left) * scale;
+                x = x === -Infinity ? 0 : (x === Infinity ? canvasWidth : x);
+                let y = canvasHeight - (p.y - bottom) * scale;
+                y = y === -Infinity ? 0 : (y === Infinity ? canvasHeight : y);
+
+                return [x, y];
+            }
+
+            const cs = findCharstringByCodepoint(
+                'ㅇ'.codePointAt(0) as number,
+                cmap4.current,
+                charstrings.current,
+            );
+            const glyph: ResizedGlyph = {
+                glyph: parseGlyph(cs, fdarray.current),
+                bounds: {left: 0.2, right: 0.8, top: 0.8, bottom: 0.2},
+            }
+            return (
+                <Paper variant="elevation">
+                    <Stage width={canvasWidth} height={canvasHeight}>
+                        <Layer>
+                            <ResizedGlyphView
+                                resizedGlyph={glyph}
+                                rescale={rescale}
+                                bounds={{left: 0, right: 1000, top: 800, bottom: 200}}
+                                showPoints={true}
+                            />
+                        </Layer>
+                    </Stage>
+                </Paper>
+            );
+        }
+        else {
+            return (
+                <React.Fragment>
+                    <Paper variant="outlined" sx={{my: {xs: 2, md: 4}, p: {xs: 1, md: 3}}}>
+                        <ShowFontSummary
+                            ttx={ttx}
+                            origFilename={origFilename}
+                        />
+                    </Paper>
+
+                    <Paper variant="outlined" sx={{my: {xs: 2, md: 4}, p: {xs: 1, md: 3}}}>
+                        <Grid container spacing={2}>
+                            {curLayouts.map((layout, idx) =>
+                                <Grid key={idx} size={4}>
+                                    <Paper variant="elevation">
+                                        <LayoutView
+                                            layout={layout}
+                                            setLayout={(newLayout) => {
+                                                setCurLayouts(
+                                                    curLayouts.map((l, i) => i === idx ? newLayout : l)
+                                                );
+                                            }}
+                                            otherLayouts={curLayouts}
+                                            fdarray={fdarray.current as FontDict[]}
+                                            charstrings={charstrings.current as Charstring[]}
+                                            os2={os2.current as OS2}
+                                            cmap4={cmap4.current as Cmap4}
+                                            showPoints={false}
+                                        />
+                                    </Paper>
+                                </Grid>
+                            )}
                         </Grid>
-                    )}
-                </Grid>
-            </Paper>
-        </React.Fragment>
-    );
+                    </Paper>
+                </React.Fragment>
+            );
+        }
+    }
 }
 
 
