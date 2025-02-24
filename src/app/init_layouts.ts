@@ -1,8 +1,8 @@
-import {Divider, JamoElement, JamoKind, jamoLayouts, Layout, ResizedGlyph} from "@/app/jamo_layouts";
+import {Divider, JamoElement, JamoKind, jamoLayouts, JamoSubkind, Layout, ResizedGlyph} from "@/app/jamo_layouts";
 import {Bounds, findCharstringByCodepoint, glyphActualBounds, intersectGlyph} from "@/app/font_utils";
 import {Charstring, Cmap4, FontDict, OS2} from "@/app/TTXObject";
 import {Glyph, parseGlyph} from "@/app/parse_glyph";
-import {jamoTable} from "@/app/jamos";
+import {exampleJamo, getExampleJamo, jamoTable} from "@/app/jamos";
 import {uniToPua} from "@/app/pua_uni_conv";
 
 
@@ -16,8 +16,6 @@ export function initLayouts(
 
     const ascender = parseInt(os2.sTypoAscender['@_value']);
     const descender = parseInt(os2.sTypoDescender['@_value']);
-
-    console.log(layouts);
 
     // Initialize glyphs with positional variants
     layouts = layouts.map(
@@ -39,7 +37,6 @@ export function initLayouts(
                     parseGlyph(cs, fdarray),
                     {left: 0, right: 1000, top: ascender, bottom: descender},
                 );
-                console.log(jamo, syllable, resizedGlyph);
                 if (resizedGlyph) {
                     layout.glyphs.set(jamo, resizedGlyph);
                 }
@@ -88,7 +85,6 @@ function getIntersectingGlyph(
             if (divider.kind == focusKind) {
                 const newGlyph = intersectGlyph(glyph, bounds);
                 const actualBounds = glyphActualBounds(newGlyph);
-                console.log(bounds, actualBounds);
 
                 return {
                     'glyph': newGlyph,
@@ -163,11 +159,11 @@ function* genSyllables(
                 yield focusJamo;
             }
             else {
-                yield* Object.entries(jamoTable)
-                    .flatMap(([kind, jamos]) => {
+                yield* Object.keys(jamoTable)
+                    .flatMap((kind) => {
                         if (divider.subkind && kind == divider.subkind
                             || kind.endsWith(divider.kind)) {
-                            return jamos;
+                            return [exampleJamo[kind], ...jamoTable[kind]];
                         }
                         return [];
                     });

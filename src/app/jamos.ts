@@ -86,6 +86,27 @@ export const jamoTable: JamoTable = {
     ],
 };
 
+interface ExampleJamo {
+    [key: string]: string;
+}
+
+export const exampleJamo: ExampleJamo = {
+    'single-leading': 'ᄆ',
+    'stacked-leading': 'ᄫ',
+    'double-leading': 'ᄈ',
+    'triple-leading': 'ᄢ',
+    'single-right-vowel': 'ᅡ',
+    'double-right-vowel': 'ᅢ',
+    'single-bottom-vowel': 'ᅩ',
+    'double-bottom-vowel': 'ᆂ',
+    'single-mixed-vowel': 'ᅪ',
+    'double-mixed-vowel': 'ᅫ',
+    'single-tailing': 'ᆷ',
+    'stacked-tailing': 'ᇢ',
+    'double-tailing': 'ᆱ',
+    'triple-tailing': 'ᇌ',
+};
+
 export const subkindOf: Map<string, JamoSubkind> = new Map(
     Object.entries(jamoTable).flatMap(
         ([subkind, jamos]) => jamos.map(
@@ -100,4 +121,8 @@ export function getJamos(requestedKind: JamoKind | JamoSubkind): string[] {
         }
         return [];
     });
+}
+
+export function getExampleJamo(requestedKind: JamoKind | JamoSubkind): string {
+    return Object.keys(exampleJamo).find((kind) => kind.endsWith(requestedKind)) as string;
 }

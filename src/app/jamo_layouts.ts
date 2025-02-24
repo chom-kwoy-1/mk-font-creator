@@ -111,7 +111,7 @@ export const jamoLayouts: Layout[] = [
         elems: new Set(['stacked-leading', 'bottom-vowel']),
         dividers: {
             type: 'horizontal',
-            y: 0.5,
+            y: 0.3,
             top: {type: 'jamo', kind: 'leading', subkind: 'stacked-leading'},
             bottom: {type: 'jamo', kind: 'bottom-vowel'},
         },

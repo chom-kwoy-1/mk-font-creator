@@ -19,7 +19,8 @@ export function LayoutView(
         fdarray,
         charstrings,
         os2,
-        cmap4
+        cmap4,
+        showPoints,
     }: Readonly<{
         layout: Layout;
         setLayout: (layout: Layout) => void;
@@ -28,6 +29,7 @@ export function LayoutView(
         charstrings: Charstring[];
         os2: OS2;
         cmap4: Cmap4;
+        showPoints: boolean;
     }>
 ) {
     const ascender = parseInt(os2.sTypoAscender['@_value']);
@@ -56,12 +58,12 @@ export function LayoutView(
     }
 
     const [curJamo, setCurJamo] = React.useState(layout.glyphs.keys().next().value?? null);
-    const [curOtherJamos, setCurOtherJamos] = React.useState(
-        layout.elems.values()
-            .filter((kind) => !kind.endsWith(layout.focus))
-            .map((kind) => getJamos(kind)[0])
-            .toArray()
-    );
+
+    const otherJamoLists = layout.elems.values()
+        .filter((kind) => !kind.endsWith(layout.focus))
+        .map((kind) => getJamos(kind))
+        .toArray();
+    const [curOtherJamos, setCurOtherJamos] = React.useState(otherJamoLists.map((jamos) => jamos[0]));
 
     const resizedGlyph = curJamo? layout.glyphs.get(curJamo) : null;
 
@@ -118,6 +120,7 @@ export function LayoutView(
                                 }}
                                 otherLayouts={selectedOtherLayouts}
                                 drawBackground={drawBackground}
+                                showPoints={showPoints}
                             />))}
                     </Layer>
 
@@ -167,28 +170,43 @@ export function LayoutView(
                 </Stage>
             </Stack>
             <Grid container spacing={1} alignItems="center">
-                <Grid size={6}>
+                <Grid size={5}>
                     <Box>{layout.name}</Box>
                 </Grid>
-                <Grid size={6}>
-                    <Stack>
-                        <FormControl variant="standard" sx={{ minWidth: 120 }} size="small">
-                            <InputLabel id="jamo-select-label">Jamo</InputLabel>
-                            <Select
-                                variant="filled"
-                                labelId="jamo-select-label"
-                                id="jamo-select"
-                                value={curJamo}
-                                onChange={(e) => {
-                                    setCurJamo(e.target.value as string);
-                                }}
-                                label="Jamo"
-                            >
-                                {layout.glyphs.keys().map((jamo, i) => (
-                                    <MenuItem key={i} value={jamo}>{jamo}</MenuItem>
-                                )).toArray()}
-                            </Select>
-                        </FormControl>
+                <Grid size={7}>
+                    <Stack direction="row" spacing={0.5} justifyContent="flex-end">
+                        {[curJamo, ...curOtherJamos].map((jamo, i) =>
+                            <FormControl
+                                key={i}
+                                variant="standard"
+                                size="small">
+                                <InputLabel id="jamo-select-label">Jamo</InputLabel>
+                                <Select
+                                    variant={i === 0? "outlined" : "outlined"}
+                                    labelId="jamo-select-label"
+                                    id="jamo-select"
+                                    value={jamo}
+                                    onChange={(e) => {
+                                        if (i === 0) {
+                                            setCurJamo(e.target.value as string);
+                                        }
+                                        else {
+                                            const newCurOtherJamos = [...curOtherJamos];
+                                            newCurOtherJamos[i - 1] = e.target.value as string;
+                                            setCurOtherJamos(newCurOtherJamos);
+                                        }
+                                    }}
+                                    label="Jamo">
+                                    {i === 0?
+                                        layout.glyphs.keys().map((jamo, j) => (
+                                            <MenuItem key={j} value={jamo}>{jamo}</MenuItem>
+                                        )).toArray() :
+                                        otherJamoLists[i - 1].map((jamo, j) => (
+                                            <MenuItem key={j} value={jamo}>{jamo}</MenuItem>
+                                        ))}
+                                </Select>
+                            </FormControl>
+                        )}
                     </Stack>
                 </Grid>
             </Grid>

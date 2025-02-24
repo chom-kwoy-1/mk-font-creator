@@ -26,6 +26,7 @@ export function LayoutControl(
         setResizedGlyph: (resizedGlyph: ResizedGlyph) => void,
         otherLayouts: Map<JamoSubkind, { jamo: string, layout: Layout }>,
         drawBackground: boolean,
+        showPoints?: boolean,
     }>
 ) {
     const {
@@ -36,6 +37,7 @@ export function LayoutControl(
         setResizedGlyph,
         otherLayouts,
         drawBackground,
+        showPoints,
     } = props;
 
     if (divider.type === 'jamo') {
@@ -81,6 +83,7 @@ export function LayoutControl(
                                     resizedGlyph={resizedGlyph}
                                     rescale={rescale}
                                     bounds={{left: left, right: right, top: top, bottom: bottom}}
+                                    showPoints={showPoints}
                                 />
                             </React.Fragment>}
                     </React.Fragment>
@@ -101,6 +104,7 @@ export function LayoutControl(
                             resizedGlyph={resizedGlyph}
                             rescale={rescale}
                             bounds={{left: left, right: right, top: top, bottom: bottom}}
+                            showPoints={showPoints}
                         />
                     );
                 }
