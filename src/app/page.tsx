@@ -117,7 +117,7 @@ export default function Home() {
                             <Button
                                 component="label"
                                 role={undefined}
-                                variant="contained"
+                                variant="outlined"
                                 startIcon={<UploadFileIcon />}
                                 loading={loadingState !== null && !loadDone}
                             >
@@ -188,9 +188,9 @@ function CompositionLayouts(
         setIsLoaded(true);
     }, [ttx]);
 
-    const [left, setLeft] = React.useState<number>(-250);
-    const [bottom, setBottom] = React.useState<number>(-400);
-    const [viewWidth, setViewWidth] = React.useState<number>(1500);
+    const [left, setLeft] = React.useState<number>(0);
+    const [bottom, setBottom] = React.useState<number>(-200);
+    const [viewWidth, setViewWidth] = React.useState<number>(1000);
 
     if (!isLoaded) {
         return <div>Loading...</div>;
@@ -198,7 +198,7 @@ function CompositionLayouts(
     else if (charstrings.current && fdarray.current && cmap4.current) {
         if (debug) {
             const aspectRatio = 1.;
-            const canvasWidth = 400, canvasHeight = aspectRatio * 400;
+            const canvasWidth = 600, canvasHeight = aspectRatio * 600;
 
             const minCanvasSide = Math.min(canvasWidth, canvasHeight);
             const scale = minCanvasSide / viewWidth;
@@ -213,7 +213,7 @@ function CompositionLayouts(
             }
 
             const cs = findCharstringByCodepoint(
-                'ㅇ'.codePointAt(0) as number,
+                'ㅎ'.codePointAt(0) as number,
                 cmap4.current,
                 charstrings.current,
             );
@@ -222,7 +222,7 @@ function CompositionLayouts(
                 bounds: {left: 0.2, right: 0.8, top: 0.8, bottom: 0.2},
             }
             return (
-                <Paper variant="elevation">
+                <Paper>
                     <Stage width={canvasWidth} height={canvasHeight}>
                         <Layer>
                             <ResizedGlyphView
