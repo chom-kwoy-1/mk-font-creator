@@ -84,6 +84,7 @@ export function LayoutControl(
                                     rescale={rescale}
                                     bounds={{left: left, right: right, top: top, bottom: bottom}}
                                     showPoints={showPoints}
+                                    stroke="black"
                                 />
                             </React.Fragment>}
                     </React.Fragment>
@@ -105,6 +106,7 @@ export function LayoutControl(
                             rescale={rescale}
                             bounds={{left: left, right: right, top: top, bottom: bottom}}
                             showPoints={showPoints}
+                            stroke="black"
                         />
                     );
                 }
