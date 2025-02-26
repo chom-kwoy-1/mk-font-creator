@@ -16,7 +16,7 @@ import {initLayouts} from "@/app/init_layouts";
 import {ResizedGlyphView} from "@/app/ResizedGlyphView";
 import {parseGlyph, Point} from "@/app/parse_glyph";
 import {Layer, Stage, Text} from "react-konva";
-import {findCharstringByCodepoint} from "@/app/font_utils";
+import {findCharstringByCodepoint, glyphActualBounds} from "@/app/font_utils";
 import {uniToPua} from "@/app/pua_uni_conv";
 import Konva from "konva";
 
@@ -224,6 +224,18 @@ function CompositionLayouts(
                 glyph: parseGlyph(cs, fdarray.current),
                 bounds: {left: 0.2, right: 0.8, top: 0.8, bottom: 0.2},
             }
+            const bounds = {left: 0, right: 1000, top: 800, bottom: 200};
+            const actualBounds = glyphActualBounds(glyph.glyph);
+            const resizedBounds = glyph.bounds;
+            const targetBounds = {
+                left: bounds.left + resizedBounds.left * (bounds.right - bounds.left),
+                right: bounds.left + resizedBounds.right * (bounds.right - bounds.left),
+                top: bounds.bottom + resizedBounds.top * (bounds.top - bounds.bottom),
+                bottom: bounds.bottom + resizedBounds.bottom * (bounds.top - bounds.bottom),
+            }
+
+            const xScale = (targetBounds.right - targetBounds.left) / (actualBounds.right - actualBounds.left);
+            const yScale = (targetBounds.top - targetBounds.bottom) / (actualBounds.top - actualBounds.bottom);
             return (
                 <Paper>
                     <Stage
@@ -233,8 +245,10 @@ function CompositionLayouts(
                             if (ref.current) {
                                 const x = e.evt.offsetX / scale + left;
                                 const y = (canvasHeight - e.evt.offsetY) / scale + bottom;
+                                const rx = (x - targetBounds.left) / xScale + actualBounds.left;
+                                const ry = (y - targetBounds.bottom) / yScale + actualBounds.bottom;
                                 ref.current.position({x: e.evt.offsetX, y: e.evt.offsetY - 10});
-                                ref.current.text(`${x.toFixed(0)}, ${y.toFixed(0)}`);
+                                ref.current.text(`${rx.toFixed(0)}, ${ry.toFixed(0)}`);
                             }
                         }}
                     >
@@ -242,7 +256,7 @@ function CompositionLayouts(
                             <ResizedGlyphView
                                 resizedGlyph={glyph}
                                 rescale={rescale}
-                                bounds={{left: 0, right: 1000, top: 800, bottom: 200}}
+                                bounds={bounds}
                                 showPoints={true}
                                 strokeWidth={1}
                                 stroke="grey"
