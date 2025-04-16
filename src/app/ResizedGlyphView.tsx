@@ -6,7 +6,7 @@ import React from "react";
 import Konva from "konva";
 
 type PropType = Readonly<{
-    stageRef: React.RefObject<Konva.Group | null>,
+    stageRef?: React.RefObject<Konva.Group | null>,
     resizedGlyph: ResizedGlyph,
     rescale: (p: Point) => number[],
     bounds: Bounds,

@@ -6,7 +6,7 @@ import {Bezier} from "bezier-js";
 
 export function GlyphView(
     {stageRef, glyph, rescale, ...props}: Readonly<{
-        stageRef: React.RefObject<Konva.Group | null>,
+        stageRef?: React.RefObject<Konva.Group | null>,
         glyph: Glyph,
         rescale: (p: Point) => number[],
         showPoints?: boolean,

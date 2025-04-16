@@ -8,7 +8,7 @@ import {JamoSubkind, Layout} from "@/app/jamo_layouts";
 import UseDimensions from "@/app/useDimensions";
 import {Point} from "@/app/parse_glyph";
 import {Charstring, Cmap4, FontDict, OS2} from "@/app/TTXObject";
-import {getJamos, subkindOf} from "@/app/jamos";
+import {getJamos, selectLayout, subkindOf} from "@/app/jamos";
 import {LayoutControl} from "@/app/LayoutControl";
 
 
@@ -58,7 +58,7 @@ export function LayoutView(
         return [x, y];
     }
 
-    const [curJamo, setCurJamo] = React.useState(layout.glyphs.keys().next().value?? null);
+    const [curJamo, setCurJamo] = React.useState(layout.glyphs.keys().next().value as string);
 
     const otherJamoLists = layout.elems.values()
         .filter((kind) => !kind.endsWith(layout.focus))
@@ -68,26 +68,15 @@ export function LayoutView(
 
     const resizedGlyph = curJamo? layout.glyphs.get(curJamo) : null;
 
-    const curOtherJamoSubkinds = curOtherJamos
-        .map((jamo) => subkindOf.get(jamo) as JamoSubkind);
     const selectedOtherLayouts = new Map(curOtherJamos.map((otherJamo) => {
-        const otherJamoSubkind = subkindOf.get(otherJamo) as JamoSubkind;
-        let filteredOtherLayouts = otherLayouts
-            .filter((layout_) => layout_.elems.values().some((elem) => elem === otherJamoSubkind))
-            .filter((layout_) => layout_.elems.values().some((elem) => layout.focus.endsWith(elem)));
-        for (const otherJamoSubkind_ of curOtherJamoSubkinds) {
-            if (otherJamoSubkind_ !== otherJamoSubkind) {
-                filteredOtherLayouts = filteredOtherLayouts
-                    .filter((layout_) => layout_.elems.values().some((elem) => otherJamoSubkind_.endsWith(elem)));
-            }
-        }
-        if (filteredOtherLayouts.length !== 1) {
-            console.error(filteredOtherLayouts);
-            throw new Error(`Multiple layouts selected: ${filteredOtherLayouts.length}`);
-        }
+        let filteredOtherLayouts = selectLayout(otherLayouts, otherJamo, [curJamo]);
+        const otherJamoSubkindSet = subkindOf.get(otherJamo) as Set<JamoSubkind>;
+        const subkind = otherJamoSubkindSet.values()
+            .filter((subkind) => layout.elems.values().some((elem) => subkind.endsWith(elem)))
+            .toArray();
         return [
-            otherJamoSubkind,
-            {'jamo': otherJamo, 'layout': filteredOtherLayouts[0]},
+            subkind[0],
+            {'jamo': otherJamo, 'layout': filteredOtherLayouts},
         ];
     }));
 

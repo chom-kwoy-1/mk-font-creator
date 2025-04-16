@@ -163,7 +163,7 @@ function* genSyllables(
                     .flatMap((kind) => {
                         if (divider.subkind && kind == divider.subkind
                             || kind.endsWith(divider.kind)) {
-                            return [exampleJamo[kind], ...jamoTable[kind]];
+                            return [exampleJamo[kind], ...jamoTable[kind as JamoSubkind]];
                         }
                         return [];
                     });
