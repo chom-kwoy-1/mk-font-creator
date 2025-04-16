@@ -2,6 +2,7 @@ import React from "react";
 import {Box, FormControl, InputLabel, MenuItem, Select, Stack} from "@mui/material";
 import {Layer, Line, Stage} from 'react-konva';
 import Grid from '@mui/material/Grid2';
+import {brown, teal} from "@mui/material/colors";
 
 import {JamoSubkind, Layout} from "@/app/jamo_layouts";
 import UseDimensions from "@/app/useDimensions";
@@ -90,6 +91,8 @@ export function LayoutView(
         ];
     }));
 
+    const outlineColor = teal[500];
+
     return (
         <Stack>
             <Stack ref={ref}>
@@ -132,7 +135,7 @@ export function LayoutView(
                                 ...rescale({ x: 0, y: -Infinity }),
                                 ...rescale({ x: 0, y: Infinity }),
                             ]}
-                            stroke="blue"
+                            stroke={outlineColor}
                             strokeWidth={1}
                         />
                         <Line
@@ -140,7 +143,7 @@ export function LayoutView(
                                 ...rescale({ x: 1000, y: -Infinity }),
                                 ...rescale({ x: 1000, y: Infinity }),
                             ]}
-                            stroke="blue"
+                            stroke={outlineColor}
                             strokeWidth={1}
                         />
                         <Line
@@ -148,7 +151,7 @@ export function LayoutView(
                                 ...rescale({ x: -Infinity, y: 0 }),
                                 ...rescale({ x: Infinity, y: 0 }),
                             ]}
-                            stroke="brown"
+                            stroke={brown[500]}
                             strokeWidth={1}
                         />
                         <Line
@@ -156,7 +159,7 @@ export function LayoutView(
                                 ...rescale({ x: -Infinity, y: ascender }),
                                 ...rescale({ x: Infinity, y: ascender }),
                             ]}
-                            stroke="blue"
+                            stroke={outlineColor}
                             strokeWidth={1}
                         />
                         <Line
@@ -164,7 +167,7 @@ export function LayoutView(
                                 ...rescale({ x: -Infinity, y: descender }),
                                 ...rescale({ x: Infinity, y: descender }),
                             ]}
-                            stroke="blue"
+                            stroke={outlineColor}
                             strokeWidth={1}
                         />
                     </Layer>

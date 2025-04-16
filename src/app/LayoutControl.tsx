@@ -6,6 +6,7 @@ import {ResizeableRect} from "@/app/ResizeableRect";
 import {Group, Line, Rect} from "react-konva";
 import {Bounds} from "@/app/font_utils";
 import Konva from "konva";
+import {grey, orange} from "@mui/material/colors";
 
 export function LayoutControl(
     {
@@ -40,8 +41,8 @@ export function LayoutControl(
         showPoints,
     } = props;
 
-    const outlineColor = 'white';
-    const highlightAreaColor = '#444444';
+    const outlineColor = grey[50];
+    const highlightAreaColor = grey[800];
 
     const ref = React.useRef<Konva.Group>(null);
 
@@ -89,7 +90,7 @@ export function LayoutControl(
                                     }}
                                     rescale={rescale}
                                     xyScales={xyScales}
-                                    stroke="yellow"
+                                    stroke={orange[500]}
                                     strokeWidth={1}
                                     resizedRefs={[ref.current as Konva.Group]}
                                 />
@@ -127,7 +128,8 @@ export function LayoutControl(
     const [isDragging, setIsDragging] = React.useState<boolean>(false);
 
     const handleSize = 7;
-    const handleColor = "green";
+    const dividerColor = grey[500];
+    const handleColor = grey[500];
 
     if (divider.type === 'vertical') {
         const x = left + divider.x * (right - left);
@@ -199,7 +201,7 @@ export function LayoutControl(
                                 ...rescale({x: x, y: top}),
                                 ...rescale({x: x, y: bottom}),
                             ]}
-                            stroke={isDragging ? "red" : "green"}
+                            stroke={dividerColor}
                             strokeWidth={isDragging ? 5 : 2}
                             hitStrokeWidth={0}
                         />
@@ -276,7 +278,7 @@ export function LayoutControl(
                                 ...rescale({x: left, y: y}),
                                 ...rescale({x: right, y: y}),
                             ]}
-                            stroke={isDragging ? "red" : "green"}
+                            stroke={dividerColor}
                             strokeWidth={isDragging ? 5 : 2}
                             hitStrokeWidth={0}
                         />
@@ -304,7 +306,7 @@ export function LayoutControl(
                     ...rescale({x: left, y: y}),
                     ...rescale({x: x, y: y}),
                     ...rescale({x: x, y: top}),
-                ]} stroke="green"/>
+                ]} stroke={dividerColor}/>
             </React.Fragment>
         );
     } else {

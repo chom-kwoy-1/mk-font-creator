@@ -3,6 +3,7 @@ import {Point} from "@/app/parse_glyph";
 import Konva from "konva";
 import React from "react";
 import {Group, Line, Rect} from "react-konva";
+import {blue, amber} from "@mui/material/colors";
 
 export function ResizeableRect(
     {bounds, setBounds, rescale, xyScales, resizedRefs, ...props}: Readonly<{
@@ -19,6 +20,7 @@ export function ResizeableRect(
         left: false,
         whole: false,
     });
+    const [isHovering, setIsHovering] = React.useState(false);
     const bottomRef = React.useRef<Konva.Line>(null);
     const rightRef = React.useRef<Konva.Line>(null);
     const topRef = React.useRef<Konva.Line>(null);
@@ -35,6 +37,12 @@ export function ResizeableRect(
 
     const [x1, y1] = rescale({x: bounds.left, y: bounds.bottom});
     const [x2, y2] = rescale({x: bounds.right, y: bounds.top});
+
+    props = structuredClone(props);
+    if (isHovering) {
+        props.stroke = blue[500];
+        props.strokeWidth = 3;
+    }
 
     const dragColor = props.stroke;
 
@@ -68,7 +76,7 @@ export function ResizeableRect(
     };
 
     const handleSize = 7;
-    const handleColor = '#a7a7ff';
+    const handleColor = amber[500];
 
     return (
         <Group>
@@ -120,12 +128,14 @@ export function ResizeableRect(
                     if (container) {
                         container.style.cursor = "move";
                     }
+                    setIsHovering(true);
                 }}
                 onMouseLeave={(e) => {
                     const container = e.target.getStage()?.container();
                     if (container) {
                         container.style.cursor = "default";
                     }
+                    setIsHovering(false);
                 }}
             />
 
