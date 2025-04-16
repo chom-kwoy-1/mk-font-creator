@@ -1,8 +1,13 @@
 'use client'
 import React from "react";
-import { styled } from '@mui/material/styles';
+import {styled} from '@mui/material/styles';
 import {Box, Button, LinearProgress} from "@mui/material";
-import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import UploadFileIcon from '@mui/icons-material/UploadFile';
+import DownloadIcon from '@mui/icons-material/Download';
+import prettyBytes from 'pretty-bytes';
+import {XMLParser} from "fast-xml-parser";
+import { JSONPath } from '@astronautlabs/jsonpath';
+
 
 const VisuallyHiddenInput = styled('input')({
     clip: 'rect(0 0 0 0)',
@@ -16,18 +21,34 @@ const VisuallyHiddenInput = styled('input')({
     width: 1,
 });
 
+type TTXObject = {
+    ttFont: {
+        name: {
+            namerecord: {
+                '@_nameID': string,
+                '#text': string,
+            }[]
+        },
+        GlyphOrder: {
+            GlyphID: string[]
+        }
+    }
+};
+
 export default function Home() {
     const [file, setFile] = React.useState<File | null>(null);
     const [loadingState, setLoadingState] = React.useState<string | null>(null);
     const [loadDone, setLoadDone] = React.useState<boolean>(false);
-    const [doc, setDoc] = React.useState<Document | null>(null);
+    const [ttx, setTTX] = React.useState<TTXObject | null>(null);
+    const [downloadState, setDownloadState] = React.useState<string | null>(null);
+    const [downloadDone, setDownloadDone] = React.useState<boolean>(false);
 
     async function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
         if (event.target.files && event.target.files.length > 0) {
             // Reset state
             setLoadDone(false);
             setLoadingState(null);
-            setDoc(null);
+            setTTX(null);
 
             const newFile = event.target.files[0];
             setFile(newFile);
@@ -36,7 +57,7 @@ export default function Home() {
             formData.append('file', newFile as Blob);
 
             setLoadingState("Uploading file");
-            const response = await fetch('/api/convert_font', {
+            const response = await fetch('/api/decompile_font', {
                 method: 'POST',
                 body: formData,
             });
@@ -45,30 +66,36 @@ export default function Home() {
             if (response.body instanceof ReadableStream) {
                 const stream = response.body;  // get gzip stream
 
-                const reader = stream.pipeThrough(new DecompressionStream('gzip')).getReader();
+                const reader = stream
+                    .pipeThrough(new DecompressionStream('gzip'))
+                    .pipeThrough(new TextDecoderStream())
+                    .getReader();
 
                 let length = 0;
                 let text = "";
-                const decoder = new TextDecoder();
                 while (true) {
                     const {value, done} = await reader.read();  // start reading
                     if (done) {
-                        setLoadingState("Downloaded: " + length + " bytes");
+                        setLoadingState("Downloaded: " + prettyBytes(length));
                         break;
                     }
 
                     length += value.length;
-                    setLoadingState("Downloading: " + length + " bytes");
+                    setLoadingState("Downloading: " + prettyBytes(length));
 
-                    text += decoder.decode(value);
+                    text += value;
                 }
 
                 setLoadingState("Parsing XML...");
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(text, 'text/xml');
+
+                const parser = new XMLParser({
+                    alwaysCreateTextNode: true,
+                    ignoreAttributes : false,
+                });
+                const doc = parser.parse(text);
                 setLoadingState("Loading Done.");
 
-                setDoc(doc);
+                setTTX(doc);
                 setLoadDone(true);
             }
             else {
@@ -81,15 +108,84 @@ export default function Home() {
         }
     }
 
+    const workerRef = React.useRef<Worker>(null);
+    React.useEffect(() => {
+        workerRef.current = new Worker(new URL("xml_serializer_worker.ts", import.meta.url));
+        workerRef.current.onmessage = (event: MessageEvent<number>) =>
+            alert(`WebWorker Response => ${typeof(event.data)}`);
+        return () => {
+            workerRef.current?.terminate();
+        };
+    }, []);
+
+    async function downloadFont() {
+        if (!ttx || !workerRef.current) {
+            return;
+        }
+
+        try {
+            setDownloadDone(false);
+            setDownloadState("Preparing download...");
+
+            const blob: Blob = await new Promise((resolve, reject) => {
+                if (!ttx || !workerRef.current) {
+                    reject("No document or worker");
+                    return;
+                }
+                workerRef.current.onmessage = (event: MessageEvent<Blob>) => {
+                    if (event.data instanceof Blob) {
+                        resolve(event.data);
+                        return;
+                    }
+                    setDownloadState(event.data as string);
+                }
+                workerRef.current?.postMessage(ttx);
+            });
+
+            setDownloadState("Compiling font...");
+
+            // Send the compressed XML to the server
+            const response = await fetch('/api/compile_font', {
+                method: 'POST',
+                body: blob,
+            });
+
+            const streamSaver = await import('streamsaver');
+            const fileStream = streamSaver.createWriteStream(
+                file ? `${file.name}` : "font.ttf",
+                {size: file?.size}
+            );
+
+            let download_length = 0;
+            await response.body
+                ?.pipeThrough(new DecompressionStream('gzip'))
+                .pipeThrough(new TransformStream({
+                    transform(chunk, controller) {
+                        download_length += chunk.length;
+                        controller.enqueue(chunk);
+                        setDownloadState("Downloading: " + prettyBytes(download_length));
+                    },
+                }))
+                .pipeTo(fileStream);
+
+            setDownloadState("Download complete");
+            setDownloadDone(true);
+        }
+        catch (err) {
+            console.error(err);
+            setDownloadState("Error: " + err);
+        }
+    }
+
     return (
         <React.Fragment>
             {file && <p>File: {file.name}</p>}
+
             <Button
                 component="label"
                 role={undefined}
                 variant="contained"
-                tabIndex={-1}
-                startIcon={<CloudUploadIcon />}
+                startIcon={<UploadFileIcon />}
                 loading={loadingState !== null && !loadDone}
             >
                 Upload font file
@@ -98,22 +194,52 @@ export default function Home() {
                     onChange={(event) => handleFileChange(event)}
                 />
             </Button>
+
             {loadingState && <Box>
                 {!loadDone && <LinearProgress />}
-                Loading: {loadingState}
+                <p>Loading: {loadingState}</p>
             </Box>}
-            {loadDone && doc && <ShowFontContents doc={doc} />}
+
+            {loadDone && ttx && <ShowFontContents
+                ttx={ttx}
+                downloadFont={downloadFont}
+                downloadState={downloadState}
+                downloadDone={downloadDone}
+            />}
         </React.Fragment>
     );
 }
 
 
-function ShowFontContents({doc}: {doc: Document}) {
+function ShowFontContents(
+    {ttx, downloadFont, downloadState, downloadDone}: {
+        ttx: TTXObject,
+        downloadFont: () => void,
+        downloadState: string | null,
+        downloadDone: boolean,
+    }) {
+
+    const font_name = JSONPath.query(ttx, '$.ttFont.name.namerecord[?(@.@_nameID == "4")]')[0]['#text'];
+    const font_version = JSONPath.query(ttx, '$.ttFont.name.namerecord[?(@.@_nameID == "5")]')[0]['#text'];
+    const number_of_glyphs = JSONPath.query(ttx, '$.ttFont.GlyphOrder.GlyphID')[0].length;
+
     return (
         <React.Fragment>
-            <p><strong>Font</strong>: {doc.querySelector('namerecord[nameID="4"]')?.innerHTML}</p>
-            <p><strong>Version</strong>: {doc.querySelector('namerecord[nameID="5"]')?.innerHTML}</p>
-            <p><strong>Number of glyphs</strong>: {doc.querySelectorAll('GlyphID').length}</p>
+            <p><strong>Font</strong>: {font_name}</p>
+            <p><strong>Version</strong>: {font_version}</p>
+            <p><strong>Number of glyphs</strong>: {number_of_glyphs}</p>
+            <Button
+                variant="contained"
+                startIcon={<DownloadIcon />}
+                onClick={() => downloadFont()}
+                loading={downloadState !== null && !downloadDone}
+            >
+                Download font
+            </Button>
+            {downloadState && <Box>
+                {!downloadDone && <LinearProgress />}
+                <p>Download status: {downloadState}</p>
+            </Box>}
         </React.Fragment>
     );
 }
