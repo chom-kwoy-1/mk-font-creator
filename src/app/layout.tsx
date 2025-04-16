@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import {AppBar, CssBaseline, Paper, Toolbar, Typography} from "@mui/material";
+import {AppBar, CssBaseline, Toolbar, Typography} from "@mui/material";
 import { ThemeProvider } from '@mui/material';
 import theme from './theme';
 import {Box, Container} from "@mui/system";
@@ -35,9 +35,7 @@ export default function RootLayout(
                 }}
             >
                 <Container maxWidth="lg" sx={{ mb: 4, px: { xs: 0.2, sm: 2 } }}>
-                    <Paper variant="outlined" sx={{ my: { xs: 2, md: 4 }, p: { xs: 1, md: 3 } }}>
-                        {children}
-                    </Paper>
+                    {children}
                 </Container>
             </Box>
         </ThemeProvider>
