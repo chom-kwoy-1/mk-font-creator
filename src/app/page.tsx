@@ -168,7 +168,7 @@ function CompositionLayouts(
 
     const [curLayouts, setCurLayouts] = React.useState(structuredClone(jamoLayouts));
 
-    const debug = true;
+    const debug = false;
 
     React.useEffect(() => {
         fdarray.current = array(JSONPath.query(ttx, '$.ttFont.CFF.CFFFont.FDArray.FontDict')[0]);
@@ -217,7 +217,7 @@ function CompositionLayouts(
             }
 
             const cs = findCharstringByCodepoint(
-                'ㅏ'.codePointAt(0) as number,
+                'ㄱ'.codePointAt(0) as number,
                 cmap4.current,
                 charstrings.current,
             );
@@ -225,7 +225,7 @@ function CompositionLayouts(
                 glyph: parseGlyph(cs, fdarray.current),
                 bounds: {left: 0.2, right: 0.8, top: 0.8, bottom: 0.2},
             }
-            const bounds = {left: -500, right: 1500, top: 1500, bottom: -1700};
+            const bounds = {left: 0, right: 1000, top: 800, bottom: 300};
             const actualBounds = glyphActualBounds(glyph.glyph);
             const resizedBounds = glyph.bounds;
             const targetBounds = {
@@ -251,14 +251,13 @@ function CompositionLayouts(
                                 ref.current.position({x: e.evt.offsetX, y: e.evt.offsetY - 10});
                                 ref.current.text(`${rx.toFixed(0)}, ${ry.toFixed(0)}`);
                             }
-                        }}
-                    >
+                        }}>
                         <Layer>
                             <ResizedGlyphView
                                 resizedGlyph={glyph}
                                 rescale={rescale}
                                 bounds={bounds}
-                                showPoints={true}
+                                showPoints={false}
                                 strokeWidth={1}
                                 stroke="grey"
                             />

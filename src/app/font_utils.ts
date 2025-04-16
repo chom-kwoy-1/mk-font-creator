@@ -107,7 +107,7 @@ export function adjustGlyphThickness(
     yScale: number
 ): Glyph {
     glyph = reduceGlyphPaths(glyph);
-    const boldOffset = 10;
+    const boldOffset = 40;
     const boldGlyph = synthesizeBoldGlyph(glyph, boldOffset);
 
     const config = {
@@ -119,35 +119,28 @@ export function adjustGlyphThickness(
         alpha: 0.2,
     };
 
-    // const newGlyph = structuredClone(glyph);
-    // for (let pathIdx = 0; pathIdx < newGlyph.paths.length; pathIdx++) {
-    //     const path = newGlyph.paths[pathIdx];
-    //     const boldPath = boldGlyph.paths[pathIdx];
-    //
-    //     path.start = interpolate(path.start, boldPath.start, config);
-    //
-    //     const newSegments: Segment[] = [];
-    //     for (let segIdx = 0; segIdx < path.segments.length; segIdx++) {
-    //         const segment = path.segments[segIdx];
-    //         const boldSeg = boldPath.segments[segIdx];
-    //
-    //         newSegments.push({
-    //             ct1: interpolate(segment.ct1, boldSeg.ct1, config),
-    //             ct2: interpolate(segment.ct2, boldSeg.ct2, config),
-    //             p: interpolate(segment.p, boldSeg.p, config),
-    //         });
-    //     }
-    //     path.segments = newSegments;
-    // }
+    const newGlyph = structuredClone(glyph);
+    for (let pathIdx = 0; pathIdx < newGlyph.paths.length; pathIdx++) {
+        const path = newGlyph.paths[pathIdx];
+        const boldPath = boldGlyph.paths[pathIdx];
 
-    // return newGlyph;
-    return {
-        width: glyph.width,
-        paths: [
-            ...glyph.paths,
-            ...boldGlyph.paths,
-        ]
-    };
+        path.start = interpolate(path.start, boldPath.start, config);
+
+        const newSegments: Segment[] = [];
+        for (let segIdx = 0; segIdx < path.segments.length; segIdx++) {
+            const segment = path.segments[segIdx];
+            const boldSeg = boldPath.segments[segIdx];
+
+            newSegments.push({
+                ct1: interpolate(segment.ct1, boldSeg.ct1, config),
+                ct2: interpolate(segment.ct2, boldSeg.ct2, config),
+                p: interpolate(segment.p, boldSeg.p, config),
+            });
+        }
+        path.segments = newSegments;
+    }
+
+    return newGlyph;
 }
 
 function interpolate(
@@ -213,6 +206,31 @@ function offsetGlyphSegments(glyph: Glyph, d: number): Bezier[][] {
     });
 }
 
+function curveIntersect(b1: Bezier, b2: Bezier): {t1: number, t2: number}[] {
+    // FIXME: Workaround for degenerate cases
+    const noise = 1e-4;
+    function n() {
+        return noise * (Math.random() - .5);
+    }
+    const b1_ = new Bezier([
+        {x: b1.points[0].x + n(), y: b1.points[0].y + n()},
+        {x: b1.points[1].x + n(), y: b1.points[1].y + n()},
+        {x: b1.points[2].x + n(), y: b1.points[2].y + n()},
+        {x: b1.points[3].x + n(), y: b1.points[3].y + n()},
+    ]);
+    const b2_ = new Bezier([
+        {x: b2.points[0].x + n(), y: b2.points[0].y + n()},
+        {x: b2.points[1].x + n(), y: b2.points[1].y + n()},
+        {x: b2.points[2].x + n(), y: b2.points[2].y + n()},
+        {x: b2.points[3].x + n(), y: b2.points[3].y + n()},
+    ]);
+    const intersections = b1_.intersects(b2_, 1e-3);
+    return intersections.map((t1_t2) => {
+        const [t1, t2] = (t1_t2 as string).split("/").map(parseFloat);
+        return {t1, t2};
+    });
+}
+
 function synthesizeBoldGlyph(glyph: Glyph, d: number): Glyph {
     const offsetBeziers: Bezier[][] = offsetGlyphSegments(glyph, d);
 
@@ -228,6 +246,9 @@ function synthesizeBoldGlyph(glyph: Glyph, d: number): Glyph {
         const newSegments: Segment[] = [];
         for (let segIdx = 0; segIdx <= path.segments.length; segIdx++) {
             const offsetBezier = offsetBeziers[pathIdx][segIdx];
+            if (offsetBezier === undefined) {
+                break;
+            }
             if (lastBezier === null) {
                 path.start = structuredClone(offsetBezier.points[0]);
                 lastBezier = offsetBezier;
@@ -253,11 +274,9 @@ function synthesizeBoldGlyph(glyph: Glyph, d: number): Glyph {
                     let corrected = false;
                     for (let i = newSegments.length - 1; i >= 0; i--) {
                         const prevBezier = offsetBeziers[pathIdx][i];
-                        const intersect = prevBezier.intersects(offsetBezier);
-                        // console.log("prev bezier", i, prevBezier, offsetBezier, intersect);
+                        const intersect = curveIntersect(prevBezier, offsetBezier);
                         if (intersect.length > 0) {
-                            const t1_t2 = intersect[intersect.length - 1] as string;
-                            const [t1, t2] = t1_t2.split("/").map(parseFloat);
+                            const {t1, t2} = intersect[intersect.length - 1];
                             const split = prevBezier.split(t1);
                             newSegments[i] = {
                                 ct1: structuredClone(split.left.points[1]),
@@ -271,6 +290,7 @@ function synthesizeBoldGlyph(glyph: Glyph, d: number): Glyph {
                                     p: structuredClone(split.left.points[3]),
                                 };
                             }
+                            console.log(segIdx, "resolved at", i);
                             corrected = true;
                             lastBezier = offsetBezier;
                             break;
@@ -292,7 +312,7 @@ function synthesizeBoldGlyph(glyph: Glyph, d: number): Glyph {
         }
 
         if (!isResolved) {
-            console.error("unresolved", path, lastBezier);
+            console.log("warning: unresolved offset connection", path, lastBezier);
         }
 
         path.segments = newSegments;

@@ -1,7 +1,8 @@
 import React from 'react';
-import {Circle, Line, Rect} from 'react-konva';
+import {Circle, Line, Rect, Text} from 'react-konva';
 import {Glyph, Point} from "@/app/parse_glyph";
 import Konva from "konva";
+import {Bezier} from "bezier-js";
 
 export function GlyphView(
     {glyph, rescale, ...props}: Readonly<{
@@ -38,8 +39,26 @@ export function GlyphView(
                 const points = [path.start, ...path.segments.map((segment) => segment.p)];
                 const controls = path.segments.flatMap((segment) => [segment.ct1, segment.ct2]);
                 const ctLines = [];
+                const texts = [];
                 let lastPoint = path.start;
+                let idx = 0;
                 for (const segment of path.segments) {
+                    const bezier = new Bezier(structuredClone([
+                        lastPoint, segment.ct1, segment.ct2, segment.p
+                    ]));
+                    const mid = bezier.get(0.5);
+                    texts.push(
+                        <Text
+                            key={idx}
+                            x={rescale(mid)[0]}
+                            y={rescale(mid)[1]}
+                            text={`${idx}`}
+                            fontSize={7}
+                            fill={["#dddd33", "#33dddd", "#dd33dd"][pathIdx % 3]}
+                            align={"center"}
+                            verticalAlign={"middle"}
+                        />
+                    )
                     ctLines.push(
                         <Line
                             key={ctLines.length}
@@ -65,6 +84,7 @@ export function GlyphView(
                         />
                     );
                     lastPoint = segment.p;
+                    idx += 1;
                 }
 
                 return (
@@ -96,6 +116,7 @@ export function GlyphView(
                                 />
                             );
                         })}
+                        {texts}
                     </React.Fragment>
                 )
             }) : null}
