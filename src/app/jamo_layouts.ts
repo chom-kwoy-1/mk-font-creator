@@ -7,6 +7,7 @@ export type JamoKind = (
     | 'right-vowel'
     | 'bottom-vowel' | 'bottom-vowel-1' | 'bottom-vowel-2'
     | 'mixed-vowel'
+    | 'bm-vowel'
     | 'tailing'
 );
 export type JamoSubkind = (
@@ -18,6 +19,7 @@ export type JamoSubkind = (
     | 'single-bottom-vowel' | 'single-bottom-vowel-1' | 'single-bottom-vowel-2'
     | 'double-bottom-vowel'
     | 'single-mixed-vowel' | 'double-mixed-vowel'
+    | 'bm-vowel'
     | 'single-tailing' | 'stacked-tailing' | 'double-tailing' | 'triple-tailing'
 );
 
@@ -27,7 +29,7 @@ export type JamoElement = {
     subkind?: JamoSubkind,
 };
 
-export type Divider = VerticalDivider | HorizontalDivider | MixedDivider;
+export type Divider = VerticalDivider | HorizontalDivider | MixedDivider | LayoutRef;
 
 type VerticalDivider = {
     type: 'vertical',
@@ -56,6 +58,11 @@ export type ResizedGlyph = {
     bounds: Bounds,
 };
 
+export type LayoutRef = {
+    type: 'layout-ref',
+    elems: Set<JamoKind | JamoSubkind>,
+}
+
 export type Layout = {
     name: string,
     focus: JamoKind,
@@ -65,7 +72,7 @@ export type Layout = {
 };
 
 export const jamoLayouts: Layout[] = [
-    // Consonants
+    // Leading
     {
         name: 'LV-기본자-가로모임',
         focus: 'leading',
@@ -227,4 +234,29 @@ export const jamoLayouts: Layout[] = [
         },
         glyphs: new Map(jamoTable['single-mixed-vowel'].map(jamo => [jamo, null])),
     },
+    // Tail
+    // {
+    //     name: 'LVT-1',
+    //     focus: 'tailing',
+    //     elems: new Set(['leading', 'right-vowel', 'single-tailing']),
+    //     dividers: {
+    //         type: 'horizontal',
+    //         y: 0.6,
+    //         top: {type: 'layout-ref', elems: new Set(['leading', 'right-vowel'])},
+    //         bottom: {type: 'jamo', kind: 'tailing', subkind: 'single-tailing'},
+    //     },
+    //     glyphs: new Map(jamoTable['single-tailing'].map(jamo => [jamo, null])),
+    // },
+    // {
+    //     name: 'LVT-2',
+    //     focus: 'tailing',
+    //     elems: new Set(['leading', 'bm-vowel', 'single-tailing']),
+    //     dividers: {
+    //         type: 'horizontal',
+    //         y: 0.6,
+    //         top: {type: 'layout-ref', elems: new Set(['leading', 'bm-vowel'])},
+    //         bottom: {type: 'jamo', kind: 'tailing', subkind: 'single-tailing'},
+    //     },
+    //     glyphs: new Map(jamoTable['single-tailing'].map(jamo => [jamo, null])),
+    // },
 ];

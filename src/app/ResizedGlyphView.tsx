@@ -28,7 +28,7 @@ export function ResizedGlyphView(
     const xScale = (targetBounds.right - targetBounds.left) / (actualBounds.right - actualBounds.left);
     const yScale = (targetBounds.top - targetBounds.bottom) / (actualBounds.top - actualBounds.bottom);
 
-    const boldOffset = 40;
+    const boldOffset = 20;
     const [reducedGlyph, boldGlyph] = React.useMemo(() => {
         console.log("Synthesize bold glyph");
         const reducedGlyph = reduceGlyphPaths(resizedGlyph.glyph);

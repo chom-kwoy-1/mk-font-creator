@@ -162,6 +162,9 @@ function getIntersectingGlyph(
                 ])
             );
         }
+        case 'layout-ref': {
+            return null;
+        }
     }
 }
 

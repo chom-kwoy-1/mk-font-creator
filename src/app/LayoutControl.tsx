@@ -1,17 +1,17 @@
 import {Divider, JamoElement, JamoSubkind, Layout, ResizedGlyph} from "@/app/jamo_layouts";
 import {Point} from "@/app/parse_glyph";
 import React from "react";
-import {ResizedGlyphView} from "@/app/ResizedGlyphView";
-import {ResizeableRect} from "@/app/ResizeableRect";
 import {Group, Line, Rect} from "react-konva";
+import {grey} from "@mui/material/colors";
+import {selectLayout, subkindOf} from "@/app/jamos";
+import {ResizeableJamo} from "@/app/ResizeableJamo";
 import {Bounds} from "@/app/font_utils";
-import Konva from "konva";
-import {grey, orange} from "@mui/material/colors";
 
 export function LayoutControl(
     {
         divider, setDivider,
         left, right, top, bottom,
+        layout, setLayout, curJamos,
         ...props
     }: Readonly<{
         divider: JamoElement | Divider,
@@ -20,110 +20,23 @@ export function LayoutControl(
         right: number,
         top: number,
         bottom: number,
-        focus: string,
         rescale: (p: Point) => number[],
         xyScales: { x: number, y: number },
-        resizedGlyph: ResizedGlyph | null,
-        setResizedGlyph: (resizedGlyph: ResizedGlyph) => void,
-        otherLayouts: Map<JamoSubkind, { jamo: string, layout: Layout }>,
+        layout: Layout,
+        setLayout: (layout: Layout) => void,
+        allLayouts: Layout[],
+        curJamos: string[],
         drawBackground: boolean,
         showPoints?: boolean,
     }>
 ) {
     const {
-        focus,
         rescale,
         xyScales,
-        resizedGlyph,
-        setResizedGlyph,
-        otherLayouts,
+        allLayouts,
         drawBackground,
         showPoints,
     } = props;
-
-    const outlineColor = grey[50];
-    const highlightAreaColor = grey[800];
-
-    const ref = React.useRef<Konva.Group>(null);
-
-    if (divider.type === 'jamo') {
-        if (focus === divider.kind) {
-            if (resizedGlyph) {
-                const resizedBounds = resizedGlyph.bounds;
-
-                return (
-                    <React.Fragment>
-                        <DrawBounds
-                            bounds={{left: left, right: right, top: top, bottom: bottom}}
-                            rescale={rescale}
-                            fill={drawBackground ? highlightAreaColor : "transparent"}
-                        />
-
-                        {!drawBackground &&
-                            <React.Fragment>
-                                <ResizedGlyphView
-                                    stageRef={ref}
-                                    resizedGlyph={resizedGlyph}
-                                    rescale={rescale}
-                                    bounds={{left: left, right: right, top: top, bottom: bottom}}
-                                    showPoints={showPoints}
-                                    stroke={outlineColor}
-                                />
-
-                                <ResizeableRect
-                                    bounds={{
-                                        left: left + resizedBounds.left * (right - left),
-                                        right: left + resizedBounds.right * (right - left),
-                                        top: bottom + resizedBounds.top * (top - bottom),
-                                        bottom: bottom + resizedBounds.bottom * (top - bottom),
-                                    }}
-                                    setBounds={(newBounds) => {
-                                        setResizedGlyph({
-                                            ...resizedGlyph,
-                                            bounds: {
-                                                left: (newBounds.left - left) / (right - left),
-                                                right: (newBounds.right - left) / (right - left),
-                                                top: (newBounds.top - bottom) / (top - bottom),
-                                                bottom: (newBounds.bottom - bottom) / (top - bottom),
-                                            },
-                                        });
-                                    }}
-                                    rescale={rescale}
-                                    xyScales={xyScales}
-                                    stroke={orange[500]}
-                                    strokeWidth={1}
-                                    resizedRefs={[ref.current as Konva.Group]}
-                                />
-                            </React.Fragment>}
-                    </React.Fragment>
-                );
-            }
-        } else {
-            if (!drawBackground) {
-                const otherLayout = otherLayouts.get(
-                    otherLayouts.keys().find(
-                        (subkind) => subkind.endsWith(divider.kind)
-                    ) as JamoSubkind
-                );
-                const resizedGlyph = otherLayout?.layout.glyphs.get(otherLayout.jamo);
-
-                if (otherLayout && resizedGlyph) {
-                    return (
-                        <ResizedGlyphView
-                            stageRef={ref}
-                            resizedGlyph={resizedGlyph}
-                            rescale={rescale}
-                            bounds={{left: left, right: right, top: top, bottom: bottom}}
-                            showPoints={showPoints}
-                            stroke={outlineColor}
-                        />
-                    );
-                }
-            }
-        }
-
-        return null;
-    }
 
     const [isDragging, setIsDragging] = React.useState<boolean>(false);
 
@@ -131,32 +44,81 @@ export function LayoutControl(
     const dividerColor = grey[500];
     const handleColor = grey[500];
 
+    const curFocus = layout.focus;
+
+    function getGlyph(
+        jamoElem: JamoElement | Divider,
+        bounds: Bounds,
+    ) {
+        if (jamoElem.type === 'jamo') {
+            const jamo = curJamos.find(
+                (jamo) => subkindOf(jamo).values().some(
+                    (subkind) => subkind.endsWith(jamoElem.kind)
+                )
+            );
+            if (!jamo) {
+                throw new Error(`No jamo found for ${jamoElem.kind}`);
+            }
+
+            let layout = selectLayout(
+                allLayouts,
+                jamo,
+                curJamos.filter((otherJamo) => otherJamo !== jamo),
+            );
+
+            const isFocus = curFocus === jamoElem.kind;
+            const resizedGlyph = layout.glyphs.get(jamo);
+
+            if (!resizedGlyph) {
+                throw new Error(`No resized glyph found for ${jamo}`);
+            }
+
+            const setResizedGlyph = (
+                isFocus ?
+                    (newResizedGlyph: ResizedGlyph | null) => {
+                        const newGlyphs = new Map(layout.glyphs);
+                        newGlyphs.set(jamo, newResizedGlyph);
+                        setLayout({...layout, glyphs: newGlyphs});
+                    } : null
+            );
+
+            return (
+                <ResizeableJamo
+                    left={bounds.left}
+                    right={bounds.right}
+                    top={bounds.top}
+                    bottom={bounds.bottom}
+                    rescale={rescale}
+                    xyScales={xyScales}
+                    isFocus={isFocus}
+                    resizedGlyph={resizedGlyph}
+                    setResizedGlyph={setResizedGlyph}
+                    drawBackground={drawBackground}
+                    showPoints={showPoints}
+                />
+            );
+        }
+        else {
+            throw new Error(`Unknown divider type: ${jamoElem}`);
+        }
+    }
+
     if (divider.type === 'vertical') {
         const x = left + divider.x * (right - left);
+
+        const leftGlyph = getGlyph(
+            divider.left,
+            {left: left, right: x, top: top, bottom: bottom}
+        );
+        const rightGlyph = getGlyph(
+            divider.right,
+            {left: x, right: right, top: top, bottom: bottom}
+        );
+
         return (
             <React.Fragment>
-                <LayoutControl
-                    divider={divider.left}
-                    setDivider={(newLeft) => {
-                        setDivider({...divider, left: newLeft});
-                    }}
-                    left={left}
-                    right={x}
-                    top={top}
-                    bottom={bottom}
-                    {...props}
-                />
-                <LayoutControl
-                    divider={divider.right}
-                    setDivider={(newRight) => {
-                        setDivider({...divider, right: newRight});
-                    }}
-                    left={x}
-                    right={right}
-                    top={top}
-                    bottom={bottom}
-                    {...props}
-                />
+                {leftGlyph}
+                {rightGlyph}
                 {!drawBackground &&
                     <Group
                         draggable={true}
@@ -208,32 +170,23 @@ export function LayoutControl(
                     </Group>}
             </React.Fragment>
         );
-    } else if (divider.type === 'horizontal') {
+    }
+    else if (divider.type === 'horizontal') {
         const y = bottom + divider.y * (top - bottom);
+
+        const topGlyph = getGlyph(
+            divider.top,
+            {left: left, right: right, top: top, bottom: y}
+        );
+        const bottomGlyph = getGlyph(
+            divider.bottom,
+            {left: left, right: right, top: y, bottom: bottom}
+        );
+
         return (
             <React.Fragment>
-                <LayoutControl
-                    divider={divider.top}
-                    setDivider={(newTop) => {
-                        setDivider({...divider, top: newTop});
-                    }}
-                    left={left}
-                    right={right}
-                    top={top}
-                    bottom={y}
-                    {...props}
-                />
-                <LayoutControl
-                    divider={divider.bottom}
-                    setDivider={(newBottom) => {
-                        setDivider({...divider, bottom: newBottom});
-                    }}
-                    left={left}
-                    right={right}
-                    top={y}
-                    bottom={bottom}
-                    {...props}
-                />
+                {topGlyph}
+                {bottomGlyph}
                 {!drawBackground &&
                     <Group
                         draggable={true}
@@ -288,31 +241,20 @@ export function LayoutControl(
     } else if (divider.type === 'mixed') {
         const x = left + divider.x * (right - left);
         const y = bottom + divider.y * (top - bottom);
+
+        const topLeftGlyph = getGlyph(
+            divider.topLeft,
+            {left: left, right: x, top: top, bottom: y}
+        );
+        const restGlyph = getGlyph(
+            divider.rest,
+            {left: left, right: right, top: top, bottom: bottom}
+        );
+
         return (
             <React.Fragment>
-                <LayoutControl
-                    divider={divider.topLeft}
-                    setDivider={(newTopLeft) => {
-                        setDivider({...divider, topLeft: newTopLeft});
-                    }}
-                    left={left}
-                    right={x}
-                    top={top}
-                    bottom={y}
-                    {...props}
-                />
-                <LayoutControl
-                    divider={divider.rest}
-                    setDivider={(newRest) => {
-                        setDivider({...divider, rest: newRest});
-                    }}
-                    left={left}
-                    right={right}
-                    top={top}
-                    bottom={bottom}
-                    {...props}
-                />
-                {/* TODO: add rest */}
+                {topLeftGlyph}
+                {restGlyph}
                 <Line points={[
                     ...rescale({x: left, y: y}),
                     ...rescale({x: x, y: y}),
@@ -323,22 +265,4 @@ export function LayoutControl(
     } else {
         throw new Error(`Unknown divider type: ${divider}`);
     }
-}
-
-function DrawBounds(
-    {bounds, rescale, ...props}: Readonly<{
-        bounds: Bounds,
-        rescale: (p: Point) => number[],
-    } & Konva.RectConfig>) {
-    const bottomLeft = rescale({x: bounds.left, y: bounds.bottom});
-    const topRight = rescale({x: bounds.right, y: bounds.top});
-    return (
-        <Rect
-            x={bottomLeft[0]}
-            y={bottomLeft[1]}
-            width={(topRight[0] - bottomLeft[0])}
-            height={(topRight[1] - bottomLeft[1])}
-            {...props}
-        />
-    );
 }

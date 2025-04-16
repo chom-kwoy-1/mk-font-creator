@@ -11,7 +11,7 @@ import Grid from '@mui/material/Grid2';
 
 import {Charstring, Cmap4, FontDict, OS2, TTXObject} from "@/app/TTXObject";
 import {LayoutView} from "@/app/LayoutView";
-import {jamoLayouts, ResizedGlyph} from "@/app/jamo_layouts";
+import {jamoLayouts, Layout, ResizedGlyph} from "@/app/jamo_layouts";
 import {initLayouts} from "@/app/init_layouts";
 import {ResizedGlyphView} from "@/app/ResizedGlyphView";
 import {parseGlyph, Point} from "@/app/parse_glyph";
@@ -19,6 +19,7 @@ import {Layer, Stage, Text} from "react-konva";
 import {findCharstringByCodepoint, glyphActualBounds} from "@/app/font_utils";
 import {uniToPua} from "@/app/pua_uni_conv";
 import Konva from "konva";
+import {generateTtx} from "@/app/make_ttx";
 
 
 const VisuallyHiddenInput = styled('input')({
@@ -166,7 +167,7 @@ function CompositionLayouts(
     const os2 = React.useRef<OS2>(null);
     const cmap4 = React.useRef<Cmap4>(null);
 
-    const [curLayouts, setCurLayouts] = React.useState(structuredClone(jamoLayouts));
+    const [curLayouts, setCurLayouts] = React.useState<Layout[]>(structuredClone(jamoLayouts));
 
     const debug = false;
 
@@ -274,52 +275,49 @@ function CompositionLayouts(
                 </Paper>
             );
         }
-        else {
-            return (
-                <React.Fragment>
-                    <Paper variant="outlined" sx={{my: {xs: 2, md: 4}, p: {xs: 1, md: 3}}}>
-                        <ShowFontSummary
+
+        return (
+            <React.Fragment>
+                <Paper variant="outlined" sx={{my: {xs: 2, md: 4}, p: {xs: 1, md: 3}}}>
+                    <Stack>
+                        <ShowFontSummary ttx={ttx}/>
+                        <DownloadFontButton
                             ttx={ttx}
+                            curLayouts={curLayouts}
                             origFilename={origFilename}
                         />
-                    </Paper>
+                    </Stack>
+                </Paper>
 
-                    <Paper variant="outlined" sx={{my: {xs: 2, md: 4}, p: {xs: 1, md: 3}}}>
-                        <Grid container spacing={2}>
-                            {curLayouts.map((layout, idx) =>
-                                <Grid key={idx} size={3}>
-                                    <Paper variant="elevation">
-                                        <LayoutView
-                                            layout={layout}
-                                            setLayout={(newLayout) => {
-                                                setCurLayouts(
-                                                    curLayouts.map((l, i) => i === idx ? newLayout : l)
-                                                );
-                                            }}
-                                            otherLayouts={curLayouts}
-                                            fdarray={fdarray.current as FontDict[]}
-                                            charstrings={charstrings.current as Charstring[]}
-                                            os2={os2.current as OS2}
-                                            cmap4={cmap4.current as Cmap4}
-                                            showPoints={false}
-                                        />
-                                    </Paper>
-                                </Grid>
-                            )}
-                        </Grid>
-                    </Paper>
-                </React.Fragment>
-            );
-        }
+                <Paper variant="outlined" sx={{my: {xs: 2, md: 4}, p: {xs: 1, md: 3}}}>
+                    <Grid container spacing={2}>
+                        {curLayouts.map((layout, idx) =>
+                            <Grid key={idx} size={3}>
+                                <Paper variant="elevation">
+                                    <LayoutView
+                                        layout={layout}
+                                        setLayout={(newLayout) => {
+                                            setCurLayouts(
+                                                curLayouts.map((l, i) => i === idx ? newLayout : l)
+                                            );
+                                        }}
+                                        allLayouts={curLayouts}
+                                        os2={os2.current as OS2}
+                                        showPoints={false}
+                                    />
+                                </Paper>
+                            </Grid>
+                        )}
+                    </Grid>
+                </Paper>
+            </React.Fragment>
+        );
     }
 }
 
 
 function ShowFontSummary(
-    {ttx, origFilename}: Readonly<{
-        ttx: TTXObject,
-        origFilename: string
-    }>
+    {ttx}: Readonly<{ttx: TTXObject}>
 ) {
     const fontName = JSONPath.query(ttx, '$.ttFont.name.namerecord[?(@.@_nameID == "4")]')[0]['#text'];
     const fontVersion = JSONPath.query(ttx, '$.ttFont.name.namerecord[?(@.@_nameID == "5")]')[0]['#text'];
@@ -330,15 +328,15 @@ function ShowFontSummary(
             <Box><strong>Font</strong>: {fontName}</Box>
             <Box><strong>Version</strong>: {fontVersion}</Box>
             <Box><strong>Number of glyphs</strong>: {numberOfGlyphs}</Box>
-            <DownloadFontButton ttx={ttx} origFilename={origFilename}/>
         </Stack>
     );
 }
 
 
 function DownloadFontButton(
-    {ttx, origFilename} : Readonly<{
+    {ttx, curLayouts, origFilename} : Readonly<{
         ttx: TTXObject;
+        curLayouts: Layout[];
         origFilename: string;
     }>
 ) {
@@ -364,8 +362,10 @@ function DownloadFontButton(
             setDownloadDone(false);
             setDownloadState("Preparing download...");
 
+            const modifiedTtx = generateTtx(ttx, curLayouts);
+
             const blob: Blob = await new Promise((resolve, reject) => {
-                if (!ttx || !workerRef.current) {
+                if (!workerRef.current) {
                     reject("No document or worker");
                     return;
                 }
@@ -376,7 +376,7 @@ function DownloadFontButton(
                     }
                     setDownloadState(event.data as string);
                 }
-                workerRef.current?.postMessage(ttx);
+                workerRef.current?.postMessage(modifiedTtx);
             });
 
             setDownloadState("Compiling font...");

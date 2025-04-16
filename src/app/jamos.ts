@@ -93,6 +93,19 @@ export const jamoTable: JamoTable = {
         'ᆐ', 'ᆒ', 'ᆗ', 'ᆧ', 'ힳ', 'ힶ', 'ힷ', 'ힻ',
         'ힽ', 'ퟆ',
     ],
+    'bm-vowel': [
+        'ᅩ', 'ᅭ', 'ᅮ', 'ᅲ', 'ᅳ', 'ᆞ', 'ᆢ', 'ᅠ',
+        'ᆂ', 'ᆃ', 'ᆇ', 'ᆍ', 'ᆓ', 'ᆕ', 'ᆕ', 'ᆖ',
+        'ᆠ', 'ힱ', 'ힸ', 'ힼ',
+        'ᅪ', 'ᅬ', 'ᅯ', 'ᅱ', 'ᅶ', 'ᅷ', 'ᅸ', 'ᅹ',
+        'ᅺ', 'ᅻ', 'ᅼ', 'ᅽ', 'ᅾ', 'ᅿ', 'ᆄ', 'ᆆ',
+        'ᆈ', 'ᆉ', 'ᆎ', 'ᆏ', 'ᆑ', 'ᆔ', 'ᆚ', 'ᆛ',
+        'ᆜ', 'ᆟ', 'ᆡ', 'ᆣ', 'ᆤ', 'ᆦ', 'ힰ', 'ힲ',
+        'ힴ', 'ힵ', 'ힹ', 'ힺ', 'ퟁ', 'ퟂ', 'ퟃ', 'ퟅ',
+        'ᅫ', 'ᅰ', 'ᆀ', 'ᆁ', 'ᆅ', 'ᆊ', 'ᆋ', 'ᆌ',
+        'ᆐ', 'ᆒ', 'ᆗ', 'ᆧ', 'ힳ', 'ힶ', 'ힷ', 'ힻ',
+        'ힽ', 'ퟆ',
+    ],
     'single-tailing': [
         'ᆨ', 'ᆫ', 'ᆮ', 'ᆯ', 'ᆷ', 'ᆸ', 'ᆺ', 'ᆼ',
         'ᆽ', 'ᆾ', 'ᆿ', 'ᇀ', 'ᇁ', 'ᇂ', 'ᇫ', 'ᇰ',
@@ -161,7 +174,11 @@ function invertMap(map: JamoTable): Map<string, Set<JamoSubkind>> {
     return result;
 }
 
-export const subkindOf: Map<string, Set<JamoSubkind>> = invertMap(jamoTable);
+const subkindOfTable: Map<string, Set<JamoSubkind>> = invertMap(jamoTable);
+
+export function subkindOf(jamo: string): Set<JamoSubkind> {
+    return subkindOfTable.get(jamo) ?? new Set();
+}
 
 export function getJamos(requestedKind: JamoKind | JamoSubkind): string[] {
     return Object.keys(jamoTable).flatMap((kind) => {
