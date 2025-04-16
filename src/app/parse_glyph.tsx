@@ -19,14 +19,14 @@ export type Glyph = {
     width: number,
 };
 
-export function parse_glyph(
-    default_width: number,
-    nominal_width: number,
+export function parseGlyph(
+    defaultWidth: number,
+    nominalWidth: number,
     lines: (number | string)[][]
 ): Glyph {
     const glyph: Glyph = {
         paths: [],
-        width: default_width,
+        width: defaultWidth,
     };
 
     const pos: Point = {x: 0, y: 0};
@@ -49,25 +49,25 @@ export function parse_glyph(
         });
     }
 
-    for (let op_idx = 0; op_idx < lines.length; op_idx++) {
-        const line = lines[op_idx];
+    for (let opIdx = 0; opIdx < lines.length; opIdx++) {
+        const line = lines[opIdx];
         const op = line[line.length - 1] as string;
         const stack = line.slice(0, -1) as number[];
 
-        if (op_idx === 0) {
-            const is_even_op = ['hstem', 'hstemhm', 'vstem', 'vstemhm',
+        if (opIdx === 0) {
+            const isEvenOp = ['hstem', 'hstemhm', 'vstem', 'vstemhm',
                 'cntrmask', 'hintmask', 'rmoveto', 'endchar'].includes(op);
-            const is_unary_op = ['hmoveto', 'vmoveto'].includes(op);
-            const is_subr_op = ['endchar', 'callsubr', 'callgsubr', 'return'].includes(op);
+            const isUnaryOp = ['hmoveto', 'vmoveto'].includes(op);
+            const isSubrOp = ['endchar', 'callsubr', 'callgsubr', 'return'].includes(op);
 
-            if (!is_even_op && !is_unary_op && !is_subr_op) {
+            if (!isEvenOp && !isUnaryOp && !isSubrOp) {
                 throw Error("Invalid first operator.");
             }
 
-            if ((stack.length % 2 === 1 && is_even_op)
-                || (stack.length === 2 && is_unary_op))
+            if ((stack.length % 2 === 1 && isEvenOp)
+                || (stack.length === 2 && isUnaryOp))
             {
-                glyph.width = nominal_width + (stack[0]);
+                glyph.width = nominalWidth + (stack[0]);
                 stack.shift();
             }
         }
