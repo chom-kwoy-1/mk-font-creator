@@ -40,6 +40,9 @@ export function LayoutControl(
         showPoints,
     } = props;
 
+    const outlineColor = 'white';
+    const highlightAreaColor = '#444444';
+
     if (divider.type === 'jamo') {
         if (focus === divider.kind) {
             if (resizedGlyph) {
@@ -50,7 +53,7 @@ export function LayoutControl(
                         <DrawBounds
                             bounds={{left: left, right: right, top: top, bottom: bottom}}
                             rescale={rescale}
-                            fill={drawBackground ? "lightgrey" : "transparent"}
+                            fill={drawBackground ? highlightAreaColor : "transparent"}
                         />
 
                         {!drawBackground &&
@@ -75,7 +78,7 @@ export function LayoutControl(
                                     }}
                                     rescale={rescale}
                                     xyScales={xyScales}
-                                    stroke="red"
+                                    stroke="yellow"
                                     strokeWidth={1}
                                 />
 
@@ -84,7 +87,7 @@ export function LayoutControl(
                                     rescale={rescale}
                                     bounds={{left: left, right: right, top: top, bottom: bottom}}
                                     showPoints={showPoints}
-                                    stroke="black"
+                                    stroke={outlineColor}
                                 />
                             </React.Fragment>}
                     </React.Fragment>
@@ -106,7 +109,7 @@ export function LayoutControl(
                             rescale={rescale}
                             bounds={{left: left, right: right, top: top, bottom: bottom}}
                             showPoints={showPoints}
-                            stroke="black"
+                            stroke={outlineColor}
                         />
                     );
                 }

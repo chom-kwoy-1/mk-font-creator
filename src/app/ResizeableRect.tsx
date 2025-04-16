@@ -57,6 +57,9 @@ export function ResizeableRect(
         },
     };
 
+    const handleSize = 7;
+    const handleColor = '#a7a7ff';
+
     return (
         <Group>
             <Rect
@@ -108,13 +111,26 @@ export function ResizeableRect(
                 ref={bottomRef}
                 points={[x1, y1, x2, y1]}
                 {...props}
+                stroke={isDragging.bottom ? dragColor : props.stroke}
+                strokeWidth={isDragging.bottom ? 5 : (props.strokeWidth ?? 2)}
+            />
+            <Rect
+                x={0}
+                y={0}
+                offsetX={-(x1 + x2) / 2 + handleSize / 2}
+                offsetY={-y1 + handleSize / 2}
+                width={handleSize}
+                height={handleSize}
+                stroke={handleColor}
                 draggable={true}
                 onDragStart={(e) => {
                     setIsDragging({...isDragging, bottom: true});
                 }}
                 onDragMove={(e) => {
-                    rightRef.current?.points([x2, y1 + e.target.y(), x2, y2]);
-                    leftRef.current?.points([x1, y2, x1, y1 + e.target.y()]);
+                    const newY1 = y1 + e.target.y();
+                    bottomRef.current?.points([x1, newY1, x2, newY1]);
+                    rightRef.current?.points([x2, newY1, x2, y2]);
+                    leftRef.current?.points([x1, y2, x1, newY1]);
                     e.target.setPosition({x: 0, y: e.target.y()});
                 }}
                 onDragEnd={(e) => {
@@ -127,21 +143,31 @@ export function ResizeableRect(
                     e.target.setPosition({x: 0, y: 0});
                 }}
                 {...horzLineProps}
-                stroke={isDragging.bottom ? dragColor : props.stroke}
-                strokeWidth={isDragging.bottom ? 5 : (props.strokeWidth ?? 2)}
-                hitStrokeWidth={10}
             />
             <Line
                 ref={rightRef}
                 points={[x2, y1, x2, y2]}
                 {...props}
+                stroke={isDragging.right ? dragColor : props.stroke}
+                strokeWidth={isDragging.right ? 5 : (props.strokeWidth ?? 2)}
+            />
+            <Rect
+                x={0}
+                y={0}
+                offsetX={-x2 + handleSize / 2}
+                offsetY={-(y1 + y2) / 2 + handleSize / 2}
+                width={handleSize}
+                height={handleSize}
+                stroke={handleColor}
                 draggable={true}
                 onDragStart={(e) => {
                     setIsDragging({...isDragging, right: true});
                 }}
                 onDragMove={(e) => {
-                    bottomRef.current?.points([x1, y1, x2 + e.target.x(), y1]);
-                    topRef.current?.points([x2 + e.target.x(), y2, x1, y2]);
+                    const newX2 = x2 + e.target.x();
+                    rightRef.current?.points([newX2, y1, newX2, y2]);
+                    bottomRef.current?.points([x1, y1, newX2, y1]);
+                    topRef.current?.points([newX2, y2, x1, y2]);
                     e.target.setPosition({x: e.target.x(), y: 0});
                 }}
                 onDragEnd={(e) => {
@@ -154,21 +180,31 @@ export function ResizeableRect(
                     e.target.setPosition({x: 0, y: 0});
                 }}
                 {...vertLineProps}
-                stroke={isDragging.right ? dragColor : props.stroke}
-                strokeWidth={isDragging.right ? 5 : (props.strokeWidth ?? 2)}
-                hitStrokeWidth={10}
             />
             <Line
                 ref={topRef}
                 points={[x2, y2, x1, y2]}
                 {...props}
+                stroke={isDragging.top ? dragColor : props.stroke}
+                strokeWidth={isDragging.top ? 5 : (props.strokeWidth ?? 2)}
+            />
+            <Rect
+                x={0}
+                y={0}
+                offsetX={-(x1 + x2) / 2 + handleSize / 2}
+                offsetY={-y2 + handleSize / 2}
+                width={handleSize}
+                height={handleSize}
+                stroke={handleColor}
                 draggable={true}
                 onDragStart={(e) => {
                     setIsDragging({...isDragging, top: true});
                 }}
                 onDragMove={(e) => {
-                    rightRef.current?.points([x2, y1, x2, y2 + e.target.y()]);
-                    leftRef.current?.points([x1, y2 + e.target.y(), x1, y1]);
+                    const newY2 = y2 + e.target.y();
+                    topRef.current?.points([x2, newY2, x1, newY2]);
+                    rightRef.current?.points([x2, y1, x2, newY2]);
+                    leftRef.current?.points([x1, newY2, x1, y1]);
                     e.target.setPosition({x: 0, y: e.target.y()});
                 }}
                 onDragEnd={(e) => {
@@ -181,21 +217,31 @@ export function ResizeableRect(
                     e.target.setPosition({x: 0, y: 0});
                 }}
                 {...horzLineProps}
-                stroke={isDragging.top ? dragColor : props.stroke}
-                strokeWidth={isDragging.top ? 5 : (props.strokeWidth ?? 2)}
-                hitStrokeWidth={10}
             />
             <Line
                 ref={leftRef}
                 points={[x1, y2, x1, y1]}
                 {...props}
+                stroke={isDragging.left ? dragColor : props.stroke}
+                strokeWidth={isDragging.left ? 5 : (props.strokeWidth ?? 2)}
+            />
+            <Rect
+                x={0}
+                y={0}
+                offsetX={-x1 + handleSize / 2}
+                offsetY={-(y1 + y2) / 2 + handleSize / 2}
+                width={handleSize}
+                height={handleSize}
+                stroke={handleColor}
                 draggable={true}
                 onDragStart={(e) => {
                     setIsDragging({...isDragging, left: true});
                 }}
                 onDragMove={(e) => {
-                    bottomRef.current?.points([x1 + e.target.x(), y1, x2, y1]);
-                    topRef.current?.points([x2, y2, x1 + e.target.x(), y2]);
+                    const newX1 = x1 + e.target.x();
+                    leftRef.current?.points([newX1, y2, newX1, y1]);
+                    bottomRef.current?.points([newX1, y1, x2, y1]);
+                    topRef.current?.points([x2, y2, newX1, y2]);
                     e.target.setPosition({x: e.target.x(), y: 0});
                 }}
                 onDragEnd={(e) => {
@@ -208,9 +254,6 @@ export function ResizeableRect(
                     e.target.setPosition({x: 0, y: 0});
                 }}
                 {...vertLineProps}
-                stroke={isDragging.left ? dragColor : props.stroke}
-                strokeWidth={isDragging.left ? 5 : (props.strokeWidth ?? 2)}
-                hitStrokeWidth={10}
             />
         </Group>
     );
