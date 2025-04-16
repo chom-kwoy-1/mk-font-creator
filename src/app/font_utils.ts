@@ -69,7 +69,7 @@ export function pathBounds(path: Path): Bounds {
 
 export function intersectGlyph(
     glyph: Glyph,
-    bounds: Bounds,
+    boundsList: Bounds[],
 ): Glyph {
     const newPaths = [];
     for (const path of glyph.paths) {
@@ -79,16 +79,19 @@ export function intersectGlyph(
             Math.max(0, bbox.top - bbox.bottom)
         );
 
-        const intersection = {
-            left: Math.max(bounds.left, bbox.left),
-            right: Math.min(bounds.right, bbox.right),
-            top: Math.min(bounds.top, bbox.top),
-            bottom: Math.max(bounds.bottom, bbox.bottom),
-        };
-        const intersectionArea = (
-            Math.max(0, intersection.right - intersection.left) *
-            Math.max(0, intersection.top - intersection.bottom)
-        );
+        let intersectionArea = 0;
+        for (const bounds of boundsList) {
+            const intersection = {
+                left: Math.max(bounds.left, bbox.left),
+                right: Math.min(bounds.right, bbox.right),
+                top: Math.min(bounds.top, bbox.top),
+                bottom: Math.max(bounds.bottom, bbox.bottom),
+            };
+            intersectionArea += (
+                Math.max(0, intersection.right - intersection.left) *
+                Math.max(0, intersection.top - intersection.bottom)
+            );
+        }
 
         if (intersectionArea / bboxArea >= 0.5) {
             newPaths.push(path);

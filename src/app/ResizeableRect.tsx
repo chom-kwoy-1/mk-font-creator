@@ -100,8 +100,10 @@ export function ResizeableRect(
                     // topRef.current?.points([x2 + rx, y2 + ry, x1 + rx, y2 + ry]);
                     // leftRef.current?.points([x1 + rx, y2 + ry, x1 + rx, y1 + ry]);
                     for (const ref of resizedRefs) {
-                        ref.x(rx);
-                        ref.y(ry);
+                        if (ref !== null) {
+                            ref.x(rx);
+                            ref.y(ry);
+                        }
                     }
                 }}
                 onDragEnd={(e) => {
@@ -118,8 +120,10 @@ export function ResizeableRect(
                         groupRef.current?.offset({x: 0, y: 0});
                         e.target.setPosition({x: 0, y: 0});
                         for (const ref of resizedRefs) {
-                            ref.x(0);
-                            ref.y(0);
+                            if (ref !== null) {
+                                ref.x(0);
+                                ref.y(0);
+                            }
                         }
                     };
                 }}

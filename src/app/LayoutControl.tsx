@@ -301,6 +301,17 @@ export function LayoutControl(
                     bottom={y}
                     {...props}
                 />
+                <LayoutControl
+                    divider={divider.rest}
+                    setDivider={(newRest) => {
+                        setDivider({...divider, rest: newRest});
+                    }}
+                    left={left}
+                    right={right}
+                    top={top}
+                    bottom={bottom}
+                    {...props}
+                />
                 {/* TODO: add rest */}
                 <Line points={[
                     ...rescale({x: left, y: y}),

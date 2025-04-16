@@ -173,7 +173,6 @@ export function LayoutView(
                                 key={i}
                                 variant="standard"
                                 size="small">
-                                <InputLabel id="jamo-select-label">Jamo</InputLabel>
                                 <Select
                                     variant={i === 0? "outlined" : "outlined"}
                                     labelId="jamo-select-label"

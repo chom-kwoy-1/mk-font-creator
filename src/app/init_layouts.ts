@@ -75,7 +75,7 @@ function getIntersectingGlyph(
     divider: Divider | JamoElement,
     focusKind: JamoKind,
     glyph: Glyph,
-    bounds: Bounds,
+    bounds: Bounds | Bounds[],
 ): {
     'glyph': Glyph,
     'bounds': Bounds
@@ -83,22 +83,34 @@ function getIntersectingGlyph(
     switch (divider.type) {
         case 'jamo': {
             if (divider.kind == focusKind) {
+                if (!(bounds instanceof Array)) {
+                    bounds = [bounds];
+                }
                 const newGlyph = intersectGlyph(glyph, bounds);
                 const actualBounds = glyphActualBounds(newGlyph);
+
+                const hull = bounds[0];
+                for (const b of bounds) {
+                    hull.left = Math.min(hull.left, b.left);
+                    hull.right = Math.max(hull.right, b.right);
+                    hull.top = Math.max(hull.top, b.top);
+                    hull.bottom = Math.min(hull.bottom, b.bottom);
+                }
 
                 return {
                     'glyph': newGlyph,
                     'bounds': {
-                        'left': (actualBounds.left - bounds.left) / (bounds.right - bounds.left),
-                        'right': (actualBounds.right - bounds.left) / (bounds.right - bounds.left),
-                        'top': (actualBounds.top - bounds.bottom) / (bounds.top - bounds.bottom),
-                        'bottom': (actualBounds.bottom - bounds.bottom) / (bounds.top - bounds.bottom),
+                        'left': (actualBounds.left - hull.left) / (hull.right - hull.left),
+                        'right': (actualBounds.right - hull.left) / (hull.right - hull.left),
+                        'top': (actualBounds.top - hull.bottom) / (hull.top - hull.bottom),
+                        'bottom': (actualBounds.bottom - hull.bottom) / (hull.top - hull.bottom),
                     },
                 };
             }
             return null;
         }
         case 'vertical': {
+            bounds = bounds as Bounds;
             const x = bounds.left + divider.x * (bounds.right - bounds.left);
             return (
                 getIntersectingGlyph(divider.left, focusKind, glyph, {
@@ -116,6 +128,7 @@ function getIntersectingGlyph(
             );
         }
         case 'horizontal': {
+            bounds = bounds as Bounds;
             const y = bounds.bottom + divider.y * (bounds.top - bounds.bottom);
             return (
                 getIntersectingGlyph(divider.top, focusKind, glyph, {
@@ -133,6 +146,7 @@ function getIntersectingGlyph(
             );
         }
         case 'mixed': {
+            bounds = bounds as Bounds;
             const x = bounds.left + divider.x * (bounds.right - bounds.left);
             const y = bounds.bottom + divider.y * (bounds.top - bounds.bottom);
             return (
@@ -142,7 +156,10 @@ function getIntersectingGlyph(
                     top: bounds.top,
                     bottom: y,
                 }) ??
-                getIntersectingGlyph(divider.rest, focusKind, glyph, bounds)  // FIXME
+                getIntersectingGlyph(divider.rest, focusKind, glyph, [
+                    {left: x, right: bounds.right, top: bounds.top, bottom: y},
+                    {left: bounds.left, right: bounds.right, top: y, bottom: bounds.bottom},
+                ])
             );
         }
     }

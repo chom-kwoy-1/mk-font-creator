@@ -287,7 +287,7 @@ function CompositionLayouts(
                     <Paper variant="outlined" sx={{my: {xs: 2, md: 4}, p: {xs: 1, md: 3}}}>
                         <Grid container spacing={2}>
                             {curLayouts.map((layout, idx) =>
-                                <Grid key={idx} size={4}>
+                                <Grid key={idx} size={3}>
                                     <Paper variant="elevation">
                                         <LayoutView
                                             layout={layout}
