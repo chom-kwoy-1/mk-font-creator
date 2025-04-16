@@ -65,7 +65,7 @@ export function LayoutView(
     return (
         <Stack>
             <Stack ref={ref}>
-                <Stage width={width} height={width}>
+                <Stage width={width} height={width} >
                     <Layer>
                         {[true, false].map((drawBackground, key) => (
                             <LayoutControl

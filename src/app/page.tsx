@@ -1,23 +1,33 @@
 'use client'
 import React from "react";
 import {styled} from '@mui/material/styles';
-import {Box, Button, LinearProgress, Stack, Paper} from "@mui/material";
+import {
+    Box,
+    Button,
+    LinearProgress,
+    Stack,
+    Paper,
+    Typography,
+    Accordion,
+    AccordionSummary,
+    AccordionDetails
+} from "@mui/material";
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import DownloadIcon from '@mui/icons-material/Download';
 import prettyBytes from 'pretty-bytes';
 import {XMLParser} from "fast-xml-parser";
-import { JSONPath } from '@astronautlabs/jsonpath';
+import {JSONPath} from '@astronautlabs/jsonpath';
 import Grid from '@mui/material/Grid2';
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 
 import {Charstring, Cmap4, FontDict, OS2, TTXObject} from "@/app/TTXObject";
 import {LayoutView} from "@/app/LayoutView";
-import {jamoLayouts, Layout, ResizedGlyph} from "@/app/jamo_layouts";
+import {Layout, Layouts, ResizedGlyph} from "@/app/jamo_layouts";
 import {initLayouts} from "@/app/init_layouts";
 import {ResizedGlyphView} from "@/app/ResizedGlyphView";
 import {parseGlyph, Point} from "@/app/parse_glyph";
 import {Layer, Stage, Text} from "react-konva";
 import {findCharstringByCodepoint, glyphActualBounds} from "@/app/font_utils";
-import {uniToPua} from "@/app/pua_uni_conv";
 import Konva from "konva";
 import {generateTtx} from "@/app/make_ttx";
 
@@ -88,7 +98,7 @@ export default function Home() {
 
                 const parser = new XMLParser({
                     alwaysCreateTextNode: true,
-                    ignoreAttributes : false,
+                    ignoreAttributes: false,
                 });
                 const doc = parser.parse(text);
 
@@ -97,8 +107,7 @@ export default function Home() {
                 console.log(doc);
                 setTTX(doc);
                 setLoadDone(true);
-            }
-            else {
+            } else {
                 await response.json().then((data) => {
                     console.error(data);  // TODO: Show error to user
                 }).catch((err) => {
@@ -110,7 +119,7 @@ export default function Home() {
 
     return (
         <React.Fragment>
-            <Paper variant="outlined" sx={{ my: { xs: 2, md: 4 }, p: { xs: 1, md: 3 } }}>
+            <Paper variant="outlined" sx={{my: {xs: 2, md: 4}, p: {xs: 1, md: 3}}}>
                 <Stack spacing={1}>
                     {file && <Box>File: {file.name}</Box>}
 
@@ -120,7 +129,7 @@ export default function Home() {
                                 component="label"
                                 role={undefined}
                                 variant="outlined"
-                                startIcon={<UploadFileIcon />}
+                                startIcon={<UploadFileIcon/>}
                                 loading={loadingState !== null && !loadDone}
                             >
                                 Upload font file
@@ -129,7 +138,7 @@ export default function Home() {
                                     onChange={(event) => handleFileChange(event)}
                                 />
                             </Button>
-                            {loadingState && !loadDone && <LinearProgress />}
+                            {loadingState && !loadDone && <LinearProgress/>}
                         </Stack>
                     </Box>
 
@@ -161,13 +170,12 @@ function CompositionLayouts(
         origFilename: string
     }>
 ) {
-    const [isLoaded, setIsLoaded] = React.useState(false);
     const fdarray = React.useRef<FontDict[]>(null);
     const charstrings = React.useRef<Charstring[]>(null);
     const os2 = React.useRef<OS2>(null);
     const cmap4 = React.useRef<Cmap4>(null);
 
-    const [curLayouts, setCurLayouts] = React.useState<Layout[]>(structuredClone(jamoLayouts));
+    const [curLayouts, setCurLayouts] = React.useState<Layouts | null>(null);
 
     const debug = false;
 
@@ -177,17 +185,13 @@ function CompositionLayouts(
         os2.current = JSONPath.query(ttx, '$.ttFont.OS_2')[0];
         cmap4.current = JSONPath.query(ttx, '$.ttFont.cmap.cmap_format_4[?(@.@_platformID == "0")]')[0];
 
-        if (!debug) {
-            console.log("Resetting layouts");
-            setCurLayouts(initLayouts(
-                cmap4.current as Cmap4,
-                charstrings.current as Charstring[],
-                fdarray.current as FontDict[],
-                os2.current as OS2,
-            ));
-        }
-
-        setIsLoaded(true);
+        console.log("Resetting layouts");
+        setCurLayouts(initLayouts(
+            cmap4.current as Cmap4,
+            charstrings.current as Charstring[],
+            fdarray.current as FontDict[],
+            os2.current as OS2,
+        ));
     }, [ttx]);
 
     const [left, setLeft] = React.useState<number>(0);
@@ -196,11 +200,8 @@ function CompositionLayouts(
 
     const ref = React.useRef<Konva.Text>(null);
 
-    if (!isLoaded) {
-        return <div>Loading...</div>;
-    }
-    else if (charstrings.current && fdarray.current && cmap4.current) {
-        if (debug) {
+    if (debug) {
+        if (charstrings.current && fdarray.current && cmap4.current) {
             const aspectRatio = 1.;
             const canvasWidth = 600;
             const canvasHeight = aspectRatio * canvasWidth;
@@ -275,49 +276,90 @@ function CompositionLayouts(
                 </Paper>
             );
         }
+    }
 
+    if (
+        !curLayouts
+        || !charstrings.current
+        || !fdarray.current
+        || !cmap4.current
+    ) {
         return (
-            <React.Fragment>
-                <Paper variant="outlined" sx={{my: {xs: 2, md: 4}, p: {xs: 1, md: 3}}}>
-                    <Stack>
-                        <ShowFontSummary ttx={ttx}/>
-                        <DownloadFontButton
-                            ttx={ttx}
-                            curLayouts={curLayouts}
-                            origFilename={origFilename}
-                        />
-                    </Stack>
-                </Paper>
-
-                <Paper variant="outlined" sx={{my: {xs: 2, md: 4}, p: {xs: 1, md: 3}}}>
-                    <Grid container spacing={2}>
-                        {curLayouts.map((layout, idx) =>
-                            <Grid key={idx} size={3}>
-                                <Paper variant="elevation">
-                                    <LayoutView
-                                        layout={layout}
-                                        setLayout={(newLayout) => {
-                                            setCurLayouts(
-                                                curLayouts.map((l, i) => i === idx ? newLayout : l)
-                                            );
-                                        }}
-                                        allLayouts={curLayouts}
-                                        os2={os2.current as OS2}
-                                        showPoints={false}
-                                    />
-                                </Paper>
-                            </Grid>
-                        )}
-                    </Grid>
-                </Paper>
-            </React.Fragment>
+            <Paper variant="outlined">
+                <Box>Loading...</Box>
+            </Paper>
         );
     }
+
+    const allLayouts = curLayouts.flatMap((category) => category.layouts);
+
+    const layoutGrid = (
+        <Grid container spacing={2}>
+            {curLayouts.map((category, cidx) =>
+                <Grid key={cidx} size={12}>
+                    <Accordion>
+                        <AccordionSummary expandIcon={<ArrowDropDownIcon />}>
+                            <Typography variant="h6">
+                                {category.category_name}
+                            </Typography>
+                        </AccordionSummary>
+                        <AccordionDetails>
+                            <Grid container spacing={2}>
+                                {category.layouts.map((layout, idx) =>
+                                    <Grid key={idx} size={3}>
+                                        <Paper variant="elevation">
+                                            <LayoutView
+                                                layout={layout}
+                                                setLayout={(newLayout) => {
+                                                    const newCategory = {
+                                                        ...category,
+                                                        layouts: category.layouts.map(
+                                                            (layout, li) => li === idx ? newLayout : layout
+                                                        )
+                                                    };
+                                                    const newLayouts = curLayouts.map(
+                                                        (category, ci) => ci === cidx ? newCategory : category
+                                                    );
+                                                    setCurLayouts(newLayouts);
+                                                }}
+                                                allLayouts={allLayouts}
+                                                os2={os2.current as OS2}
+                                                showPoints={false}
+                                            />
+                                        </Paper>
+                                    </Grid>
+                                )}
+                            </Grid>
+                        </AccordionDetails>
+                    </Accordion>
+                </Grid>
+            )}
+        </Grid>
+    );
+
+    return (
+        <React.Fragment>
+            <Paper variant="outlined" sx={{my: {xs: 2, md: 4}, p: {xs: 1, md: 3}}}>
+                <Stack>
+                    <ShowFontSummary ttx={ttx}/>
+                    <DownloadFontButton
+                        ttx={ttx}
+                        curLayouts={curLayouts}
+                        origFilename={origFilename}
+                    />
+                </Stack>
+            </Paper>
+
+            <Paper variant="outlined" sx={{my: {xs: 2, md: 4}, p: {xs: 1, md: 3}}}>
+                {layoutGrid}
+            </Paper>
+        </React.Fragment>
+    );
 }
 
 
 function ShowFontSummary(
-    {ttx}: Readonly<{ttx: TTXObject}>
+    {ttx}: Readonly<{ ttx: TTXObject }>
 ) {
     const fontName = JSONPath.query(ttx, '$.ttFont.name.namerecord[?(@.@_nameID == "4")]')[0]['#text'];
     const fontVersion = JSONPath.query(ttx, '$.ttFont.name.namerecord[?(@.@_nameID == "5")]')[0]['#text'];
@@ -334,9 +376,9 @@ function ShowFontSummary(
 
 
 function DownloadFontButton(
-    {ttx, curLayouts, origFilename} : Readonly<{
+    {ttx, curLayouts, origFilename}: Readonly<{
         ttx: TTXObject;
-        curLayouts: Layout[];
+        curLayouts: Layouts;
         origFilename: string;
     }>
 ) {
@@ -347,7 +389,7 @@ function DownloadFontButton(
     React.useEffect(() => {
         workerRef.current = new Worker(new URL("../xml_serializer_worker.ts", import.meta.url));
         workerRef.current.onmessage = (event: MessageEvent<number>) =>
-            alert(`WebWorker Response => ${typeof(event.data)}`);
+            alert(`WebWorker Response => ${typeof (event.data)}`);
         return () => {
             workerRef.current?.terminate();
         };
@@ -404,8 +446,7 @@ function DownloadFontButton(
 
             setDownloadState("Download complete");
             setDownloadDone(true);
-        }
-        catch (err) {
+        } catch (err) {
             console.error(err);
             setDownloadState("Error: " + err);
         }
@@ -417,13 +458,13 @@ function DownloadFontButton(
                 <Stack spacing={0}>
                     <Button
                         variant="contained"
-                        startIcon={<DownloadIcon />}
+                        startIcon={<DownloadIcon/>}
                         onClick={() => downloadFont()}
                         loading={downloadState !== null && !downloadDone}
                     >
                         Download font
                     </Button>
-                    {downloadState && !downloadDone && <LinearProgress />}
+                    {downloadState && !downloadDone && <LinearProgress/>}
                 </Stack>
             </Box>
             {downloadState &&

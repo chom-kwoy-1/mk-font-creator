@@ -1,7 +1,7 @@
 import {TTXObject} from "@/app/TTXObject";
-import {Layout} from "@/app/jamo_layouts";
+import {Layouts} from "@/app/jamo_layouts";
 
-export function generateTtx(ttx: TTXObject, curLayouts: Layout[]) {
+export function generateTtx(ttx: TTXObject, curLayouts: Layouts) {
     const result = structuredClone(ttx);
 
     // TODO: Implement this function

@@ -1,8 +1,8 @@
-import {Divider, JamoElement, JamoKind, jamoLayouts, JamoSubkind, Layout, ResizedGlyph} from "@/app/jamo_layouts";
+import {Divider, JamoElement, JamoKind, jamoLayouts, JamoSubkind, Layouts, ResizedGlyph} from "@/app/jamo_layouts";
 import {Bounds, findCharstringByCodepoint, glyphActualBounds, intersectGlyph} from "@/app/font_utils";
 import {Charstring, Cmap4, FontDict, OS2} from "@/app/TTXObject";
 import {Glyph, parseGlyph} from "@/app/parse_glyph";
-import {exampleJamo, getExampleJamo, jamoTable} from "@/app/jamos";
+import {exampleJamo, jamoTable} from "@/app/jamos";
 import {uniToPua} from "@/app/pua_uni_conv";
 
 
@@ -11,7 +11,7 @@ export function initLayouts(
     charstrings: Charstring[],
     fdarray: FontDict[],
     os2: OS2,
-): Layout[] {
+): Layouts {
     let layouts = structuredClone(jamoLayouts);
 
     const ascender = parseInt(os2.sTypoAscender['@_value']);
@@ -19,52 +19,62 @@ export function initLayouts(
 
     // Initialize glyphs with positional variants
     layouts = layouts.map(
-        (layout) => {
-            for (const jamo of layout.glyphs.keys()) {
-                const syllable = genSyllables(layout.dividers, layout.focus, jamo)
-                    .find((s) => uniToPua(s).length === 1);
-                if (!syllable) {
-                    continue;
-                }
-                const cs = findCharstringByCodepoint(
-                    uniToPua(syllable).codePointAt(0) as number,
-                    cmap4,
-                    charstrings,
-                );
-                const resizedGlyph = getIntersectingGlyph(
-                    layout.dividers,
-                    layout.focus,
-                    parseGlyph(cs, fdarray),
-                    {left: 0, right: 1000, top: ascender, bottom: descender},
-                );
-                if (resizedGlyph) {
-                    layout.glyphs.set(jamo, resizedGlyph);
-                }
-            }
-            return layout;
+        (category) => {
+            return {
+                ...category,
+                layouts: category.layouts.map((layout) => {
+                    for (const jamo of layout.glyphs.keys()) {
+                        const syllable = genSyllables(layout.dividers, layout.focus, jamo)
+                            .find((s) => uniToPua(s).length === 1);
+                        if (!syllable) {
+                            continue;
+                        }
+                        const cs = findCharstringByCodepoint(
+                            uniToPua(syllable).codePointAt(0) as number,
+                            cmap4,
+                            charstrings,
+                        );
+                        const resizedGlyph = getIntersectingGlyph(
+                            layout.dividers,
+                            layout.focus,
+                            parseGlyph(cs, fdarray),
+                            {left: 0, right: 1000, top: ascender, bottom: descender},
+                        );
+                        if (resizedGlyph) {
+                            layout.glyphs.set(jamo, resizedGlyph);
+                        }
+                    }
+                    return layout;
+                }),
+            };
         }
-    )
+    );
 
-    // Fill in glyphs with individual unicode codepoints
+    // Fill in missing glyphs with individual unicode codepoints
     layouts = layouts.map(
-        (layout) => {
-            for (const jamo of layout.glyphs.keys()) {
-                if (layout.glyphs.get(jamo) === null) {
-                    // Set default glyph with Unicode codepoint, if exists
-                    const cs = findCharstringByCodepoint(
-                        jamo.codePointAt(0) as number,
-                        cmap4,
-                        charstrings,
-                    );
-                    const glyph = parseGlyph(cs, fdarray);
-                    const newResizedGlyph: ResizedGlyph = {
-                        glyph: glyph,
-                        bounds: {left: 0.2, right: 0.8, top: 0.8, bottom: 0.2},
-                    };
-                    layout.glyphs.set(jamo, newResizedGlyph);
-                }
-            }
-            return layout;
+        (category) => {
+            return {
+                ...category,
+                layouts: category.layouts.map((layout) => {
+                    for (const jamo of layout.glyphs.keys()) {
+                        if (layout.glyphs.get(jamo) === null) {
+                            // Set default glyph with Unicode codepoint, if exists
+                            const cs = findCharstringByCodepoint(
+                                jamo.codePointAt(0) as number,
+                                cmap4,
+                                charstrings,
+                            );
+                            const glyph = parseGlyph(cs, fdarray);
+                            const newResizedGlyph: ResizedGlyph = {
+                                glyph: glyph,
+                                bounds: {left: 0.2, right: 0.8, top: 0.8, bottom: 0.2},
+                            };
+                            layout.glyphs.set(jamo, newResizedGlyph);
+                        }
+                    }
+                    return layout;
+                }),
+            };
         }
     );
 

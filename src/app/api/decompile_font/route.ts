@@ -33,7 +33,11 @@ export async function POST(req: Request) {
 
         console.log("Font file written to: " + tmpFileOrNull.name);
 
-        const result = convertFont(tmpFileOrNull.name)
+        // const result = convertFont(tmpFileOrNull.name)
+        //     .pipeThrough(new CompressionStream("gzip"));
+
+        const stream = fs.createReadStream("C:\\Users\\mujji\\Documents\\SunBatang-Light.ttx");
+        const result = makeByteReadableStreamFromNodeReadable(stream)
             .pipeThrough(new CompressionStream("gzip"));
 
         return new Response(result);
