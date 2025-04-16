@@ -101,18 +101,67 @@ export function intersectGlyph(
     };
 }
 
-export function adjustGlyphThickness(glyph: Glyph, xyRatio: number): Glyph {
-    const newGlyph = reduceGlyphPaths(glyph);
-    const boldGlyph = synthesizeBoldGlyph(newGlyph, 60);
+export function adjustGlyphThickness(
+    glyph: Glyph,
+    xScale: number,
+    yScale: number
+): Glyph {
+    glyph = reduceGlyphPaths(glyph);
+    const boldOffset = 40;
+    const boldGlyph = synthesizeBoldGlyph(glyph, boldOffset);
 
-    console.log("reduced glyph", structuredClone(newGlyph));
-    console.log("bold glyph", structuredClone(boldGlyph));
+    const config = {
+        xScale: xScale,
+        yScale: yScale,
+        xThickness: 100,  // TODO: parse these values from file
+        yThickness: 50,
+        boldOffset: boldOffset,
+        alpha: 0.2,
+    };
 
+    const newGlyph = structuredClone(glyph);
+    for (let pathIdx = 0; pathIdx < newGlyph.paths.length; pathIdx++) {
+        const path = newGlyph.paths[pathIdx];
+        const boldPath = boldGlyph.paths[pathIdx];
+
+        path.start = interpolate(path.start, boldPath.start, config);
+
+        const newSegments: Segment[] = [];
+        for (let segIdx = 0; segIdx < path.segments.length; segIdx++) {
+            const segment = path.segments[segIdx];
+            const boldSeg = boldPath.segments[segIdx];
+
+            newSegments.push({
+                ct1: interpolate(segment.ct1, boldSeg.ct1, config),
+                ct2: interpolate(segment.ct2, boldSeg.ct2, config),
+                p: interpolate(segment.p, boldSeg.p, config),
+            });
+        }
+        path.segments = newSegments;
+    }
+
+    return newGlyph;
+}
+
+function interpolate(
+    pr: Point,
+    pb: Point,
+    {xScale, yScale, xThickness, yThickness, boldOffset, alpha}: Readonly<{
+        xScale: number,
+        yScale: number,
+        xThickness: number,
+        yThickness: number,
+        boldOffset: number,
+        alpha: number,
+    }>
+): Point {
+    const bx = (boldOffset * 2 + xThickness) / xThickness;
+    const by = (boldOffset * 2 + yThickness) / yThickness;
+    const qx = (Math.pow(xScale, alpha - 1) - bx) / (1 - bx);
+    const qy = (Math.pow(yScale, alpha - 1) - by) / (1 - by);
     return {
-        ...glyph,
-        paths: [
-            ...boldGlyph.paths,
-        ]
+        x: qx * pr.x + (1 - qx) * pb.x,
+        y: qy * pr.y + (1 - qy) * pb.y,
     };
 }
 
@@ -128,9 +177,6 @@ function synthesizeBoldGlyph(glyph: Glyph, d: number): Glyph {
                 lastPoint, segment.ct1, segment.ct2, segment.p
             ]));
             const offset = bezier.offset(-d) as Bezier[];
-            if (offset.length !== 1) {
-                console.error("offset", offset.length, offset);
-            }
             const offsetBezier = offset[0];
             if (!lastBezier) {
                 path.start = structuredClone(offsetBezier.points[0]);
@@ -216,10 +262,11 @@ function reduceGlyphPaths(glyph: Glyph): Glyph {
                 });
             }
             const lastSeg = newSegments[newSegments.length - 1];
-            if (lastSeg.p.x !== segment.p.x || lastSeg.p.y !== segment.p.y) {
+            const finalPoint = lastSeg? lastSeg.p : lastPoint;
+            if (finalPoint.x !== segment.p.x || finalPoint.y !== segment.p.y) {
                 newSegments.push({
                     ct1: structuredClone(segment.p),
-                    ct2: structuredClone(lastSeg.p),
+                    ct2: structuredClone(finalPoint),
                     p: structuredClone(segment.p),
                 });
             }

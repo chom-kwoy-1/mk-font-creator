@@ -168,7 +168,7 @@ function CompositionLayouts(
 
     const [curLayouts, setCurLayouts] = React.useState(structuredClone(jamoLayouts));
 
-    const debug = true;
+    const debug = false;
 
     React.useEffect(() => {
         fdarray.current = array(JSONPath.query(ttx, '$.ttFont.CFF.CFFFont.FDArray.FontDict')[0]);
@@ -224,7 +224,7 @@ function CompositionLayouts(
                 glyph: parseGlyph(cs, fdarray.current),
                 bounds: {left: 0.2, right: 0.8, top: 0.8, bottom: 0.2},
             }
-            const bounds = {left: 0, right: 1000, top: 800, bottom: 200};
+            const bounds = {left: 0, right: 1000, top: 800, bottom: 600};
             const actualBounds = glyphActualBounds(glyph.glyph);
             const resizedBounds = glyph.bounds;
             const targetBounds = {

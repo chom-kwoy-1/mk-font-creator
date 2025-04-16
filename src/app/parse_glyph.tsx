@@ -53,7 +53,7 @@ export function parseGlyph(
         const lastSeg = lastPath.segments[lastPath.segments.length - 1];
         lastPath.segments.push({
             ct1: {x: x, y: y},
-            ct2: structuredClone(lastSeg.p),
+            ct2: structuredClone(lastSeg? lastSeg.p : lastPath.start),
             p: {x: x, y: y},
         });
     }
@@ -397,12 +397,10 @@ function correctDirection(glyph: Glyph): Glyph {
     newGlyph.paths = newGlyph.paths.map((path) => {
         const windingDir = windingDirection(path);
 
-        let n = numIntersections(
+        const n = numIntersections(
             newGlyph.paths.filter((otherPath) => !Object.is(otherPath, path)),
             {p1: outsidePath, p2: path.start},
         );
-
-        console.log(n, windingDir);
 
         if (n % 2 === 0 && windingDir === 'CW' ||
             n % 2 === 1 && windingDir === 'CCW') {

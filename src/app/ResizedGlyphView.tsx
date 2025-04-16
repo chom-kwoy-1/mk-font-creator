@@ -24,7 +24,7 @@ export function ResizedGlyphView(
 
     const xScale = (targetBounds.right - targetBounds.left) / (actualBounds.right - actualBounds.left);
     const yScale = (targetBounds.top - targetBounds.bottom) / (actualBounds.top - actualBounds.bottom);
-    const glyph = adjustGlyphThickness(resizedGlyph.glyph, yScale / xScale);
+    const glyph = adjustGlyphThickness(resizedGlyph.glyph, xScale, yScale);
 
     function glyphRescale(p: Point): number[] {
         return rescale({
