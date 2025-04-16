@@ -187,10 +187,7 @@ function CompositionLayouts(
                             const glyph = parseGlyph(cs, fdarray.current as FontDict[]);
                             const resizedGlyph = {
                                 glyph: glyph,
-                                left: 0.0,
-                                right: 1.0,
-                                top: 1.0,
-                                bottom: 0.0,
+                                bounds: {left: 0.2, right: 0.8, top: 0.8, bottom: 0.2},
                             };
                             return [jamo, resizedGlyph];
                         }
@@ -201,8 +198,6 @@ function CompositionLayouts(
 
         setMyLeadingLayouts(newLeadingLayouts);
     }, [ttx]);
-
-    console.log(myLeadingLayouts);
 
     if (!isLoaded.current) {
         return <div>Loading...</div>;
@@ -222,21 +217,18 @@ function CompositionLayouts(
                     {myLeadingLayouts.map((layout, idx) =>
                         <Grid key={idx} size={4}>
                             <Paper variant="elevation">
-                                <Stack>
-                                    <LayoutView
-                                        layout={layout}
-                                        setLayout={(newLayout) => {
-                                            setMyLeadingLayouts(
-                                                myLeadingLayouts.map((l, i) => i === idx ? newLayout : l)
-                                            );
-                                        }}
-                                        fdarray={fdarray.current as FontDict[]}
-                                        charstrings={charstrings.current as Charstring[]}
-                                        os2={os2.current as OS2}
-                                        cmap4={cmap4.current as Cmap4}
-                                    />
-                                    {layout.name}
-                                </Stack>
+                                <LayoutView
+                                    layout={layout}
+                                    setLayout={(newLayout) => {
+                                        setMyLeadingLayouts(
+                                            myLeadingLayouts.map((l, i) => i === idx ? newLayout : l)
+                                        );
+                                    }}
+                                    fdarray={fdarray.current as FontDict[]}
+                                    charstrings={charstrings.current as Charstring[]}
+                                    os2={os2.current as OS2}
+                                    cmap4={cmap4.current as Cmap4}
+                                />
                             </Paper>
                         </Grid>
                     )}

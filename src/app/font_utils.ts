@@ -1,5 +1,6 @@
 import {Charstring, Cmap4} from "@/app/TTXObject";
 import {Glyph} from "@/app/parse_glyph";
+import {Bezier} from "bezier-js";
 
 export function findCharstringByCodepoint(
     codePoint: number,
@@ -16,7 +17,7 @@ export function findCharstringByCodepoint(
     return charstrings[csIndex];
 }
 
-type Bounds = {
+export type Bounds = {
     left: number,
     right: number,
     top: number,
@@ -32,15 +33,16 @@ export function glyphActualBounds(glyph: Glyph): Bounds {
     };
 
     for (const path of glyph.paths) {
-        const points = [
-            path.start,
-            ...path.segments.flatMap((s) => [s.ct1, s.ct2, s.p]),
-        ];
-        for (const point of points) {
-            bounds.left = Math.min(bounds.left, point.x);
-            bounds.right = Math.max(bounds.right, point.x);
-            bounds.top = Math.max(bounds.top, point.y);
-            bounds.bottom = Math.min(bounds.bottom, point.y);
+        let lastPoint = path.start;
+        for (const segment of path.segments) {
+            const bezier = new Bezier([
+                lastPoint, segment.ct1, segment.ct2, segment.p,
+            ]);
+            const bbox = bezier.bbox();
+            bounds.left = Math.min(bounds.left, bbox.x.min);
+            bounds.right = Math.max(bounds.right, bbox.x.max);
+            bounds.top = Math.max(bounds.top, bbox.y.max);
+            bounds.bottom = Math.min(bounds.bottom, bbox.y.min);
         }
     }
 

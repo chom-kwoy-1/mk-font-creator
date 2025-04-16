@@ -3,6 +3,7 @@ import {
     singleLeadingJamos,
     stackedLeadingJamos,
 } from "@/app/jamos";
+import {Bounds} from "@/app/font_utils";
 
 export type JamoElement = {
     type: 'jamo',
@@ -33,12 +34,9 @@ type MixedDivider = {
     rest: JamoElement | Divider,
 };
 
-type ResizedGlyph = {
+export type ResizedGlyph = {
     glyph: Glyph,
-    left: number,
-    right: number,
-    top: number,
-    bottom: number,
+    bounds: Bounds,
 };
 
 export type Layout = {

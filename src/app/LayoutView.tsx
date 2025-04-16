@@ -1,8 +1,10 @@
 import React from "react";
-import {Stack} from "@mui/material";
+import {Box, FormControl, InputLabel, MenuItem, Select, Stack} from "@mui/material";
+import Konva from "konva";
 import { Stage, Layer, Rect, Line } from 'react-konva';
+import Grid from '@mui/material/Grid2';
 
-import {Layout, Divider, JamoElement} from "@/app/jamo_layouts";
+import {Layout, Divider, JamoElement, ResizedGlyph} from "@/app/jamo_layouts";
 import UseDimensions from "@/app/useDimensions";
 import {parseGlyph, Point} from "@/app/parse_glyph";
 import {Charstring, Cmap4, FontDict, OS2} from "@/app/TTXObject";
@@ -15,7 +17,7 @@ import {
     bottomVowelJamos,
     mixedVowelJamos,
 } from "@/app/jamos";
-import {findCharstringByCodepoint, glyphActualBounds} from "@/app/font_utils";
+import {Bounds, findCharstringByCodepoint, glyphActualBounds} from "@/app/font_utils";
 
 
 export function LayoutView(
@@ -69,100 +71,123 @@ export function LayoutView(
         const cs = findCharstringByCodepoint(codePoint, cmap4, charstrings);
         const glyph = parseGlyph(cs, fdarray);
     }
-    const glyph = layout.glyphs.values().next().value?.glyph;
-    const actualBounds = glyph? glyphActualBounds(glyph) : null;
 
-    function glyphRescale(p: Point): number[] {
-        return rescale(p);
-    }
+    const [curGlyph, setCurGlyph] = React.useState<string | null>(null);
+    React.useEffect(() => {
+        setCurGlyph(layout.glyphs.keys().next().value?? null);
+    }, [layout]);
+
+    const resizedGlyph = curGlyph? layout.glyphs.get(curGlyph) : null;
 
     return (
-        <Stack ref={ref}>
-            <Stage width={width} height={width}>
-                <Layer>
-                    <DrawDivider
-                        divider={layout.dividers}
-                        left={0}
-                        right={1000}
-                        top={ascender}
-                        bottom={descender}
-                        focus={layout.focus}
-                        rescale={rescale}
-                    />
-                </Layer>
+        <Stack>
+            <Stack ref={ref}>
+                <Stage width={width} height={width}>
+                    {resizedGlyph &&
+                        <Layer>
+                            <DrawDivider
+                                divider={layout.dividers}
+                                left={0}
+                                right={1000}
+                                top={ascender}
+                                bottom={descender}
+                                focus={layout.focus}
+                                rescale={rescale}
+                                resizedGlyph={resizedGlyph}
+                            />
+                        </Layer>}
 
-                {/* Draw example glyph */}
-                <Layer>
-                    {glyph &&
-                        <GlyphView
-                            glyph={glyph}
-                            rescale={glyphRescale}
-                        />}
-                </Layer>
-
-                <Layer>
-                    {actualBounds &&
-                        <Rect
-                            x={glyphRescale({x: actualBounds.left, y: actualBounds.bottom})[0]}
-                            y={glyphRescale({x: actualBounds.left, y: actualBounds.bottom})[1]}
-                            width={(
-                                glyphRescale({x: actualBounds.right, y: actualBounds.top})[0]
-                                - glyphRescale({x: actualBounds.left, y: actualBounds.bottom})[0]
-                            )}
-                            height={(
-                                glyphRescale({x: actualBounds.right, y: actualBounds.top})[1]
-                                - glyphRescale({x: actualBounds.left, y: actualBounds.bottom})[1]
-                            )}
-                            stroke="red"
+                    {/* Draw guides */}
+                    <Layer>
+                        <Line
+                            points={[
+                                ...rescale({ x: 0, y: -Infinity }),
+                                ...rescale({ x: 0, y: Infinity }),
+                            ]}
+                            stroke="blue"
                             strokeWidth={1}
-                        />}
-                </Layer>
-
-                {/* Draw guides */}
-                <Layer>
-                    <Line
-                        points={[
-                            ...rescale({ x: 0, y: -Infinity }),
-                            ...rescale({ x: 0, y: Infinity }),
-                        ]}
-                        stroke="blue"
-                        strokeWidth={1}
-                    />
-                    <Line
-                        points={[
-                            ...rescale({ x: 1000, y: -Infinity }),
-                            ...rescale({ x: 1000, y: Infinity }),
-                        ]}
-                        stroke="blue"
-                        strokeWidth={1}
-                    />
-                    <Line
-                        points={[
-                            ...rescale({ x: -Infinity, y: 0 }),
-                            ...rescale({ x: Infinity, y: 0 }),
-                        ]}
-                        stroke="brown"
-                        strokeWidth={1}
-                    />
-                    <Line
-                        points={[
-                            ...rescale({ x: -Infinity, y: ascender }),
-                            ...rescale({ x: Infinity, y: ascender }),
-                        ]}
-                        stroke="blue"
-                        strokeWidth={1}
-                    />
-                    <Line
-                        points={[
-                            ...rescale({ x: -Infinity, y: descender }),
-                            ...rescale({ x: Infinity, y: descender }),
-                        ]}
-                        stroke="blue"
-                        strokeWidth={1}
-                    />
-                </Layer>
-            </Stage>
+                        />
+                        <Line
+                            points={[
+                                ...rescale({ x: 1000, y: -Infinity }),
+                                ...rescale({ x: 1000, y: Infinity }),
+                            ]}
+                            stroke="blue"
+                            strokeWidth={1}
+                        />
+                        <Line
+                            points={[
+                                ...rescale({ x: -Infinity, y: 0 }),
+                                ...rescale({ x: Infinity, y: 0 }),
+                            ]}
+                            stroke="brown"
+                            strokeWidth={1}
+                        />
+                        <Line
+                            points={[
+                                ...rescale({ x: -Infinity, y: ascender }),
+                                ...rescale({ x: Infinity, y: ascender }),
+                            ]}
+                            stroke="blue"
+                            strokeWidth={1}
+                        />
+                        <Line
+                            points={[
+                                ...rescale({ x: -Infinity, y: descender }),
+                                ...rescale({ x: Infinity, y: descender }),
+                            ]}
+                            stroke="blue"
+                            strokeWidth={1}
+                        />
+                    </Layer>
+                </Stage>
+            </Stack>
+            <Grid container spacing={1} alignItems="center">
+                <Grid size={6}>
+                    <Box>{layout.name}</Box>
+                </Grid>
+                <Grid size={6}>
+                    <Stack>
+                        <FormControl variant="standard" sx={{ minWidth: 120 }} size="small">
+                            <InputLabel id="jamo-select-label">Jamo</InputLabel>
+                            <Select
+                                variant="filled"
+                                labelId="jamo-select-label"
+                                id="jamo-select"
+                                value={curGlyph}
+                                onChange={(e) => {
+                                    setCurGlyph(e.target.value as string);
+                                }}
+                                label="Jamo"
+                            >
+                                {layout.glyphs.keys().map((jamo, i) => (
+                                    <MenuItem key={i} value={jamo}>{jamo}</MenuItem>
+                                )).toArray()}
+                            </Select>
+                        </FormControl>
+                    </Stack>
+                </Grid>
+            </Grid>
         </Stack>
+    );
+}
+
+export function DrawBounds(
+    {bounds, rescale, ...props}: Readonly<{
+        bounds: Bounds,
+        rescale: (p: Point) => number[],
+    } & Konva.RectConfig>)
+{
+    const bottomLeft = rescale({x: bounds.left, y: bounds.bottom});
+    const topRight = rescale({x: bounds.right, y: bounds.top});
+    return (
+        <Rect
+            x={bottomLeft[0]}
+            y={bottomLeft[1]}
+            width={(topRight[0] - bottomLeft[0])}
+            height={(topRight[1] - bottomLeft[1])}
+            {...props}
+        />
     );
 }
 
@@ -228,23 +253,57 @@ function DrawDivider(
         bottom: number,
         focus: string,
         rescale: (p: Point) => number[],
+        resizedGlyph: ResizedGlyph | null,
     }>
 ) {
-    const { focus, rescale } = props;
+    const { focus, rescale, resizedGlyph } = props;
 
     if (divider.type === 'jamo') {
-        const [x1, y1, x2, y2] = [
-            ...rescale({x: left, y: top}),
-            ...rescale({x: right, y: bottom}),
-        ];
+        let glyphDOM = null;
+        if (focus === divider.kind && resizedGlyph) {
+            const actualBounds = glyphActualBounds(resizedGlyph.glyph);
+            const resizedBounds = resizedGlyph.bounds;
+            const targetBounds = {
+                left: left + resizedBounds.left * (right - left),
+                right: left + resizedBounds.right * (right - left),
+                top: bottom + resizedBounds.top * (top - bottom),
+                bottom: bottom + resizedBounds.bottom * (top - bottom),
+            }
+
+            function glyphRescale(p: Point): number[] {
+                const x = (p.x - actualBounds.left) / (actualBounds.right - actualBounds.left);
+                const y = (p.y - actualBounds.bottom) / (actualBounds.top - actualBounds.bottom);
+                const x2 = targetBounds.left + x * (targetBounds.right - targetBounds.left);
+                const y2 = targetBounds.bottom + y * (targetBounds.top - targetBounds.bottom);
+                return rescale({x: x2, y: y2});
+            }
+
+            glyphDOM = (
+                <React.Fragment>
+                    <GlyphView
+                        glyph={resizedGlyph.glyph}
+                        rescale={glyphRescale}
+                    />
+
+                    <DrawBounds
+                        bounds={targetBounds}
+                        rescale={rescale}
+                        stroke="red"
+                        strokeWidth={1}
+                    />
+                </React.Fragment>
+            );
+        }
+
         return (
-            <Rect
-                x={x1}
-                y={y1}
-                width={x2 - x1}
-                height={y2 - y1}
-                fill={focus === divider.kind? "lightgrey" : undefined}
-            />
+            <React.Fragment>
+                <DrawBounds
+                    bounds={{left: left, right: right, top: top, bottom: bottom}}
+                    rescale={rescale}
+                    fill={focus === divider.kind? "lightgrey" : undefined}
+                />
+                {glyphDOM}
+            </React.Fragment>
         );
     }
 
