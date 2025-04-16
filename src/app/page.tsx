@@ -7,6 +7,8 @@ import DownloadIcon from '@mui/icons-material/Download';
 import prettyBytes from 'pretty-bytes';
 import {XMLParser} from "fast-xml-parser";
 import { JSONPath } from '@astronautlabs/jsonpath';
+import {TTXObject} from "./TTXObject";
+import {GlyphView} from "@/app/GlyphView";
 
 
 const VisuallyHiddenInput = styled('input')({
@@ -21,19 +23,6 @@ const VisuallyHiddenInput = styled('input')({
     width: 1,
 });
 
-type TTXObject = {
-    ttFont: {
-        name: {
-            namerecord: {
-                '@_nameID': string,
-                '#text': string,
-            }[]
-        },
-        GlyphOrder: {
-            GlyphID: string[]
-        }
-    }
-};
 
 export default function Home() {
     const [file, setFile] = React.useState<File | null>(null);
@@ -91,8 +80,10 @@ export default function Home() {
                     ignoreAttributes : false,
                 });
                 const doc = parser.parse(text);
+
                 setLoadingState("Loading Done.");
 
+                console.log(doc);
                 setTTX(doc);
                 setLoadDone(true);
             }
@@ -139,17 +130,17 @@ export default function Home() {
 
 
 function ShowFontContents(
-    {ttx, orig_filename}: {
+    {ttx, orig_filename}: Readonly<{
         ttx: TTXObject,
         orig_filename: string
-    }) {
-
+    }>
+) {
     const [downloadState, setDownloadState] = React.useState<string | null>(null);
     const [downloadDone, setDownloadDone] = React.useState<boolean>(false);
 
     const workerRef = React.useRef<Worker>(null);
     React.useEffect(() => {
-        workerRef.current = new Worker(new URL("xml_serializer_worker.ts", import.meta.url));
+        workerRef.current = new Worker(new URL("../xml_serializer_worker.ts", import.meta.url));
         workerRef.current.onmessage = (event: MessageEvent<number>) =>
             alert(`WebWorker Response => ${typeof(event.data)}`);
         return () => {
@@ -213,15 +204,27 @@ function ShowFontContents(
         }
     }
 
+    function array<T>(x: T | Array<T>): Array<T> {
+        if (Array.isArray(x)) {
+            return x;
+        }
+        return [x];
+    }
+
     const font_name = JSONPath.query(ttx, '$.ttFont.name.namerecord[?(@.@_nameID == "4")]')[0]['#text'];
     const font_version = JSONPath.query(ttx, '$.ttFont.name.namerecord[?(@.@_nameID == "5")]')[0]['#text'];
-    const number_of_glyphs = JSONPath.query(ttx, '$.ttFont.GlyphOrder.GlyphID')[0].length;
+    const number_of_glyphs = array(JSONPath.query(ttx, '$.ttFont.GlyphOrder.GlyphID')[0]).length;
+
+    const fdarray = array(JSONPath.query(ttx, '$.ttFont.CFF.CFFFont.FDArray.FontDict')[0]);
+    const charstrings = array(JSONPath.query(ttx, '$.ttFont.CFF.CFFFont.CharStrings.CharString')[0]);
+    const os2 = JSONPath.query(ttx, '$.ttFont.OS_2')[0];
 
     return (
         <React.Fragment>
             <p><strong>Font</strong>: {font_name}</p>
             <p><strong>Version</strong>: {font_version}</p>
             <p><strong>Number of glyphs</strong>: {number_of_glyphs}</p>
+            <GlyphView charstring={charstrings[10377]} fdarray={fdarray} os2={os2} />
             <Button
                 variant="contained"
                 startIcon={<DownloadIcon />}
