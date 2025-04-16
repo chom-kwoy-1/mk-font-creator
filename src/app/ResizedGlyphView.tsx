@@ -1,5 +1,5 @@
 import {ResizedGlyph} from "@/app/jamo_layouts";
-import {Point} from "@/app/parse_glyph";
+import {Glyph, Point} from "@/app/parse_glyph";
 import {Bounds, glyphActualBounds} from "@/app/font_utils";
 import {GlyphView} from "@/app/GlyphView";
 import React from "react";
@@ -21,19 +21,29 @@ export function ResizedGlyphView(
         bottom: bounds.bottom + resizedBounds.bottom * (bounds.top - bounds.bottom),
     }
 
+    const xScale = (targetBounds.right - targetBounds.left) / (actualBounds.right - actualBounds.left);
+    const yScale = (targetBounds.top - targetBounds.bottom) / (actualBounds.top - actualBounds.bottom);
+    const glyph = adjustGlyphThickness(resizedGlyph.glyph, yScale / xScale);
+
     function glyphRescale(p: Point): number[] {
-        const x = (p.x - actualBounds.left) / (actualBounds.right - actualBounds.left);
-        const y = (p.y - actualBounds.bottom) / (actualBounds.top - actualBounds.bottom);
-        const x2 = targetBounds.left + x * (targetBounds.right - targetBounds.left);
-        const y2 = targetBounds.bottom + y * (targetBounds.top - targetBounds.bottom);
-        return rescale({x: x2, y: y2});
+        return rescale({
+            x: targetBounds.left + (p.x - actualBounds.left) * xScale,
+            y: targetBounds.bottom + (p.y - actualBounds.bottom) * yScale,
+        });
     }
 
     return (
         <GlyphView
-            glyph={resizedGlyph.glyph}
+            glyph={glyph}
             rescale={glyphRescale}
             {...props}
         />
     );
+}
+
+function adjustGlyphThickness(glyph: Glyph, xyRatio: number): Glyph {
+    const newGlyph = structuredClone(glyph);
+
+
+    return glyph;
 }
