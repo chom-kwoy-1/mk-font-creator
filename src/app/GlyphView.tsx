@@ -49,8 +49,8 @@ export function GlyphView(
     console.log("lines", lines);
     console.log("glyph", glyph);
 
-    const canvas_width = 400, canvas_height = 400;
-    const left = -250, bottom = -250, view_width = 1500;
+    const canvas_width = 500, canvas_height = 400;
+    const left = -250, bottom = -400, view_width = 1500;
 
     function rescale(p: Point): number[] {
         const min_canvas_side = Math.min(canvas_width, canvas_height);
@@ -82,11 +82,18 @@ export function GlyphView(
                                         points={[
                                             ...rescale(path.start),
                                             ...path.segments.flatMap((segment) => {
-                                                return rescale(segment.p);
+                                                return [
+                                                    ...rescale(segment.ct1),
+                                                    ...rescale(segment.ct2),
+                                                    ...rescale(segment.p)
+                                                ];
                                             }),
+                                            ...rescale(path.start),
+                                            ...rescale(path.start),
                                             ...rescale(path.start),
                                         ]}
                                         stroke="black"
+                                        bezier={true}
                                     />
                                 );
                             })}
