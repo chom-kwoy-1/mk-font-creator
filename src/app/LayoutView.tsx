@@ -1,23 +1,24 @@
 import React from "react";
 import {Box, FormControl, InputLabel, MenuItem, Select, Stack} from "@mui/material";
 import Konva from "konva";
-import {Stage, Layer, Rect, Line, Group} from 'react-konva';
+import {Group, Layer, Line, Rect, Stage} from 'react-konva';
 import Grid from '@mui/material/Grid2';
 
-import {Layout, Divider, JamoElement, ResizedGlyph} from "@/app/jamo_layouts";
+import {Divider, JamoElement, Layout, ResizedGlyph} from "@/app/jamo_layouts";
 import UseDimensions from "@/app/useDimensions";
 import {parseGlyph, Point} from "@/app/parse_glyph";
 import {Charstring, Cmap4, FontDict, OS2} from "@/app/TTXObject";
 import {GlyphView} from "@/app/GlyphView";
 import {uniToPua} from "@/app/pua_uni_conv";
 import {
-    singleLeadingJamos,
-    stackedLeadingJamos,
-    rightVowelJamos,
     bottomVowelJamos,
     mixedVowelJamos,
+    rightVowelJamos,
+    singleLeadingJamos,
+    stackedLeadingJamos,
 } from "@/app/jamos";
 import {Bounds, findCharstringByCodepoint, glyphActualBounds} from "@/app/font_utils";
+import {ResizeableRect} from "@/app/ResizeableRect";
 
 
 export function LayoutView(
@@ -61,11 +62,6 @@ export function LayoutView(
 
         return [x, y];
     }
-    function inverseRescale(p: Point): number[] {
-        let x = p.x / scale + left;
-        let y = p.y / scale + bottom;
-        return [x, y];
-    }
 
     if (false) {
         const exSyllGen = genExampleSyllables(layout.dividers);
@@ -89,8 +85,10 @@ export function LayoutView(
                         <Layer>
                             <DrawDivider
                                 divider={layout.dividers}
-                                setDivider={(divider) => {
-                                    setLayout({...layout, dividers: divider as Divider});
+                                setDivider={(newDivider) => {
+                                    if (newDivider.type !== 'jamo') {
+                                        setLayout({...layout, dividers: newDivider});
+                                    }
                                 }}
                                 left={0}
                                 right={1000}
@@ -98,7 +96,15 @@ export function LayoutView(
                                 bottom={descender}
                                 focus={layout.focus}
                                 rescale={rescale}
+                                xyScales={{x: scale, y: -scale}}
                                 resizedGlyph={resizedGlyph}
+                                setResizedGlyph={(resizedGlyph) => {
+                                    if (curGlyph) {
+                                        const newGlyphs = new Map(layout.glyphs);
+                                        newGlyphs.set(curGlyph, resizedGlyph);
+                                        setLayout({...layout, glyphs: newGlyphs});
+                                    }
+                                }}
                             />
                         </Layer>}
 
@@ -259,13 +265,14 @@ function DrawDivider(
         bottom: number,
         focus: string,
         rescale: (p: Point) => number[],
+        xyScales: {x: number, y: number},
         resizedGlyph: ResizedGlyph | null,
+        setResizedGlyph: (resizedGlyph: ResizedGlyph) => void,
     }>
 ) {
-    const { focus, rescale, resizedGlyph } = props;
+    const { focus, rescale, xyScales, resizedGlyph, setResizedGlyph } = props;
 
     if (divider.type === 'jamo') {
-        let glyphDOM = null;
         if (focus === divider.kind && resizedGlyph) {
             const actualBounds = glyphActualBounds(resizedGlyph.glyph);
             const resizedBounds = resizedGlyph.bounds;
@@ -284,16 +291,34 @@ function DrawDivider(
                 return rescale({x: x2, y: y2});
             }
 
-            glyphDOM = (
+            return (
                 <React.Fragment>
+                    <DrawBounds
+                        bounds={{left: left, right: right, top: top, bottom: bottom}}
+                        rescale={rescale}
+                        fill="lightgrey"
+                    />
+
                     <GlyphView
                         glyph={resizedGlyph.glyph}
                         rescale={glyphRescale}
                     />
 
-                    <DrawBounds
+                    <ResizeableRect
                         bounds={targetBounds}
+                        setBounds={(newBounds) => {
+                            setResizedGlyph({
+                                ...resizedGlyph,
+                                bounds: {
+                                    left: (newBounds.left - left) / (right - left),
+                                    right: (newBounds.right - left) / (right - left),
+                                    top: (newBounds.top - bottom) / (top - bottom),
+                                    bottom: (newBounds.bottom - bottom) / (top - bottom),
+                                },
+                            });
+                        }}
                         rescale={rescale}
+                        xyScales={xyScales}
                         stroke="red"
                         strokeWidth={1}
                     />
@@ -301,23 +326,13 @@ function DrawDivider(
             );
         }
 
-        return (
-            <React.Fragment>
-                <DrawBounds
-                    bounds={{left: left, right: right, top: top, bottom: bottom}}
-                    rescale={rescale}
-                    fill={focus === divider.kind? "lightgrey" : undefined}
-                />
-                {glyphDOM}
-            </React.Fragment>
-        );
+        return null;
     }
 
     const [isDragging, setIsDragging] = React.useState<boolean>(false);
-    const [position, setPosition] = React.useState<Point>({x: 0, y: 0});
 
     if (divider.type === 'vertical') {
-        const x = left + divider.x * 1000;
+        const x = left + divider.x * (right - left);
         return (
             <React.Fragment>
                 <DrawDivider
@@ -352,14 +367,32 @@ function DrawDivider(
                     }}
                     onDragEnd={(e) => {
                         setIsDragging(false);
+                        const offsetX = (e.target.x() / xyScales.x) / (right - left);
+                        setDivider({
+                            ...divider,
+                            x: divider.x + offsetX,
+                        });
                         e.target.setPosition({x: 0, y: 0});
+                    }}
+                    onMouseEnter={(e) => {
+                        const container = e.target.getStage()?.container();
+                        if (container) {
+                            container.style.cursor = "ew-resize";
+                        }
+                    }}
+                    onMouseLeave={(e) => {
+                        const container = e.target.getStage()?.container();
+                        if (container) {
+                            container.style.cursor = "default";
+                        }
                     }}>
                     <Line
                         points={[
                             ...rescale({x: x, y: top}),
                             ...rescale({x: x, y: bottom}),
                         ]}
-                        stroke="green"
+                        stroke={isDragging? "red" : "green"}
+                        strokeWidth={isDragging? 5 : 2}
                         hitStrokeWidth={10}
                     />
                 </Group>
@@ -392,10 +425,45 @@ function DrawDivider(
                     bottom={bottom}
                     {...props}
                 />
-                <Line points={[
-                    ...rescale({x: left, y: y}),
-                    ...rescale({x: right, y: y}),
-                ]} stroke="green" />
+                <Group
+                    draggable={true}
+                    onDragStart={(e) => {
+                        setIsDragging(true);
+                    }}
+                    onDragMove={(e) => {
+                        e.target.setPosition({x: 0, y: e.target.y()});
+                    }}
+                    onDragEnd={(e) => {
+                        setIsDragging(false);
+                        const offsetY = (e.target.y() / xyScales.y) / (top - bottom);
+                        setDivider({
+                            ...divider,
+                            y: divider.y + offsetY,
+                        });
+                        e.target.setPosition({x: 0, y: 0});
+                    }}
+                    onMouseEnter={(e) => {
+                        const container = e.target.getStage()?.container();
+                        if (container) {
+                            container.style.cursor = "ns-resize";
+                        }
+                    }}
+                    onMouseLeave={(e) => {
+                        const container = e.target.getStage()?.container();
+                        if (container) {
+                            container.style.cursor = "default";
+                        }
+                    }}>
+                    <Line
+                        points={[
+                            ...rescale({x: left, y: y}),
+                            ...rescale({x: right, y: y}),
+                        ]}
+                        stroke={isDragging? "red" : "green"}
+                        strokeWidth={isDragging? 5 : 2}
+                        hitStrokeWidth={10}
+                    />
+                </Group>
             </React.Fragment>
         );
     }
