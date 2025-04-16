@@ -61,6 +61,7 @@ export function pathBounds(path: Path): Bounds {
         bounds.right = Math.max(bounds.right, bbox.x.max);
         bounds.top = Math.max(bounds.top, bbox.y.max);
         bounds.bottom = Math.min(bounds.bottom, bbox.y.min);
+        lastPoint = segment.p;
     }
 
     return bounds;

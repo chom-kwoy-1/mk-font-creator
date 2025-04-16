@@ -81,7 +81,8 @@ export function LayoutView(
             }
         }
         if (filteredOtherLayouts.length !== 1) {
-            throw new Error(`Multiple layouts selected: ${filteredOtherLayouts}`);
+            console.error(filteredOtherLayouts);
+            throw new Error(`Multiple layouts selected: ${filteredOtherLayouts.length}`);
         }
         return [
             otherJamoSubkind,
