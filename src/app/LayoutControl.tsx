@@ -43,6 +43,8 @@ export function LayoutControl(
     const outlineColor = 'white';
     const highlightAreaColor = '#444444';
 
+    const ref = React.useRef<Konva.Group>(null);
+
     if (divider.type === 'jamo') {
         if (focus === divider.kind) {
             if (resizedGlyph) {
@@ -58,6 +60,15 @@ export function LayoutControl(
 
                         {!drawBackground &&
                             <React.Fragment>
+                                <ResizedGlyphView
+                                    stageRef={ref}
+                                    resizedGlyph={resizedGlyph}
+                                    rescale={rescale}
+                                    bounds={{left: left, right: right, top: top, bottom: bottom}}
+                                    showPoints={showPoints}
+                                    stroke={outlineColor}
+                                />
+
                                 <ResizeableRect
                                     bounds={{
                                         left: left + resizedBounds.left * (right - left),
@@ -80,14 +91,7 @@ export function LayoutControl(
                                     xyScales={xyScales}
                                     stroke="yellow"
                                     strokeWidth={1}
-                                />
-
-                                <ResizedGlyphView
-                                    resizedGlyph={resizedGlyph}
-                                    rescale={rescale}
-                                    bounds={{left: left, right: right, top: top, bottom: bottom}}
-                                    showPoints={showPoints}
-                                    stroke={outlineColor}
+                                    resizedRefs={[ref.current as Konva.Group]}
                                 />
                             </React.Fragment>}
                     </React.Fragment>
@@ -105,6 +109,7 @@ export function LayoutControl(
                 if (otherLayout && resizedGlyph) {
                     return (
                         <ResizedGlyphView
+                            stageRef={ref}
                             resizedGlyph={resizedGlyph}
                             rescale={rescale}
                             bounds={{left: left, right: right, top: top, bottom: bottom}}

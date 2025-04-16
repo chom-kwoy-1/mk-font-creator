@@ -102,14 +102,12 @@ export function intersectGlyph(
 }
 
 export function adjustGlyphThickness(
-    glyph: Glyph,
+    reducedGlyph: Glyph,
+    boldGlyph: Glyph,
+    boldOffset: number,
     xScale: number,
     yScale: number
 ): Glyph {
-    glyph = reduceGlyphPaths(glyph);
-    const boldOffset = 40;
-    const boldGlyph = synthesizeBoldGlyph(glyph, boldOffset);
-
     const config = {
         xScale: xScale,
         yScale: yScale,
@@ -119,7 +117,7 @@ export function adjustGlyphThickness(
         alpha: 0.2,
     };
 
-    const newGlyph = structuredClone(glyph);
+    const newGlyph = structuredClone(reducedGlyph);
     for (let pathIdx = 0; pathIdx < newGlyph.paths.length; pathIdx++) {
         const path = newGlyph.paths[pathIdx];
         const boldPath = boldGlyph.paths[pathIdx];
@@ -224,18 +222,22 @@ function curveIntersect(b1: Bezier, b2: Bezier): {t1: number, t2: number}[] {
         {x: b2.points[2].x + n(), y: b2.points[2].y + n()},
         {x: b2.points[3].x + n(), y: b2.points[3].y + n()},
     ]);
-    const intersections = b1_.intersects(b2_, 1e-3);
+    const intersections = b1_.intersects(b2_, 1e-1);
     return intersections.map((t1_t2) => {
         const [t1, t2] = (t1_t2 as string).split("/").map(parseFloat);
         return {t1, t2};
     });
 }
 
-function synthesizeBoldGlyph(glyph: Glyph, d: number): Glyph {
+export function synthesizeBoldGlyph(glyph: Glyph, d: number): Glyph {
     const offsetBeziers: Bezier[][] = offsetGlyphSegments(glyph, d);
 
-    console.log("reduced glyph", glyph);
-    console.log("offsetBeziers", offsetBeziers);
+    const verbose = false;
+
+    if (verbose) {
+        console.log("reduced glyph", glyph);
+        console.log("offsetBeziers", offsetBeziers);
+    }
 
     const newGlyph = structuredClone(glyph);
 
@@ -290,14 +292,18 @@ function synthesizeBoldGlyph(glyph: Glyph, d: number): Glyph {
                                     p: structuredClone(split.left.points[3]),
                                 };
                             }
-                            console.log(segIdx, "resolved at", i);
+                            if (verbose) {
+                                console.log(segIdx, "resolved at", i);
+                            }
                             corrected = true;
                             lastBezier = offsetBezier;
                             break;
                         }
                     }
                     if (!corrected) {
-                        console.log("no intersection", segIdx, offsetBezier);
+                        if (verbose) {
+                            console.log("no intersection", segIdx, offsetBezier);
+                        }
                     }
                 }
             }
@@ -312,7 +318,9 @@ function synthesizeBoldGlyph(glyph: Glyph, d: number): Glyph {
         }
 
         if (!isResolved) {
-            console.log("warning: unresolved offset connection", path, lastBezier);
+            if (verbose) {
+                console.log("warning: unresolved offset connection", path, lastBezier);
+            }
         }
 
         path.segments = newSegments;
@@ -321,7 +329,7 @@ function synthesizeBoldGlyph(glyph: Glyph, d: number): Glyph {
     return newGlyph;
 }
 
-function reduceGlyphPaths(glyph: Glyph): Glyph {
+export function reduceGlyphPaths(glyph: Glyph): Glyph {
     const newGlyph = structuredClone(glyph);
 
     for (const path of newGlyph.paths) {

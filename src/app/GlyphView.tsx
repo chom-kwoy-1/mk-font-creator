@@ -1,18 +1,19 @@
 import React from 'react';
-import {Circle, Line, Rect, Text} from 'react-konva';
+import {Circle, Group, Line, Rect, Text} from 'react-konva';
 import {Glyph, Point} from "@/app/parse_glyph";
 import Konva from "konva";
 import {Bezier} from "bezier-js";
 
 export function GlyphView(
-    {glyph, rescale, ...props}: Readonly<{
+    {stageRef, glyph, rescale, ...props}: Readonly<{
+        stageRef: React.RefObject<Konva.Group | null>,
         glyph: Glyph,
         rescale: (p: Point) => number[],
         showPoints?: boolean,
     } & Konva.LineConfig>
 ) {
     return (
-        <React.Fragment>
+        <Group ref={stageRef}>
             {glyph.paths.map((path, pathIdx) => {
                 return (
                     <Line
@@ -120,6 +121,6 @@ export function GlyphView(
                     </React.Fragment>
                 )
             }) : null}
-        </React.Fragment>
+        </Group>
     );
 }
