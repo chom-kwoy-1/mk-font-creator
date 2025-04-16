@@ -40,8 +40,6 @@ export default function Home() {
     const [loadingState, setLoadingState] = React.useState<string | null>(null);
     const [loadDone, setLoadDone] = React.useState<boolean>(false);
     const [ttx, setTTX] = React.useState<TTXObject | null>(null);
-    const [downloadState, setDownloadState] = React.useState<string | null>(null);
-    const [downloadDone, setDownloadDone] = React.useState<boolean>(false);
 
     async function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
         if (event.target.files && event.target.files.length > 0) {
@@ -108,6 +106,47 @@ export default function Home() {
         }
     }
 
+    return (
+        <React.Fragment>
+            {file && <p>File: {file.name}</p>}
+
+            <Button
+                component="label"
+                role={undefined}
+                variant="contained"
+                startIcon={<UploadFileIcon />}
+                loading={loadingState !== null && !loadDone}
+            >
+                Upload font file
+                <VisuallyHiddenInput
+                    type="file"
+                    onChange={(event) => handleFileChange(event)}
+                />
+            </Button>
+
+            {loadingState && <Box>
+                {!loadDone && <LinearProgress />}
+                <p>Loading: {loadingState}</p>
+            </Box>}
+
+            {loadDone && ttx && <ShowFontContents
+                ttx={ttx}
+                orig_filename={file ? `${file.name}` : "font.ttf"}
+            />}
+        </React.Fragment>
+    );
+}
+
+
+function ShowFontContents(
+    {ttx, orig_filename}: {
+        ttx: TTXObject,
+        orig_filename: string
+    }) {
+
+    const [downloadState, setDownloadState] = React.useState<string | null>(null);
+    const [downloadDone, setDownloadDone] = React.useState<boolean>(false);
+
     const workerRef = React.useRef<Worker>(null);
     React.useEffect(() => {
         workerRef.current = new Worker(new URL("xml_serializer_worker.ts", import.meta.url));
@@ -151,10 +190,7 @@ export default function Home() {
             });
 
             const streamSaver = await import('streamsaver');
-            const fileStream = streamSaver.createWriteStream(
-                file ? `${file.name}` : "font.ttf",
-                {size: file?.size}
-            );
+            const fileStream = streamSaver.createWriteStream(orig_filename);
 
             let download_length = 0;
             await response.body
@@ -176,48 +212,6 @@ export default function Home() {
             setDownloadState("Error: " + err);
         }
     }
-
-    return (
-        <React.Fragment>
-            {file && <p>File: {file.name}</p>}
-
-            <Button
-                component="label"
-                role={undefined}
-                variant="contained"
-                startIcon={<UploadFileIcon />}
-                loading={loadingState !== null && !loadDone}
-            >
-                Upload font file
-                <VisuallyHiddenInput
-                    type="file"
-                    onChange={(event) => handleFileChange(event)}
-                />
-            </Button>
-
-            {loadingState && <Box>
-                {!loadDone && <LinearProgress />}
-                <p>Loading: {loadingState}</p>
-            </Box>}
-
-            {loadDone && ttx && <ShowFontContents
-                ttx={ttx}
-                downloadFont={downloadFont}
-                downloadState={downloadState}
-                downloadDone={downloadDone}
-            />}
-        </React.Fragment>
-    );
-}
-
-
-function ShowFontContents(
-    {ttx, downloadFont, downloadState, downloadDone}: {
-        ttx: TTXObject,
-        downloadFont: () => void,
-        downloadState: string | null,
-        downloadDone: boolean,
-    }) {
 
     const font_name = JSONPath.query(ttx, '$.ttFont.name.namerecord[?(@.@_nameID == "4")]')[0]['#text'];
     const font_version = JSONPath.query(ttx, '$.ttFont.name.namerecord[?(@.@_nameID == "5")]')[0]['#text'];
