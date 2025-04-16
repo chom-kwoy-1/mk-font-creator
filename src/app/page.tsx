@@ -15,9 +15,10 @@ import {jamoLayouts, ResizedGlyph} from "@/app/jamo_layouts";
 import {initLayouts} from "@/app/init_layouts";
 import {ResizedGlyphView} from "@/app/ResizedGlyphView";
 import {parseGlyph, Point} from "@/app/parse_glyph";
-import {Layer, Stage} from "react-konva";
+import {Layer, Stage, Text} from "react-konva";
 import {findCharstringByCodepoint} from "@/app/font_utils";
 import {uniToPua} from "@/app/pua_uni_conv";
+import Konva from "konva";
 
 
 const VisuallyHiddenInput = styled('input')({
@@ -192,6 +193,8 @@ function CompositionLayouts(
     const [bottom, setBottom] = React.useState<number>(-200);
     const [viewWidth, setViewWidth] = React.useState<number>(1000);
 
+    const ref = React.useRef<Konva.Text>(null);
+
     if (!isLoaded) {
         return <div>Loading...</div>;
     }
@@ -213,7 +216,7 @@ function CompositionLayouts(
             }
 
             const cs = findCharstringByCodepoint(
-                'ㅎ'.codePointAt(0) as number,
+                'ㄱ'.codePointAt(0) as number,
                 cmap4.current,
                 charstrings.current,
             );
@@ -223,13 +226,34 @@ function CompositionLayouts(
             }
             return (
                 <Paper>
-                    <Stage width={canvasWidth} height={canvasHeight}>
+                    <Stage
+                        width={canvasWidth}
+                        height={canvasHeight}
+                        onMouseMove={(e) => {
+                            if (ref.current) {
+                                const x = e.evt.offsetX / scale + left;
+                                const y = (canvasHeight - e.evt.offsetY) / scale + bottom;
+                                ref.current.position({x: e.evt.offsetX, y: e.evt.offsetY - 10});
+                                ref.current.text(`${x.toFixed(0)}, ${y.toFixed(0)}`);
+                            }
+                        }}
+                    >
                         <Layer>
                             <ResizedGlyphView
                                 resizedGlyph={glyph}
                                 rescale={rescale}
                                 bounds={{left: 0, right: 1000, top: 800, bottom: 200}}
                                 showPoints={true}
+                                strokeWidth={1}
+                                stroke="grey"
+                            />
+                            <Text
+                                ref={ref}
+                                x={10}
+                                y={10}
+                                text={"Test"}
+                                fontSize={10}
+                                fill="grey"
                             />
                         </Layer>
                     </Stage>

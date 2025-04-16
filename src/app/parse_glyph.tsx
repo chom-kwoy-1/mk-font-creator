@@ -49,9 +49,11 @@ export function parseGlyph(
         glyph.paths.push({start: {x: x, y: y}, segments: []});
     }
     function lineto({x, y}: Point) {
-        glyph.paths[glyph.paths.length - 1].segments.push({
+        const lastPath = glyph.paths[glyph.paths.length - 1];
+        const lastSeg = lastPath.segments[lastPath.segments.length - 1];
+        lastPath.segments.push({
             ct1: {x: x, y: y},
-            ct2: {x: x, y: y},
+            ct2: structuredClone(lastSeg.p),
             p: {x: x, y: y},
         });
     }
@@ -443,16 +445,16 @@ function numIntersections(
     for (const path of paths) {
         let lastPoint = path.start;
         for (const segment of path.segments) {
-            const bezier = new Bezier([
+            const bezier = new Bezier(structuredClone([
                 lastPoint, segment.ct1, segment.ct2, segment.p,
-            ]);
+            ]));
             const intersections = bezier.intersects(line);
             numIntersections += intersections.length;
             lastPoint = segment.p;
         }
-        const bezier = new Bezier([
+        const bezier = new Bezier(structuredClone([
             lastPoint, path.start, path.start, path.start
-        ]);
+        ]));
         const intersections = bezier.intersects(line);
         numIntersections += intersections.length;
     }

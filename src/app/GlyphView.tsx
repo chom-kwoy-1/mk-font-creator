@@ -29,7 +29,6 @@ export function GlyphView(
                             ...rescale(path.start),
                             ...rescale(path.start),
                         ]}
-                        stroke="black"
                         bezier={true}
                         {...props}
                     />
@@ -49,7 +48,7 @@ export function GlyphView(
                                 ...rescale(segment.ct1),
                             ]}
                             stroke="#aa2222"
-                            dash={[3, 1]}
+                            dash={[3, 2]}
                             strokeWidth={1}
                         />
                     );
@@ -61,7 +60,7 @@ export function GlyphView(
                                 ...rescale(segment.ct2),
                             ]}
                             stroke="#666666"
-                            dash={[3, 1]}
+                            dash={[3, 2]}
                             strokeWidth={1}
                         />
                     );
@@ -77,7 +76,7 @@ export function GlyphView(
                                     key={controlIdx}
                                     x={rescale(control)[0]}
                                     y={rescale(control)[1]}
-                                    radius={2.5}
+                                    radius={2}
                                     stroke="#aaaaaa"
                                     strokeWidth={1}
                                 />
@@ -93,7 +92,7 @@ export function GlyphView(
                                     width={r * 2}
                                     height={r * 2}
                                     stroke={pointIdx == 0? "red": "#00aa00"}
-                                    strokeWidth={1}
+                                    strokeWidth={2}
                                 />
                             );
                         })}

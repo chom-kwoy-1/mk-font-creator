@@ -53,9 +53,9 @@ export function pathBounds(path: Path): Bounds {
 
     let lastPoint = path.start;
     for (const segment of path.segments) {
-        const bezier = new Bezier([
+        const bezier = new Bezier(structuredClone([
             lastPoint, segment.ct1, segment.ct2, segment.p,
-        ]);
+        ]));
         const bbox = bezier.bbox();
         bounds.left = Math.min(bounds.left, bbox.x.min);
         bounds.right = Math.max(bounds.right, bbox.x.max);
