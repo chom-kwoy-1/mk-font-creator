@@ -208,6 +208,7 @@ function CompositionLayouts(
                                     charstrings={charstrings.current as Charstring[]}
                                     os2={os2.current as OS2}
                                     cmap4={cmap4.current as Cmap4}
+                                    showPoints={true}
                                 />
                             </Paper>
                         </Grid>

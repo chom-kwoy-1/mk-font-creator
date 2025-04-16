@@ -10,6 +10,7 @@ export function ResizedGlyphView(
         resizedGlyph: ResizedGlyph,
         rescale: (p: Point) => number[],
         bounds: Bounds,
+        showPoints?: boolean,
     } & Konva.LineConfig>
 ) {
     const actualBounds = glyphActualBounds(resizedGlyph.glyph);
@@ -44,6 +45,7 @@ export function ResizedGlyphView(
 function adjustGlyphThickness(glyph: Glyph, xyRatio: number): Glyph {
     const newGlyph = structuredClone(glyph);
 
+    // TODO: Implement this function
 
     return glyph;
 }

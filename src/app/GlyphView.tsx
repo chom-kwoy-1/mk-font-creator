@@ -7,6 +7,7 @@ export function GlyphView(
     {glyph, rescale, ...props}: Readonly<{
         glyph: Glyph,
         rescale: (p: Point) => number[],
+        showPoints?: boolean,
     } & Konva.LineConfig>
 ) {
     return (
@@ -34,7 +35,7 @@ export function GlyphView(
                     />
                 );
             })}
-            {glyph.paths.map((path, pathIdx) => {
+            {props.showPoints? glyph.paths.map((path, pathIdx) => {
                 const points = [path.start, ...path.segments.map((segment) => segment.p)];
                 const controls = path.segments.flatMap((segment) => [segment.ct1, segment.ct2]);
                 return (
@@ -66,7 +67,7 @@ export function GlyphView(
                         })}
                     </React.Fragment>
                 )
-            })}
+            }) : null}
         </React.Fragment>
     );
 }
