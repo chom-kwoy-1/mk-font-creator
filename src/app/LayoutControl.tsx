@@ -121,6 +121,9 @@ export function LayoutControl(
 
     const [isDragging, setIsDragging] = React.useState<boolean>(false);
 
+    const handleSize = 7;
+    const handleColor = "green";
+
     if (divider.type === 'vertical') {
         const x = left + divider.x * (right - left);
         return (
@@ -177,6 +180,15 @@ export function LayoutControl(
                                 container.style.cursor = "default";
                             }
                         }}>
+                        <Rect
+                            x={0}
+                            y={0}
+                            offsetX={-rescale({x: x, y: top})[0] + handleSize / 2}
+                            offsetY={-rescale({x: x, y: top})[1] + handleSize}
+                            width={handleSize}
+                            height={handleSize}
+                            stroke={handleColor}
+                        />
                         <Line
                             points={[
                                 ...rescale({x: x, y: top}),
@@ -184,7 +196,7 @@ export function LayoutControl(
                             ]}
                             stroke={isDragging ? "red" : "green"}
                             strokeWidth={isDragging ? 5 : 2}
-                            hitStrokeWidth={10}
+                            hitStrokeWidth={0}
                         />
                     </Group>}
             </React.Fragment>
@@ -245,6 +257,15 @@ export function LayoutControl(
                                 container.style.cursor = "default";
                             }
                         }}>
+                        <Rect
+                            x={0}
+                            y={0}
+                            offsetX={-rescale({x: left, y: y})[0] + handleSize}
+                            offsetY={-rescale({x: left, y: y})[1] + handleSize / 2}
+                            width={handleSize}
+                            height={handleSize}
+                            stroke={handleColor}
+                        />
                         <Line
                             points={[
                                 ...rescale({x: left, y: y}),
@@ -252,7 +273,7 @@ export function LayoutControl(
                             ]}
                             stroke={isDragging ? "red" : "green"}
                             strokeWidth={isDragging ? 5 : 2}
-                            hitStrokeWidth={10}
+                            hitStrokeWidth={0}
                         />
                     </Group>}
             </React.Fragment>
