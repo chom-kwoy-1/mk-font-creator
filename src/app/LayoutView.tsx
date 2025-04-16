@@ -50,15 +50,20 @@ export function LayoutView(
     const [bottom, setBottom] = React.useState<number>(-400);
     const [viewWidth, setViewWidth] = React.useState<number>(1500);
 
-    function rescale(p: Point): number[] {
-        const minCanvasSide = Math.min(canvasWidth, canvasHeight);
-        const scale = minCanvasSide / viewWidth;
+    const minCanvasSide = Math.min(canvasWidth, canvasHeight);
+    const scale = minCanvasSide / viewWidth;
 
+    function rescale(p: Point): number[] {
         let x = (p.x - left) * scale;
         x = x === -Infinity? 0 : (x === Infinity? canvasWidth : x);
         let y = canvasHeight - (p.y - bottom) * scale;
         y = y === -Infinity? 0 : (y === Infinity? canvasHeight : y);
 
+        return [x, y];
+    }
+    function inverseRescale(p: Point): number[] {
+        let x = p.x / scale + left;
+        let y = p.y / scale + bottom;
         return [x, y];
     }
 
@@ -72,10 +77,7 @@ export function LayoutView(
         const glyph = parseGlyph(cs, fdarray);
     }
 
-    const [curGlyph, setCurGlyph] = React.useState<string | null>(null);
-    React.useEffect(() => {
-        setCurGlyph(layout.glyphs.keys().next().value?? null);
-    }, [layout]);
+    const [curGlyph, setCurGlyph] = React.useState(layout.glyphs.keys().next().value?? null);
 
     const resizedGlyph = curGlyph? layout.glyphs.get(curGlyph) : null;
 
@@ -87,6 +89,9 @@ export function LayoutView(
                         <Layer>
                             <DrawDivider
                                 divider={layout.dividers}
+                                setDivider={(divider) => {
+                                    setLayout({...layout, dividers: divider as Divider});
+                                }}
                                 left={0}
                                 right={1000}
                                 top={ascender}
@@ -245,8 +250,9 @@ function* genExampleSyllables(divider: JamoElement | Divider): Generator<string>
 }
 
 function DrawDivider(
-    { divider, left, right, top, bottom, ...props }: Readonly<{
+    { divider, setDivider, left, right, top, bottom, ...props }: Readonly<{
         divider: JamoElement | Divider,
+        setDivider: (divider: JamoElement | Divider) => void,
         left: number,
         right: number,
         top: number,
@@ -307,12 +313,18 @@ function DrawDivider(
         );
     }
 
+    const [isDragging, setIsDragging] = React.useState<boolean>(false);
+    const [position, setPosition] = React.useState<Point>({x: 0, y: 0});
+
     if (divider.type === 'vertical') {
         const x = left + divider.x * 1000;
         return (
             <React.Fragment>
                 <DrawDivider
                     divider={divider.left}
+                    setDivider={(newLeft) => {
+                        setDivider({...divider, left: newLeft});
+                    }}
                     left={left}
                     right={x}
                     top={top}
@@ -321,16 +333,35 @@ function DrawDivider(
                 />
                 <DrawDivider
                     divider={divider.right}
+                    setDivider={(newRight) => {
+                        setDivider({...divider, right: newRight});
+                    }}
                     left={x}
                     right={right}
                     top={top}
                     bottom={bottom}
                     {...props}
                 />
-                <Line points={[
-                    ...rescale({x: x, y: top}),
-                    ...rescale({x: x, y: bottom}),
-                ]} stroke="green" />
+                <Line
+                    x={position.x}
+                    y={position.y}
+                    points={[
+                        ...rescale({x: x, y: top}),
+                        ...rescale({x: x, y: bottom}),
+                    ]}
+                    stroke="green"
+                    draggable={true}
+                    onDragStart={(e) => {
+                        console.log("onDragStart");
+                        setIsDragging(true);
+                    }}
+                    onDragEnd={(e) => {
+                        setIsDragging(false);
+                        console.log("onDragEnd", e.target.x(), e.target.y(), e.target.dragDistance());
+                        e.target.setPosition({x: e.target.x(), y: 0});
+                        setPosition({x: e.target.x(), y: 0});
+                    }}
+                />
             </React.Fragment>
         );
     }
@@ -340,6 +371,9 @@ function DrawDivider(
             <React.Fragment>
                 <DrawDivider
                     divider={divider.top}
+                    setDivider={(newTop) => {
+                        setDivider({...divider, top: newTop});
+                    }}
                     left={left}
                     right={right}
                     top={top}
@@ -348,6 +382,9 @@ function DrawDivider(
                 />
                 <DrawDivider
                     divider={divider.bottom}
+                    setDivider={(newBottom) => {
+                        setDivider({...divider, bottom: newBottom});
+                    }}
                     left={left}
                     right={right}
                     top={y}
@@ -368,12 +405,16 @@ function DrawDivider(
             <React.Fragment>
                 <DrawDivider
                     divider={divider.topLeft}
+                    setDivider={(newTopLeft) => {
+                        setDivider({...divider, topLeft: newTopLeft});
+                    }}
                     left={left}
                     right={x}
                     top={top}
                     bottom={y}
                     {...props}
                 />
+                {/* TODO: add rest */}
                 <Line points={[
                     ...rescale({x: left, y: y}),
                     ...rescale({x: x, y: y}),
