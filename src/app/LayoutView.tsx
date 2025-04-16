@@ -5,7 +5,7 @@ import { Stage, Layer, Rect, Line } from 'react-konva';
 import {Layout, Divider, JamoElement} from "@/app/jamo_layouts";
 import UseDimensions from "@/app/useDimensions";
 import {parseGlyph, Point} from "@/app/parse_glyph";
-import {Charstring, Cmap4, FontDict, OS2, TTXObject} from "@/app/TTXObject";
+import {Charstring, Cmap4, FontDict, OS2} from "@/app/TTXObject";
 import {GlyphView} from "@/app/GlyphView";
 import {uniToPua} from "@/app/pua_uni_conv";
 import {
@@ -15,7 +15,7 @@ import {
     bottomVowelJamos,
     mixedVowelJamos,
 } from "@/app/jamos";
-import {findCharstringByCodepoint} from "@/app/font_utils";
+import {findCharstringByCodepoint, glyphActualBounds} from "@/app/font_utils";
 
 
 export function LayoutView(
@@ -60,13 +60,21 @@ export function LayoutView(
         return [x, y];
     }
 
-    const exSyllGen = genExampleSyllables(layout.dividers);
-    const exSyll = exSyllGen.find((syll) => {
-        return uniToPua(syll).length === 1;
-    });
-    const codePoint = uniToPua(exSyll as string).codePointAt(0) as number;
-    const cs = findCharstringByCodepoint(codePoint, cmap4, charstrings);
-    const glyph = parseGlyph(cs, fdarray);
+    if (false) {
+        const exSyllGen = genExampleSyllables(layout.dividers);
+        const exSyll = exSyllGen.find((syll) => {
+            return uniToPua(syll).length === 1;
+        });
+        const codePoint = uniToPua(exSyll as string).codePointAt(0) as number;
+        const cs = findCharstringByCodepoint(codePoint, cmap4, charstrings);
+        const glyph = parseGlyph(cs, fdarray);
+    }
+    const glyph = layout.glyphs.values().next().value?.glyph;
+    const actualBounds = glyph? glyphActualBounds(glyph) : null;
+
+    function glyphRescale(p: Point): number[] {
+        return rescale(p);
+    }
 
     return (
         <Stack ref={ref}>
@@ -84,10 +92,31 @@ export function LayoutView(
                 </Layer>
 
                 {/* Draw example glyph */}
-                <GlyphView
-                    glyph={layout.glyphs.values().next().value || glyph}
-                    rescale={rescale}
-                />
+                <Layer>
+                    {glyph &&
+                        <GlyphView
+                            glyph={glyph}
+                            rescale={glyphRescale}
+                        />}
+                </Layer>
+
+                <Layer>
+                    {actualBounds &&
+                        <Rect
+                            x={glyphRescale({x: actualBounds.left, y: actualBounds.bottom})[0]}
+                            y={glyphRescale({x: actualBounds.left, y: actualBounds.bottom})[1]}
+                            width={(
+                                glyphRescale({x: actualBounds.right, y: actualBounds.top})[0]
+                                - glyphRescale({x: actualBounds.left, y: actualBounds.bottom})[0]
+                            )}
+                            height={(
+                                glyphRescale({x: actualBounds.right, y: actualBounds.top})[1]
+                                - glyphRescale({x: actualBounds.left, y: actualBounds.bottom})[1]
+                            )}
+                            stroke="red"
+                            strokeWidth={1}
+                        />}
+                </Layer>
 
                 {/* Draw guides */}
                 <Layer>
