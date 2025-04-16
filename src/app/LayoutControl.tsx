@@ -53,12 +53,6 @@ export function LayoutControl(
 
                         {!drawBackground &&
                             <React.Fragment>
-                                <ResizedGlyphView
-                                    resizedGlyph={resizedGlyph}
-                                    rescale={rescale}
-                                    bounds={{left: left, right: right, top: top, bottom: bottom}}
-                                />
-
                                 <ResizeableRect
                                     bounds={{
                                         left: left + resizedBounds.left * (right - left),
@@ -81,6 +75,12 @@ export function LayoutControl(
                                     xyScales={xyScales}
                                     stroke="red"
                                     strokeWidth={1}
+                                />
+
+                                <ResizedGlyphView
+                                    resizedGlyph={resizedGlyph}
+                                    rescale={rescale}
+                                    bounds={{left: left, right: right, top: top, bottom: bottom}}
                                 />
                             </React.Fragment>}
                     </React.Fragment>
