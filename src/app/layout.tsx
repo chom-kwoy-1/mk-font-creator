@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import {AppBar, CssBaseline, Toolbar, Typography} from "@mui/material";
 import { ThemeProvider } from '@mui/material';
-import theme from './theme';
 import {Box, Container} from "@mui/system";
+import theme from '@/app/theme';
 
 export const metadata: Metadata = {
     title: "MK Font Creator",

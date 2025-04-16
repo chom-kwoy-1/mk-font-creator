@@ -33,7 +33,8 @@ export async function POST(req: Request) {
 
         console.log("Font file written to: " + tmpFileOrNull.name);
 
-        const result = convertFont(tmpFileOrNull.name).pipeThrough(new CompressionStream("gzip"));
+        const result = convertFont(tmpFileOrNull.name)
+            .pipeThrough(new CompressionStream("gzip"));
 
         return new Response(result);
     }
@@ -54,7 +55,14 @@ export async function POST(req: Request) {
 }
 
 function convertFont(inputFileName: string): ReadableStream<Uint8Array> {
-    const ttx_converter = child_process.spawn("ttx", [inputFileName, "-o", "-"]);
+    const ttx_converter = child_process.spawn(
+        "ttx", [inputFileName, "-o", "-"],
+        { env: { ...process.env, PYTHONIOENCODING: "utf-8" } }
+    );
+
+    ttx_converter.stderr.on("data", (data) => {
+        console.error(`ttx_converter stderr: ${data}`);
+    });
 
     return makeByteReadableStreamFromNodeReadable(ttx_converter.stdout);
 }

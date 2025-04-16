@@ -2,18 +2,37 @@ import React from "react";
 import {Stack} from "@mui/material";
 import { Stage, Layer, Rect, Line } from 'react-konva';
 
-import {Layout, Divider, JamoElement} from "./jamo_layouts";
-import UseDimensions from "./useDimensions";
-import {Point} from "@/app/parse_glyph";
-import {Charstring, FontDict, OS2} from "./TTXObject";
+import {Layout, Divider, JamoElement} from "@/app/jamo_layouts";
+import UseDimensions from "@/app/useDimensions";
+import {parseGlyph, Point} from "@/app/parse_glyph";
+import {Charstring, Cmap4, FontDict, OS2, TTXObject} from "@/app/TTXObject";
 import {GlyphView} from "@/app/GlyphView";
+import {uniToPua} from "@/app/pua_uni_conv";
+import {
+    singleLeadingJamos,
+    stackedLeadingJamos,
+    rightVowelJamos,
+    bottomVowelJamos,
+    mixedVowelJamos,
+} from "@/app/jamos";
+import {findCharstringByCodepoint} from "@/app/font_utils";
+
 
 export function LayoutView(
-    {layout, fdarray, charstrings, os2}: Readonly<{
+    {
+        layout,
+        setLayout,
+        fdarray,
+        charstrings,
+        os2,
+        cmap4
+    }: Readonly<{
         layout: Layout;
+        setLayout: (layout: Layout) => void;
         fdarray: FontDict[];
         charstrings: Charstring[];
         os2: OS2;
+        cmap4: Cmap4;
     }>
 ) {
     const ascender = parseInt(os2.sTypoAscender['@_value']);
@@ -41,6 +60,14 @@ export function LayoutView(
         return [x, y];
     }
 
+    const exSyllGen = genExampleSyllables(layout.dividers);
+    const exSyll = exSyllGen.find((syll) => {
+        return uniToPua(syll).length === 1;
+    });
+    const codePoint = uniToPua(exSyll as string).codePointAt(0) as number;
+    const cs = findCharstringByCodepoint(codePoint, cmap4, charstrings);
+    const glyph = parseGlyph(cs, fdarray);
+
     return (
         <Stack ref={ref}>
             <Stage width={width} height={width}>
@@ -58,8 +85,7 @@ export function LayoutView(
 
                 {/* Draw example glyph */}
                 <GlyphView
-                    charstring={charstrings[10386]}
-                    fdarray={fdarray}
+                    glyph={layout.glyphs.values().next().value || glyph}
                     rescale={rescale}
                 />
 
@@ -109,6 +135,59 @@ export function LayoutView(
             </Stage>
         </Stack>
     );
+}
+
+function* genExampleSyllables(divider: JamoElement | Divider): Generator<string> {
+    if (divider.type === 'jamo') {
+        switch (divider.kind) {
+            case 'single-leading':
+                for (const jamo of singleLeadingJamos) {
+                    yield jamo;
+                }
+                break;
+            case 'stacked-leading':
+                for (const jamo of stackedLeadingJamos) {
+                    yield jamo;
+                }
+                break;
+            case 'right-vowel':
+                for (const jamo of rightVowelJamos) {
+                    yield jamo;
+                }
+                break;
+            case 'bottom-vowel':
+                for (const jamo of bottomVowelJamos) {
+                    yield jamo;
+                }
+                break;
+            case 'mixed-vowel':
+                for (const jamo of mixedVowelJamos) {
+                    yield jamo;
+                }
+                break;
+        }
+    }
+    else if (divider.type === 'vertical') {
+        for (const left of genExampleSyllables(divider.left)) {
+            for (const right of genExampleSyllables(divider.right)) {
+                yield left + right;
+            }
+        }
+    }
+    else if (divider.type === 'horizontal') {
+        for (const top of genExampleSyllables(divider.top)) {
+            for (const bottom of genExampleSyllables(divider.bottom)) {
+                yield top + bottom;
+            }
+        }
+    }
+    else if (divider.type === 'mixed') {
+        for (const topLeft of genExampleSyllables(divider.topLeft)) {
+            for (const rest of genExampleSyllables(divider.rest)) {
+                yield topLeft + rest;
+            }
+        }
+    }
 }
 
 function DrawDivider(
@@ -163,7 +242,7 @@ function DrawDivider(
                 <Line points={[
                     ...rescale({x: x, y: top}),
                     ...rescale({x: x, y: bottom}),
-                ]} stroke="black" />
+                ]} stroke="green" />
             </React.Fragment>
         );
     }
@@ -190,7 +269,7 @@ function DrawDivider(
                 <Line points={[
                     ...rescale({x: left, y: y}),
                     ...rescale({x: right, y: y}),
-                ]} stroke="black" />
+                ]} stroke="green" />
             </React.Fragment>
         );
     }
@@ -200,7 +279,7 @@ function DrawDivider(
         return (
             <React.Fragment>
                 <DrawDivider
-                    divider={divider.topleft}
+                    divider={divider.topLeft}
                     left={left}
                     right={x}
                     top={top}
@@ -211,7 +290,7 @@ function DrawDivider(
                     ...rescale({x: left, y: y}),
                     ...rescale({x: x, y: y}),
                     ...rescale({x: x, y: top}),
-                ]} stroke="black" />
+                ]} stroke="green" />
             </React.Fragment>
         );
     }
