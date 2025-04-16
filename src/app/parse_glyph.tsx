@@ -52,8 +52,8 @@ export function parseGlyph(
         const lastPath = glyph.paths[glyph.paths.length - 1];
         const lastSeg = lastPath.segments[lastPath.segments.length - 1];
         lastPath.segments.push({
-            ct1: {x: x, y: y},
-            ct2: structuredClone(lastSeg? lastSeg.p : lastPath.start),
+            ct1: structuredClone(lastSeg? lastSeg.p : lastPath.start),
+            ct2: {x: x, y: y},
             p: {x: x, y: y},
         });
     }

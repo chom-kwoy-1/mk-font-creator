@@ -168,7 +168,7 @@ function CompositionLayouts(
 
     const [curLayouts, setCurLayouts] = React.useState(structuredClone(jamoLayouts));
 
-    const debug = false;
+    const debug = true;
 
     React.useEffect(() => {
         fdarray.current = array(JSONPath.query(ttx, '$.ttFont.CFF.CFFFont.FDArray.FontDict')[0]);
@@ -201,7 +201,8 @@ function CompositionLayouts(
     else if (charstrings.current && fdarray.current && cmap4.current) {
         if (debug) {
             const aspectRatio = 1.;
-            const canvasWidth = 600, canvasHeight = aspectRatio * 600;
+            const canvasWidth = 600;
+            const canvasHeight = aspectRatio * canvasWidth;
 
             const minCanvasSide = Math.min(canvasWidth, canvasHeight);
             const scale = minCanvasSide / viewWidth;
@@ -216,7 +217,7 @@ function CompositionLayouts(
             }
 
             const cs = findCharstringByCodepoint(
-                'ㄱ'.codePointAt(0) as number,
+                'ㅏ'.codePointAt(0) as number,
                 cmap4.current,
                 charstrings.current,
             );
@@ -224,7 +225,7 @@ function CompositionLayouts(
                 glyph: parseGlyph(cs, fdarray.current),
                 bounds: {left: 0.2, right: 0.8, top: 0.8, bottom: 0.2},
             }
-            const bounds = {left: 0, right: 1000, top: 800, bottom: 600};
+            const bounds = {left: -500, right: 1500, top: 1500, bottom: -1700};
             const actualBounds = glyphActualBounds(glyph.glyph);
             const resizedBounds = glyph.bounds;
             const targetBounds = {
@@ -232,7 +233,7 @@ function CompositionLayouts(
                 right: bounds.left + resizedBounds.right * (bounds.right - bounds.left),
                 top: bounds.bottom + resizedBounds.top * (bounds.top - bounds.bottom),
                 bottom: bounds.bottom + resizedBounds.bottom * (bounds.top - bounds.bottom),
-            }
+            };
 
             const xScale = (targetBounds.right - targetBounds.left) / (actualBounds.right - actualBounds.left);
             const yScale = (targetBounds.top - targetBounds.bottom) / (actualBounds.top - actualBounds.bottom);
