@@ -12,8 +12,7 @@ import Grid from '@mui/material/Grid2';
 import {Charstring, Cmap4, FontDict, OS2, TTXObject} from "@/app/TTXObject";
 import {LayoutView} from "@/app/LayoutView";
 import {jamoLayouts} from "@/app/jamo_layouts";
-import {parseGlyph} from "@/app/parse_glyph";
-import {findCharstringByCodepoint} from "@/app/font_utils";
+import {initLayouts} from "@/app/init_layouts";
 
 
 const VisuallyHiddenInput = styled('input')({
@@ -170,33 +169,13 @@ function CompositionLayouts(
         os2.current = JSONPath.query(ttx, '$.ttFont.OS_2')[0];
         cmap4.current = JSONPath.query(ttx, '$.ttFont.cmap.cmap_format_4[?(@.@_platformID == "0")]')[0];
 
-        console.log("Resetting leading layouts");
-
-        const newLayouts = jamoLayouts
-            .map((layout) => {
-                const newLayout = structuredClone(layout);
-                newLayout.glyphs = new Map(newLayout.glyphs.entries().map(
-                    ([jamo, origGlyph]) => {
-                        if (origGlyph === null) {
-                            // Set default glyph with Unicode codepoint, if exists
-                            const cs = findCharstringByCodepoint(
-                                jamo.codePointAt(0) as number,
-                                cmap4.current as Cmap4,
-                                charstrings.current as Charstring[],
-                            );
-                            const glyph = parseGlyph(cs, fdarray.current as FontDict[]);
-                            const resizedGlyph = {
-                                glyph: glyph,
-                                bounds: {left: 0.2, right: 0.8, top: 0.8, bottom: 0.2},
-                            };
-                            return [jamo, resizedGlyph];
-                        }
-                        return [jamo, origGlyph];
-                    }));
-                return newLayout;
-            });
-
-        setCurLayouts(newLayouts);
+        console.log("Resetting layouts");
+        setCurLayouts(initLayouts(
+            cmap4.current as Cmap4,
+            charstrings.current as Charstring[],
+            fdarray.current as FontDict[],
+            os2.current as OS2,
+        ));
     }, [ttx]);
 
     if (!isLoaded.current) {

@@ -181,7 +181,7 @@ export function LayoutControl(
             </React.Fragment>
         );
     } else if (divider.type === 'horizontal') {
-        const y = bottom + divider.y * 1000;
+        const y = bottom + divider.y * (top - bottom);
         return (
             <React.Fragment>
                 <LayoutControl
@@ -249,8 +249,8 @@ export function LayoutControl(
             </React.Fragment>
         );
     } else if (divider.type === 'mixed') {
-        const x = left + divider.x * 1000;
-        const y = bottom + divider.y * 1000;
+        const x = left + divider.x * (right - left);
+        const y = bottom + divider.y * (top - bottom);
         return (
             <React.Fragment>
                 <LayoutControl

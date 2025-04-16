@@ -62,7 +62,7 @@ export const jamoLayouts: Layout[] = [
         elems: new Set(['single-leading', 'right-vowel']),
         dividers: {
             type: 'vertical',
-            x: 0.7,
+            x: 0.6,
             left: {type: 'jamo', kind: 'leading', subkind: 'single-leading'},
             right: {type: 'jamo', kind: 'right-vowel'},
         },
@@ -86,7 +86,7 @@ export const jamoLayouts: Layout[] = [
         elems: new Set(['single-leading', 'mixed-vowel']),
         dividers: {
             type: 'mixed',
-            x: 0.7,
+            x: 0.6,
             y: 0.5,
             topLeft: {type: 'jamo', kind: 'leading', subkind: 'single-leading'},
             rest: {type: 'jamo', kind: 'mixed-vowel'},
@@ -99,7 +99,7 @@ export const jamoLayouts: Layout[] = [
         elems: new Set(['stacked-leading', 'right-vowel']),
         dividers: {
             type: 'vertical',
-            x: 0.7,
+            x: 0.6,
             left: {type: 'jamo', kind: 'leading', subkind: 'stacked-leading'},
             right: {type: 'jamo', kind: 'right-vowel'},
         },
@@ -123,7 +123,7 @@ export const jamoLayouts: Layout[] = [
         elems: new Set(['stacked-leading', 'mixed-vowel']),
         dividers: {
             type: 'mixed',
-            x: 0.7,
+            x: 0.6,
             y: 0.5,
             topLeft: {type: 'jamo', kind: 'leading', subkind: 'stacked-leading'},
             rest: {type: 'jamo', kind: 'mixed-vowel'},
@@ -137,7 +137,7 @@ export const jamoLayouts: Layout[] = [
         elems: new Set(['leading', 'single-right-vowel']),
         dividers: {
             type: 'vertical',
-            x: 0.7,
+            x: 0.6,
             left: {type: 'jamo', kind: 'leading'},
             right: {type: 'jamo', kind: 'right-vowel', subkind: 'single-right-vowel'},
         },
@@ -161,7 +161,7 @@ export const jamoLayouts: Layout[] = [
         elems: new Set(['leading', 'single-mixed-vowel']),
         dividers: {
             type: 'mixed',
-            x: 0.7,
+            x: 0.6,
             y: 0.5,
             topLeft: {type: 'jamo', kind: 'leading'},
             rest: {type: 'jamo', kind: 'mixed-vowel', subkind: 'single-mixed-vowel'},
