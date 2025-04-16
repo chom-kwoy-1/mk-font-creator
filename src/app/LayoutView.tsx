@@ -11,11 +11,20 @@ import {Charstring, Cmap4, FontDict, OS2} from "@/app/TTXObject";
 import {GlyphView} from "@/app/GlyphView";
 import {uniToPua} from "@/app/pua_uni_conv";
 import {
-    bottomVowelJamos,
-    mixedVowelJamos,
-    rightVowelJamos,
     singleLeadingJamos,
     stackedLeadingJamos,
+    doubleLeadingJamos,
+    tripleLeadingJamos,
+    singleRightVowelJamos,
+    doubleRightVowelJamos,
+    singleBottomVowelJamos,
+    doubleBottomVowelJamos,
+    singleMixedVowelJamos,
+    doubleMixedVowelJamos,
+    singleTailingJamos,
+    stackedTailingJamos,
+    doubleTailingJamos,
+    tripleTailingJamos,
 } from "@/app/jamos";
 import {Bounds, findCharstringByCodepoint, glyphActualBounds} from "@/app/font_utils";
 import {ResizeableRect} from "@/app/ResizeableRect";
@@ -205,29 +214,80 @@ export function DrawBounds(
 function* genExampleSyllables(divider: JamoElement | Divider): Generator<string> {
     if (divider.type === 'jamo') {
         switch (divider.kind) {
-            case 'single-leading':
-                for (const jamo of singleLeadingJamos) {
-                    yield jamo;
+            case 'leading':
+                if (divider.subkind === 'single-leading') {
+                    yield* singleLeadingJamos;
                 }
-                break;
-            case 'stacked-leading':
-                for (const jamo of stackedLeadingJamos) {
-                    yield jamo;
+                else if (divider.subkind === 'stacked-leading') {
+                    yield* stackedLeadingJamos;
+                }
+                else if (divider.subkind === 'double-leading') {
+                    yield* doubleLeadingJamos;
+                }
+                else if (divider.subkind === 'triple-leading') {
+                    yield* tripleLeadingJamos;
+                }
+                else if (divider.subkind === undefined) {
+                    yield* singleLeadingJamos;
+                    yield* stackedLeadingJamos;
+                    yield* doubleLeadingJamos;
+                    yield* tripleLeadingJamos;
                 }
                 break;
             case 'right-vowel':
-                for (const jamo of rightVowelJamos) {
-                    yield jamo;
+                if (divider.subkind === 'single-right-vowel') {
+                    yield* singleRightVowelJamos;
+                }
+                else if (divider.subkind === 'double-right-vowel') {
+                    yield* doubleRightVowelJamos;
+                }
+                else if (divider.subkind === undefined) {
+                    yield* singleRightVowelJamos;
+                    yield* doubleRightVowelJamos;
                 }
                 break;
             case 'bottom-vowel':
-                for (const jamo of bottomVowelJamos) {
-                    yield jamo;
+                if (divider.subkind === 'single-bottom-vowel') {
+                    yield* singleBottomVowelJamos;
+                }
+                else if (divider.subkind === 'double-bottom-vowel') {
+                    yield* doubleBottomVowelJamos;
+                }
+                else if (divider.subkind === undefined) {
+                    yield* singleBottomVowelJamos;
+                    yield* doubleBottomVowelJamos;
                 }
                 break;
             case 'mixed-vowel':
-                for (const jamo of mixedVowelJamos) {
-                    yield jamo;
+                if (divider.subkind === 'single-mixed-vowel') {
+                    yield* singleMixedVowelJamos;
+                }
+                else if (divider.subkind === 'double-mixed-vowel') {
+                    yield* doubleMixedVowelJamos;
+                }
+                else if (divider.subkind === undefined) {
+                    yield* singleMixedVowelJamos;
+                    yield* doubleMixedVowelJamos;
+                }
+                break;
+            case 'tailing':
+                if (divider.subkind === 'single-tailing') {
+                    yield* singleTailingJamos;
+                }
+                else if (divider.subkind === 'stacked-tailing') {
+                    yield* stackedTailingJamos;
+                }
+                else if (divider.subkind === 'double-tailing') {
+                    yield* doubleTailingJamos;
+                }
+                else if (divider.subkind === 'triple-tailing') {
+                    yield* tripleTailingJamos;
+                }
+                else if (divider.subkind === undefined) {
+                    yield* singleTailingJamos;
+                    yield* stackedTailingJamos;
+                    yield* doubleTailingJamos;
+                    yield* tripleTailingJamos;
                 }
                 break;
         }
@@ -273,57 +333,62 @@ function DrawDivider(
     const { focus, rescale, xyScales, resizedGlyph, setResizedGlyph } = props;
 
     if (divider.type === 'jamo') {
-        if (focus === divider.kind && resizedGlyph) {
-            const actualBounds = glyphActualBounds(resizedGlyph.glyph);
-            const resizedBounds = resizedGlyph.bounds;
-            const targetBounds = {
-                left: left + resizedBounds.left * (right - left),
-                right: left + resizedBounds.right * (right - left),
-                top: bottom + resizedBounds.top * (top - bottom),
-                bottom: bottom + resizedBounds.bottom * (top - bottom),
+        if (focus === divider.kind) {
+            if (resizedGlyph) {
+                const actualBounds = glyphActualBounds(resizedGlyph.glyph);
+                const resizedBounds = resizedGlyph.bounds;
+                const targetBounds = {
+                    left: left + resizedBounds.left * (right - left),
+                    right: left + resizedBounds.right * (right - left),
+                    top: bottom + resizedBounds.top * (top - bottom),
+                    bottom: bottom + resizedBounds.bottom * (top - bottom),
+                }
+
+                function glyphRescale(p: Point): number[] {
+                    const x = (p.x - actualBounds.left) / (actualBounds.right - actualBounds.left);
+                    const y = (p.y - actualBounds.bottom) / (actualBounds.top - actualBounds.bottom);
+                    const x2 = targetBounds.left + x * (targetBounds.right - targetBounds.left);
+                    const y2 = targetBounds.bottom + y * (targetBounds.top - targetBounds.bottom);
+                    return rescale({x: x2, y: y2});
+                }
+
+                return (
+                    <React.Fragment>
+                        <DrawBounds
+                            bounds={{left: left, right: right, top: top, bottom: bottom}}
+                            rescale={rescale}
+                            fill="lightgrey"
+                        />
+
+                        <GlyphView
+                            glyph={resizedGlyph.glyph}
+                            rescale={glyphRescale}
+                        />
+
+                        <ResizeableRect
+                            bounds={targetBounds}
+                            setBounds={(newBounds) => {
+                                setResizedGlyph({
+                                    ...resizedGlyph,
+                                    bounds: {
+                                        left: (newBounds.left - left) / (right - left),
+                                        right: (newBounds.right - left) / (right - left),
+                                        top: (newBounds.top - bottom) / (top - bottom),
+                                        bottom: (newBounds.bottom - bottom) / (top - bottom),
+                                    },
+                                });
+                            }}
+                            rescale={rescale}
+                            xyScales={xyScales}
+                            stroke="red"
+                            strokeWidth={1}
+                        />
+                    </React.Fragment>
+                );
             }
+        }
+        else {
 
-            function glyphRescale(p: Point): number[] {
-                const x = (p.x - actualBounds.left) / (actualBounds.right - actualBounds.left);
-                const y = (p.y - actualBounds.bottom) / (actualBounds.top - actualBounds.bottom);
-                const x2 = targetBounds.left + x * (targetBounds.right - targetBounds.left);
-                const y2 = targetBounds.bottom + y * (targetBounds.top - targetBounds.bottom);
-                return rescale({x: x2, y: y2});
-            }
-
-            return (
-                <React.Fragment>
-                    <DrawBounds
-                        bounds={{left: left, right: right, top: top, bottom: bottom}}
-                        rescale={rescale}
-                        fill="lightgrey"
-                    />
-
-                    <GlyphView
-                        glyph={resizedGlyph.glyph}
-                        rescale={glyphRescale}
-                    />
-
-                    <ResizeableRect
-                        bounds={targetBounds}
-                        setBounds={(newBounds) => {
-                            setResizedGlyph({
-                                ...resizedGlyph,
-                                bounds: {
-                                    left: (newBounds.left - left) / (right - left),
-                                    right: (newBounds.right - left) / (right - left),
-                                    top: (newBounds.top - bottom) / (top - bottom),
-                                    bottom: (newBounds.bottom - bottom) / (top - bottom),
-                                },
-                            });
-                        }}
-                        rescale={rescale}
-                        xyScales={xyScales}
-                        stroke="red"
-                        strokeWidth={1}
-                    />
-                </React.Fragment>
-            );
         }
 
         return null;
