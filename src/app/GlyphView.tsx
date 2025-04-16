@@ -1,12 +1,13 @@
 import React from 'react';
 import {Line} from 'react-konva';
 import {Glyph, Point} from "@/app/parse_glyph";
+import Konva from "konva";
 
 export function GlyphView(
-    {glyph, rescale}: Readonly<{
+    {glyph, rescale, ...props}: Readonly<{
         glyph: Glyph,
         rescale: (p: Point) => number[],
-    }>
+    } & Konva.LineConfig>
 ) {
     return (
         <React.Fragment>
@@ -29,6 +30,7 @@ export function GlyphView(
                         ]}
                         stroke="black"
                         bezier={true}
+                        {...props}
                     />
                 );
             })}

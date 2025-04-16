@@ -4,36 +4,21 @@ import Konva from "konva";
 import {Group, Layer, Line, Rect, Stage} from 'react-konva';
 import Grid from '@mui/material/Grid2';
 
-import {Divider, JamoElement, Layout, ResizedGlyph} from "@/app/jamo_layouts";
+import {Divider, JamoElement, JamoSubkind, Layout, ResizedGlyph} from "@/app/jamo_layouts";
 import UseDimensions from "@/app/useDimensions";
-import {parseGlyph, Point} from "@/app/parse_glyph";
+import {Point} from "@/app/parse_glyph";
 import {Charstring, Cmap4, FontDict, OS2} from "@/app/TTXObject";
-import {GlyphView} from "@/app/GlyphView";
-import {uniToPua} from "@/app/pua_uni_conv";
-import {
-    singleLeadingJamos,
-    stackedLeadingJamos,
-    doubleLeadingJamos,
-    tripleLeadingJamos,
-    singleRightVowelJamos,
-    doubleRightVowelJamos,
-    singleBottomVowelJamos,
-    doubleBottomVowelJamos,
-    singleMixedVowelJamos,
-    doubleMixedVowelJamos,
-    singleTailingJamos,
-    stackedTailingJamos,
-    doubleTailingJamos,
-    tripleTailingJamos,
-} from "@/app/jamos";
-import {Bounds, findCharstringByCodepoint, glyphActualBounds} from "@/app/font_utils";
+import {getJamos, subkindOf} from "@/app/jamos";
+import {Bounds} from "@/app/font_utils";
 import {ResizeableRect} from "@/app/ResizeableRect";
+import {ResizedGlyphView} from "@/app/ResizedGlyphView";
 
 
 export function LayoutView(
     {
         layout,
         setLayout,
+        otherLayouts,
         fdarray,
         charstrings,
         os2,
@@ -41,6 +26,7 @@ export function LayoutView(
     }: Readonly<{
         layout: Layout;
         setLayout: (layout: Layout) => void;
+        otherLayouts: Layout[];
         fdarray: FontDict[];
         charstrings: Charstring[];
         os2: OS2;
@@ -72,27 +58,46 @@ export function LayoutView(
         return [x, y];
     }
 
-    if (false) {
-        const exSyllGen = genExampleSyllables(layout.dividers);
-        const exSyll = exSyllGen.find((syll) => {
-            return uniToPua(syll).length === 1;
-        });
-        const codePoint = uniToPua(exSyll as string).codePointAt(0) as number;
-        const cs = findCharstringByCodepoint(codePoint, cmap4, charstrings);
-        const glyph = parseGlyph(cs, fdarray);
-    }
+    const [curJamo, setCurJamo] = React.useState(layout.glyphs.keys().next().value?? null);
+    const [curOtherJamos, setCurOtherJamos] = React.useState(
+        layout.elems.values()
+            .filter((kind) => !kind.endsWith(layout.focus))
+            .map((kind) => getJamos(kind)[0])
+            .toArray()
+    );
 
-    const [curGlyph, setCurGlyph] = React.useState(layout.glyphs.keys().next().value?? null);
+    const resizedGlyph = curJamo? layout.glyphs.get(curJamo) : null;
 
-    const resizedGlyph = curGlyph? layout.glyphs.get(curGlyph) : null;
+    const curOtherJamoSubkinds = curOtherJamos
+        .map((jamo) => subkindOf.get(jamo) as JamoSubkind);
+    const selectedOtherLayouts = new Map(curOtherJamos.map((otherJamo) => {
+        const otherJamoSubkind = subkindOf.get(otherJamo) as JamoSubkind;
+        let filteredOtherLayouts = otherLayouts
+            .filter((layout_) => layout_.elems.values().some((elem) => elem === otherJamoSubkind))
+            .filter((layout_) => layout_.elems.values().some((elem) => layout.focus.endsWith(elem)));
+        for (const otherJamoSubkind_ of curOtherJamoSubkinds) {
+            if (otherJamoSubkind_ !== otherJamoSubkind) {
+                filteredOtherLayouts = filteredOtherLayouts
+                    .filter((layout_) => layout_.elems.values().some((elem) => otherJamoSubkind_.endsWith(elem)));
+            }
+        }
+        if (filteredOtherLayouts.length !== 1) {
+            throw new Error(`Multiple layouts selected: ${filteredOtherLayouts}`);
+        }
+        return [
+            otherJamoSubkind,
+            {'jamo': otherJamo, 'layout': filteredOtherLayouts[0]},
+        ];
+    }));
 
     return (
         <Stack>
             <Stack ref={ref}>
                 <Stage width={width} height={width}>
-                    {resizedGlyph &&
-                        <Layer>
+                    <Layer>
+                        {resizedGlyph && [true, false].map((drawBackground, key) => (
                             <DrawDivider
+                                key={key}
                                 divider={layout.dividers}
                                 setDivider={(newDivider) => {
                                     if (newDivider.type !== 'jamo') {
@@ -108,14 +113,16 @@ export function LayoutView(
                                 xyScales={{x: scale, y: -scale}}
                                 resizedGlyph={resizedGlyph}
                                 setResizedGlyph={(resizedGlyph) => {
-                                    if (curGlyph) {
+                                    if (curJamo) {
                                         const newGlyphs = new Map(layout.glyphs);
-                                        newGlyphs.set(curGlyph, resizedGlyph);
+                                        newGlyphs.set(curJamo, resizedGlyph);
                                         setLayout({...layout, glyphs: newGlyphs});
                                     }
                                 }}
-                            />
-                        </Layer>}
+                                otherLayouts={selectedOtherLayouts}
+                                drawBackground={drawBackground}
+                            />))}
+                    </Layer>
 
                     {/* Draw guides */}
                     <Layer>
@@ -174,9 +181,9 @@ export function LayoutView(
                                 variant="filled"
                                 labelId="jamo-select-label"
                                 id="jamo-select"
-                                value={curGlyph}
+                                value={curJamo}
                                 onChange={(e) => {
-                                    setCurGlyph(e.target.value as string);
+                                    setCurJamo(e.target.value as string);
                                 }}
                                 label="Jamo"
                             >
@@ -192,131 +199,12 @@ export function LayoutView(
     );
 }
 
-export function DrawBounds(
-    {bounds, rescale, ...props}: Readonly<{
-        bounds: Bounds,
-        rescale: (p: Point) => number[],
-    } & Konva.RectConfig>)
-{
-    const bottomLeft = rescale({x: bounds.left, y: bounds.bottom});
-    const topRight = rescale({x: bounds.right, y: bounds.top});
-    return (
-        <Rect
-            x={bottomLeft[0]}
-            y={bottomLeft[1]}
-            width={(topRight[0] - bottomLeft[0])}
-            height={(topRight[1] - bottomLeft[1])}
-            {...props}
-        />
-    );
-}
-
-function* genExampleSyllables(divider: JamoElement | Divider): Generator<string> {
-    if (divider.type === 'jamo') {
-        switch (divider.kind) {
-            case 'leading':
-                if (divider.subkind === 'single-leading') {
-                    yield* singleLeadingJamos;
-                }
-                else if (divider.subkind === 'stacked-leading') {
-                    yield* stackedLeadingJamos;
-                }
-                else if (divider.subkind === 'double-leading') {
-                    yield* doubleLeadingJamos;
-                }
-                else if (divider.subkind === 'triple-leading') {
-                    yield* tripleLeadingJamos;
-                }
-                else if (divider.subkind === undefined) {
-                    yield* singleLeadingJamos;
-                    yield* stackedLeadingJamos;
-                    yield* doubleLeadingJamos;
-                    yield* tripleLeadingJamos;
-                }
-                break;
-            case 'right-vowel':
-                if (divider.subkind === 'single-right-vowel') {
-                    yield* singleRightVowelJamos;
-                }
-                else if (divider.subkind === 'double-right-vowel') {
-                    yield* doubleRightVowelJamos;
-                }
-                else if (divider.subkind === undefined) {
-                    yield* singleRightVowelJamos;
-                    yield* doubleRightVowelJamos;
-                }
-                break;
-            case 'bottom-vowel':
-                if (divider.subkind === 'single-bottom-vowel') {
-                    yield* singleBottomVowelJamos;
-                }
-                else if (divider.subkind === 'double-bottom-vowel') {
-                    yield* doubleBottomVowelJamos;
-                }
-                else if (divider.subkind === undefined) {
-                    yield* singleBottomVowelJamos;
-                    yield* doubleBottomVowelJamos;
-                }
-                break;
-            case 'mixed-vowel':
-                if (divider.subkind === 'single-mixed-vowel') {
-                    yield* singleMixedVowelJamos;
-                }
-                else if (divider.subkind === 'double-mixed-vowel') {
-                    yield* doubleMixedVowelJamos;
-                }
-                else if (divider.subkind === undefined) {
-                    yield* singleMixedVowelJamos;
-                    yield* doubleMixedVowelJamos;
-                }
-                break;
-            case 'tailing':
-                if (divider.subkind === 'single-tailing') {
-                    yield* singleTailingJamos;
-                }
-                else if (divider.subkind === 'stacked-tailing') {
-                    yield* stackedTailingJamos;
-                }
-                else if (divider.subkind === 'double-tailing') {
-                    yield* doubleTailingJamos;
-                }
-                else if (divider.subkind === 'triple-tailing') {
-                    yield* tripleTailingJamos;
-                }
-                else if (divider.subkind === undefined) {
-                    yield* singleTailingJamos;
-                    yield* stackedTailingJamos;
-                    yield* doubleTailingJamos;
-                    yield* tripleTailingJamos;
-                }
-                break;
-        }
-    }
-    else if (divider.type === 'vertical') {
-        for (const left of genExampleSyllables(divider.left)) {
-            for (const right of genExampleSyllables(divider.right)) {
-                yield left + right;
-            }
-        }
-    }
-    else if (divider.type === 'horizontal') {
-        for (const top of genExampleSyllables(divider.top)) {
-            for (const bottom of genExampleSyllables(divider.bottom)) {
-                yield top + bottom;
-            }
-        }
-    }
-    else if (divider.type === 'mixed') {
-        for (const topLeft of genExampleSyllables(divider.topLeft)) {
-            for (const rest of genExampleSyllables(divider.rest)) {
-                yield topLeft + rest;
-            }
-        }
-    }
-}
-
 function DrawDivider(
-    { divider, setDivider, left, right, top, bottom, ...props }: Readonly<{
+    {
+        divider, setDivider,
+        left, right, top, bottom,
+        ...props
+    }: Readonly<{
         divider: JamoElement | Divider,
         setDivider: (divider: JamoElement | Divider) => void,
         left: number,
@@ -328,67 +216,88 @@ function DrawDivider(
         xyScales: {x: number, y: number},
         resizedGlyph: ResizedGlyph | null,
         setResizedGlyph: (resizedGlyph: ResizedGlyph) => void,
+        otherLayouts: Map<JamoSubkind, {jamo: string, layout: Layout}>,
+        drawBackground: boolean,
     }>
 ) {
-    const { focus, rescale, xyScales, resizedGlyph, setResizedGlyph } = props;
+    const {
+        focus,
+        rescale,
+        xyScales,
+        resizedGlyph,
+        setResizedGlyph,
+        otherLayouts,
+        drawBackground,
+    } = props;
 
     if (divider.type === 'jamo') {
         if (focus === divider.kind) {
             if (resizedGlyph) {
-                const actualBounds = glyphActualBounds(resizedGlyph.glyph);
                 const resizedBounds = resizedGlyph.bounds;
-                const targetBounds = {
-                    left: left + resizedBounds.left * (right - left),
-                    right: left + resizedBounds.right * (right - left),
-                    top: bottom + resizedBounds.top * (top - bottom),
-                    bottom: bottom + resizedBounds.bottom * (top - bottom),
-                }
-
-                function glyphRescale(p: Point): number[] {
-                    const x = (p.x - actualBounds.left) / (actualBounds.right - actualBounds.left);
-                    const y = (p.y - actualBounds.bottom) / (actualBounds.top - actualBounds.bottom);
-                    const x2 = targetBounds.left + x * (targetBounds.right - targetBounds.left);
-                    const y2 = targetBounds.bottom + y * (targetBounds.top - targetBounds.bottom);
-                    return rescale({x: x2, y: y2});
-                }
 
                 return (
                     <React.Fragment>
                         <DrawBounds
                             bounds={{left: left, right: right, top: top, bottom: bottom}}
                             rescale={rescale}
-                            fill="lightgrey"
+                            fill={drawBackground? "lightgrey" : "transparent"}
                         />
 
-                        <GlyphView
-                            glyph={resizedGlyph.glyph}
-                            rescale={glyphRescale}
-                        />
+                        {!drawBackground &&
+                            <React.Fragment>
+                                <ResizedGlyphView
+                                    resizedGlyph={resizedGlyph}
+                                    rescale={rescale}
+                                    bounds={{left: left, right: right, top: top, bottom: bottom}}
+                                />
 
-                        <ResizeableRect
-                            bounds={targetBounds}
-                            setBounds={(newBounds) => {
-                                setResizedGlyph({
-                                    ...resizedGlyph,
-                                    bounds: {
-                                        left: (newBounds.left - left) / (right - left),
-                                        right: (newBounds.right - left) / (right - left),
-                                        top: (newBounds.top - bottom) / (top - bottom),
-                                        bottom: (newBounds.bottom - bottom) / (top - bottom),
-                                    },
-                                });
-                            }}
-                            rescale={rescale}
-                            xyScales={xyScales}
-                            stroke="red"
-                            strokeWidth={1}
-                        />
+                                <ResizeableRect
+                                    bounds={{
+                                        left: left + resizedBounds.left * (right - left),
+                                        right: left + resizedBounds.right * (right - left),
+                                        top: bottom + resizedBounds.top * (top - bottom),
+                                        bottom: bottom + resizedBounds.bottom * (top - bottom),
+                                    }}
+                                    setBounds={(newBounds) => {
+                                        setResizedGlyph({
+                                            ...resizedGlyph,
+                                            bounds: {
+                                                left: (newBounds.left - left) / (right - left),
+                                                right: (newBounds.right - left) / (right - left),
+                                                top: (newBounds.top - bottom) / (top - bottom),
+                                                bottom: (newBounds.bottom - bottom) / (top - bottom),
+                                            },
+                                        });
+                                    }}
+                                    rescale={rescale}
+                                    xyScales={xyScales}
+                                    stroke="red"
+                                    strokeWidth={1}
+                                />
+                            </React.Fragment>}
                     </React.Fragment>
                 );
             }
         }
         else {
+            if (!drawBackground) {
+                const otherLayout = otherLayouts.get(
+                    otherLayouts.keys().find(
+                        (subkind) => subkind.endsWith(divider.kind)
+                    ) as JamoSubkind
+                );
+                const resizedGlyph = otherLayout?.layout.glyphs.get(otherLayout.jamo);
 
+                if (otherLayout && resizedGlyph) {
+                    return (
+                        <ResizedGlyphView
+                            resizedGlyph={resizedGlyph}
+                            rescale={rescale}
+                            bounds={{left: left, right: right, top: top, bottom: bottom}}
+                        />
+                    );
+                }
+            }
         }
 
         return null;
@@ -422,45 +331,46 @@ function DrawDivider(
                     bottom={bottom}
                     {...props}
                 />
-                <Group
-                    draggable={true}
-                    onDragStart={(e) => {
-                        setIsDragging(true);
-                    }}
-                    onDragMove={(e) => {
-                        e.target.setPosition({x: e.target.x(), y: 0});
-                    }}
-                    onDragEnd={(e) => {
-                        setIsDragging(false);
-                        const offsetX = (e.target.x() / xyScales.x) / (right - left);
-                        setDivider({
-                            ...divider,
-                            x: divider.x + offsetX,
-                        });
-                        e.target.setPosition({x: 0, y: 0});
-                    }}
-                    onMouseEnter={(e) => {
-                        const container = e.target.getStage()?.container();
-                        if (container) {
-                            container.style.cursor = "ew-resize";
-                        }
-                    }}
-                    onMouseLeave={(e) => {
-                        const container = e.target.getStage()?.container();
-                        if (container) {
-                            container.style.cursor = "default";
-                        }
-                    }}>
-                    <Line
-                        points={[
-                            ...rescale({x: x, y: top}),
-                            ...rescale({x: x, y: bottom}),
-                        ]}
-                        stroke={isDragging? "red" : "green"}
-                        strokeWidth={isDragging? 5 : 2}
-                        hitStrokeWidth={10}
-                    />
-                </Group>
+                {!drawBackground &&
+                    <Group
+                        draggable={true}
+                        onDragStart={(e) => {
+                            setIsDragging(true);
+                        }}
+                        onDragMove={(e) => {
+                            e.target.setPosition({x: e.target.x(), y: 0});
+                        }}
+                        onDragEnd={(e) => {
+                            setIsDragging(false);
+                            const offsetX = (e.target.x() / xyScales.x) / (right - left);
+                            setDivider({
+                                ...divider,
+                                x: divider.x + offsetX,
+                            });
+                            e.target.setPosition({x: 0, y: 0});
+                        }}
+                        onMouseEnter={(e) => {
+                            const container = e.target.getStage()?.container();
+                            if (container) {
+                                container.style.cursor = "ew-resize";
+                            }
+                        }}
+                        onMouseLeave={(e) => {
+                            const container = e.target.getStage()?.container();
+                            if (container) {
+                                container.style.cursor = "default";
+                            }
+                        }}>
+                        <Line
+                            points={[
+                                ...rescale({x: x, y: top}),
+                                ...rescale({x: x, y: bottom}),
+                            ]}
+                            stroke={isDragging? "red" : "green"}
+                            strokeWidth={isDragging? 5 : 2}
+                            hitStrokeWidth={10}
+                        />
+                    </Group>}
             </React.Fragment>
         );
     }
@@ -490,45 +400,46 @@ function DrawDivider(
                     bottom={bottom}
                     {...props}
                 />
-                <Group
-                    draggable={true}
-                    onDragStart={(e) => {
-                        setIsDragging(true);
-                    }}
-                    onDragMove={(e) => {
-                        e.target.setPosition({x: 0, y: e.target.y()});
-                    }}
-                    onDragEnd={(e) => {
-                        setIsDragging(false);
-                        const offsetY = (e.target.y() / xyScales.y) / (top - bottom);
-                        setDivider({
-                            ...divider,
-                            y: divider.y + offsetY,
-                        });
-                        e.target.setPosition({x: 0, y: 0});
-                    }}
-                    onMouseEnter={(e) => {
-                        const container = e.target.getStage()?.container();
-                        if (container) {
-                            container.style.cursor = "ns-resize";
-                        }
-                    }}
-                    onMouseLeave={(e) => {
-                        const container = e.target.getStage()?.container();
-                        if (container) {
-                            container.style.cursor = "default";
-                        }
-                    }}>
-                    <Line
-                        points={[
-                            ...rescale({x: left, y: y}),
-                            ...rescale({x: right, y: y}),
-                        ]}
-                        stroke={isDragging? "red" : "green"}
-                        strokeWidth={isDragging? 5 : 2}
-                        hitStrokeWidth={10}
-                    />
-                </Group>
+                {!drawBackground &&
+                    <Group
+                        draggable={true}
+                        onDragStart={(e) => {
+                            setIsDragging(true);
+                        }}
+                        onDragMove={(e) => {
+                            e.target.setPosition({x: 0, y: e.target.y()});
+                        }}
+                        onDragEnd={(e) => {
+                            setIsDragging(false);
+                            const offsetY = (e.target.y() / xyScales.y) / (top - bottom);
+                            setDivider({
+                                ...divider,
+                                y: divider.y + offsetY,
+                            });
+                            e.target.setPosition({x: 0, y: 0});
+                        }}
+                        onMouseEnter={(e) => {
+                            const container = e.target.getStage()?.container();
+                            if (container) {
+                                container.style.cursor = "ns-resize";
+                            }
+                        }}
+                        onMouseLeave={(e) => {
+                            const container = e.target.getStage()?.container();
+                            if (container) {
+                                container.style.cursor = "default";
+                            }
+                        }}>
+                        <Line
+                            points={[
+                                ...rescale({x: left, y: y}),
+                                ...rescale({x: right, y: y}),
+                            ]}
+                            stroke={isDragging? "red" : "green"}
+                            strokeWidth={isDragging? 5 : 2}
+                            hitStrokeWidth={10}
+                        />
+                    </Group>}
             </React.Fragment>
         );
     }
@@ -560,4 +471,23 @@ function DrawDivider(
     else {
         throw new Error(`Unknown divider type: ${divider}`);
     }
+}
+
+export function DrawBounds(
+    {bounds, rescale, ...props}: Readonly<{
+        bounds: Bounds,
+        rescale: (p: Point) => number[],
+    } & Konva.RectConfig>)
+{
+    const bottomLeft = rescale({x: bounds.left, y: bounds.bottom});
+    const topRight = rescale({x: bounds.right, y: bounds.top});
+    return (
+        <Rect
+            x={bottomLeft[0]}
+            y={bottomLeft[1]}
+            width={(topRight[0] - bottomLeft[0])}
+            height={(topRight[1] - bottomLeft[1])}
+            {...props}
+        />
+    );
 }
