@@ -12,6 +12,7 @@ export function LayoutControl(
         divider, setDivider,
         left, right, top, bottom,
         layout, setLayout, curJamos,
+        topLevel,
         ...props
     }: Readonly<{
         divider: JamoElement | Divider,
@@ -23,9 +24,10 @@ export function LayoutControl(
         rescale: (p: Point) => number[],
         xyScales: { x: number, y: number },
         layout: Layout,
-        setLayout: (layout: Layout) => void,
+        setLayout: ((layout: Layout) => void) | null,
         allLayouts: Layout[],
         curJamos: string[],
+        topLevel: boolean,
         drawBackground: boolean,
         showPoints?: boolean,
     }>
@@ -66,7 +68,7 @@ export function LayoutControl(
                 curJamos.filter((otherJamo) => otherJamo !== jamo),
             );
 
-            const isFocus = curFocus === jamoElem.kind;
+            const isFocus = topLevel && curFocus === jamoElem.kind;
             const resizedGlyph = layout.glyphs.get(jamo);
 
             if (!resizedGlyph) {
@@ -74,7 +76,7 @@ export function LayoutControl(
             }
 
             const setResizedGlyph = (
-                isFocus ?
+                isFocus && setLayout ?
                     (newResizedGlyph: ResizedGlyph | null) => {
                         const newGlyphs = new Map(layout.glyphs);
                         newGlyphs.set(jamo, newResizedGlyph);
@@ -93,6 +95,43 @@ export function LayoutControl(
                     isFocus={isFocus}
                     resizedGlyph={resizedGlyph}
                     setResizedGlyph={setResizedGlyph}
+                    drawBackground={drawBackground}
+                    showPoints={showPoints}
+                />
+            );
+        }
+        else if (jamoElem.type === 'layout-ref') {
+            const jamos = curJamos.filter(
+                (jamo) => jamoElem.elems.values().some(
+                    (kind) => subkindOf(jamo).values().some(
+                        (subkind) => subkind.endsWith(kind)
+                    )
+                )
+            );
+
+            const layout = selectLayout(
+                allLayouts,
+                jamos[0],
+                jamos.slice(1),
+            );
+
+            console.log(layout);
+
+            return (
+                <LayoutControl
+                    divider={layout.dividers}
+                    setDivider={(newDivider) => {}}
+                    left={bounds.left}
+                    right={bounds.right}
+                    top={bounds.top}
+                    bottom={bounds.bottom}
+                    rescale={rescale}
+                    xyScales={xyScales}
+                    layout={layout}
+                    setLayout={null}
+                    allLayouts={allLayouts}
+                    curJamos={jamos}
+                    topLevel={false}
                     drawBackground={drawBackground}
                     showPoints={showPoints}
                 />
@@ -119,7 +158,7 @@ export function LayoutControl(
             <React.Fragment>
                 {leftGlyph}
                 {rightGlyph}
-                {!drawBackground &&
+                {!drawBackground && topLevel &&
                     <Group
                         draggable={true}
                         onDragStart={(e) => {
@@ -187,7 +226,7 @@ export function LayoutControl(
             <React.Fragment>
                 {topGlyph}
                 {bottomGlyph}
-                {!drawBackground &&
+                {!drawBackground && topLevel &&
                     <Group
                         draggable={true}
                         onDragStart={(e) => {
@@ -255,11 +294,12 @@ export function LayoutControl(
             <React.Fragment>
                 {topLeftGlyph}
                 {restGlyph}
-                <Line points={[
-                    ...rescale({x: left, y: y}),
-                    ...rescale({x: x, y: y}),
-                    ...rescale({x: x, y: top}),
-                ]} stroke={dividerColor}/>
+                {topLevel &&
+                    <Line points={[
+                        ...rescale({x: left, y: y}),
+                        ...rescale({x: x, y: y}),
+                        ...rescale({x: x, y: top}),
+                    ]} stroke={dividerColor}/>}
             </React.Fragment>
         );
     } else {

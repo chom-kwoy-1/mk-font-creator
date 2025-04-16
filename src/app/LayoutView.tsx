@@ -86,6 +86,7 @@ export function LayoutView(
                                 setLayout={setLayout}
                                 allLayouts={allLayouts}
                                 curJamos={curJamos}
+                                topLevel={true}
                                 drawBackground={drawBackground}
                                 showPoints={showPoints}
                             />

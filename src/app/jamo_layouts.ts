@@ -235,28 +235,28 @@ export const jamoLayouts: Layout[] = [
         glyphs: new Map(jamoTable['single-mixed-vowel'].map(jamo => [jamo, null])),
     },
     // Tail
-    // {
-    //     name: 'LVT-1',
-    //     focus: 'tailing',
-    //     elems: new Set(['leading', 'right-vowel', 'single-tailing']),
-    //     dividers: {
-    //         type: 'horizontal',
-    //         y: 0.6,
-    //         top: {type: 'layout-ref', elems: new Set(['leading', 'right-vowel'])},
-    //         bottom: {type: 'jamo', kind: 'tailing', subkind: 'single-tailing'},
-    //     },
-    //     glyphs: new Map(jamoTable['single-tailing'].map(jamo => [jamo, null])),
-    // },
-    // {
-    //     name: 'LVT-2',
-    //     focus: 'tailing',
-    //     elems: new Set(['leading', 'bm-vowel', 'single-tailing']),
-    //     dividers: {
-    //         type: 'horizontal',
-    //         y: 0.6,
-    //         top: {type: 'layout-ref', elems: new Set(['leading', 'bm-vowel'])},
-    //         bottom: {type: 'jamo', kind: 'tailing', subkind: 'single-tailing'},
-    //     },
-    //     glyphs: new Map(jamoTable['single-tailing'].map(jamo => [jamo, null])),
-    // },
+    {
+        name: 'LVT-1',
+        focus: 'tailing',
+        elems: new Set(['leading', 'right-vowel', 'single-tailing']),
+        dividers: {
+            type: 'horizontal',
+            y: 0.4,
+            top: {type: 'layout-ref', elems: new Set(['leading', 'right-vowel'])},
+            bottom: {type: 'jamo', kind: 'tailing', subkind: 'single-tailing'},
+        },
+        glyphs: new Map(jamoTable['single-tailing'].map(jamo => [jamo, null])),
+    },
+    {
+        name: 'LVT-2',
+        focus: 'tailing',
+        elems: new Set(['leading', 'bm-vowel', 'single-tailing']),
+        dividers: {
+            type: 'horizontal',
+            y: 0.4,
+            top: {type: 'layout-ref', elems: new Set(['leading', 'bm-vowel'])},
+            bottom: {type: 'jamo', kind: 'tailing', subkind: 'single-tailing'},
+        },
+        glyphs: new Map(jamoTable['single-tailing'].map(jamo => [jamo, null])),
+    },
 ];
