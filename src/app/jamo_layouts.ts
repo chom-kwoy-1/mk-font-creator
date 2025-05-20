@@ -7,7 +7,7 @@ export type JamoKind = (
     | 'right-vowel'
     | 'bottom-vowel' | 'bottom-vowel-1' | 'bottom-vowel-2'
     | 'mixed-vowel'
-    | 'mixed-vowel-1' | 'mixed-vowel-2' | 'bm-vowel'
+    | 'mixed-vowel-1' | 'mixed-vowel-2'
     | 'tailing'
 );
 export type JamoSubkind = (
@@ -19,7 +19,7 @@ export type JamoSubkind = (
     | 'single-bottom-vowel' | 'bottom-vowel-1' | 'bottom-vowel-2'
     | 'double-bottom-vowel'
     | 'single-mixed-vowel' | 'double-mixed-vowel'
-    | 'mixed-vowel-1' | 'mixed-vowel-2' | 'bm-vowel'
+    | 'mixed-vowel-1' | 'mixed-vowel-2'
     | 'single-tailing' | 'stacked-tailing' | 'double-tailing' | 'triple-tailing'
 );
 
@@ -662,7 +662,7 @@ export const jamoLayouts: Layouts = [
         tag: 'with-tailing',
         layouts: [
             {
-                name: '받침 (기본자) 1',
+                name: '받침 (기본자) 가로모임',
                 focus: 'tailing',
                 elems: new Set(['leading', 'right-vowel', 'single-tailing']),
                 dividers: {
@@ -679,9 +679,9 @@ export const jamoLayouts: Layouts = [
                 glyphs: new Map(jamoTable['single-tailing'].map(jamo => [jamo, null])),
             },
             {
-                name: '받침 (기본자) 2',
+                name: '받침 (기본자) 세로모임',
                 focus: 'tailing',
-                elems: new Set(['leading', 'bm-vowel', 'single-tailing']),
+                elems: new Set(['leading', 'bottom-vowel', 'single-tailing']),
                 dividers: {
                     type: 'horizontal',
                     y: 0.4,
@@ -689,7 +689,25 @@ export const jamoLayouts: Layouts = [
                         type: 'horizontal',
                         y: 0.4,
                         top: {type: 'jamo', kind: 'leading'},
-                        bottom: {type: 'jamo', kind: 'bm-vowel'},
+                        bottom: {type: 'jamo', kind: 'bottom-vowel'},
+                    },
+                    bottom: {type: 'jamo', kind: 'tailing', subkind: 'single-tailing'},
+                },
+                glyphs: new Map(jamoTable['single-tailing'].map(jamo => [jamo, null])),
+            },
+            {
+                name: '받침 (기본자) 섞임모임',
+                focus: 'tailing',
+                elems: new Set(['leading', 'mixed-vowel', 'single-tailing']),
+                dividers: {
+                    type: 'horizontal',
+                    y: 0.4,
+                    top: {
+                        type: 'mixed',
+                        x: 0.6,
+                        y: 0.4,
+                        topLeft: {type: 'jamo', kind: 'leading'},
+                        rest: {type: 'jamo', kind: 'mixed-vowel'},
                     },
                     bottom: {type: 'jamo', kind: 'tailing', subkind: 'single-tailing'},
                 },

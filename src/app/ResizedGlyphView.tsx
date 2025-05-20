@@ -30,13 +30,15 @@ export function ResizedGlyphView(
 
     const boldOffset = 20;
     const [reducedGlyph, boldGlyph] = React.useMemo(() => {
-        console.log("Synthesize bold glyph");
+        const start = performance.now();
         const reducedGlyph = reduceGlyphPaths(resizedGlyph.glyph);
-        return [
-            reducedGlyph,
-            synthesizeBoldGlyph(reducedGlyph, boldOffset)
-        ];
+        const reduceTime = performance.now() - start;
+        const boldGlyph = synthesizeBoldGlyph(reducedGlyph, boldOffset);
+        const synthTime = performance.now() - reduceTime - start;
+        console.log("Synthesize bold glyph reducetime=", reduceTime, "ms, synthtime=", synthTime, "ms");
+        return [reducedGlyph, boldGlyph];
     }, [resizedGlyph.glyph]);
+
     const adjustedGlyph = React.useMemo(() => {
         return adjustGlyphThickness(reducedGlyph, boldGlyph, boldOffset, xScale, yScale);
     }, [resizedGlyph.glyph, xScale, yScale]);
