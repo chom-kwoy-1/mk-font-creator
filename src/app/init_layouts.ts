@@ -1,17 +1,17 @@
 import {Divider, JamoElement, JamoKind, jamoLayouts, JamoSubkind, Layouts, ResizedGlyph} from "@/app/jamo_layouts";
 import {Bounds, findCharstringByCodepoint, glyphActualBounds, intersectGlyph} from "@/app/font_utils";
-import {Charstring, Cmap4, FontDict, OS2} from "@/app/TTXObject";
+import {TTXWrapper} from "@/app/TTXObject";
 import {Glyph, parseGlyph} from "@/app/parse_glyph";
 import {exampleJamo, jamoTable} from "@/app/jamos";
 import {uniToPua} from "@/app/pua_uni_conv";
 
 
-export function initLayouts(
-    cmap4: Cmap4,
-    charstrings: Charstring[],
-    fdarray: FontDict[],
-    os2: OS2,
-): Layouts {
+export function initLayouts(ttx: TTXWrapper): Layouts {
+    const fdarray = ttx.getFDArray();
+    const charstrings = ttx.getCharstrings();
+    const os2 = ttx.getOS2();
+    const cmap4 = ttx.getCmap4();
+
     let layouts = structuredClone(jamoLayouts);
 
     const ascender = parseInt(os2.sTypoAscender['@_value']);
@@ -171,9 +171,6 @@ function getIntersectingGlyph(
                     {left: bounds.left, right: bounds.right, top: y, bottom: bounds.bottom},
                 ])
             );
-        }
-        case 'layout-ref': {
-            return null;
         }
     }
 }

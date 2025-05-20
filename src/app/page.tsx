@@ -20,9 +20,9 @@ import {JSONPath} from '@astronautlabs/jsonpath';
 import Grid from '@mui/material/Grid2';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 
-import {Charstring, Cmap4, FontDict, OS2, TTXObject} from "@/app/TTXObject";
+import {Charstring, Cmap4, FontDict, OS2, TTXWrapper} from "@/app/TTXObject";
 import {LayoutView} from "@/app/LayoutView";
-import {Category, Layout, Layouts, ResizedGlyph} from "@/app/jamo_layouts";
+import {Category, Layouts, ResizedGlyph} from "@/app/jamo_layouts";
 import {initLayouts} from "@/app/init_layouts";
 import {ResizedGlyphView} from "@/app/ResizedGlyphView";
 import {parseGlyph, Point} from "@/app/parse_glyph";
@@ -49,7 +49,8 @@ export default function Home() {
     const [file, setFile] = React.useState<File | null>(null);
     const [loadingState, setLoadingState] = React.useState<string | null>(null);
     const [loadDone, setLoadDone] = React.useState<boolean>(false);
-    const [ttx, setTTX] = React.useState<TTXObject | null>(null);
+    const [ttx, setTTX] = React.useState<TTXWrapper | null>(null);
+    const [curLayouts, setCurLayouts] = React.useState<Layouts | null>(null);
 
     async function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
         if (event.target.files && event.target.files.length > 0) {
@@ -101,12 +102,16 @@ export default function Home() {
                     ignoreAttributes: false,
                 });
                 const doc = parser.parse(text);
+                const ttx = new TTXWrapper(doc);
+                console.log(ttx);
+
+                setLoadingState("Initializing layouts...");
+
+                setTTX(ttx);
+                setCurLayouts(initLayouts(ttx));
+                setLoadDone(true);
 
                 setLoadingState("Loading Done.");
-
-                console.log(doc);
-                setTTX(doc);
-                setLoadDone(true);
             } else {
                 await response.json().then((data) => {
                     console.error(data);  // TODO: Show error to user
@@ -146,53 +151,29 @@ export default function Home() {
                 </Stack>
             </Paper>
 
-            {loadDone && ttx &&
+            {loadDone && ttx && curLayouts &&
                 <CompositionLayouts
                     ttx={ttx}
+                    curLayouts={curLayouts}
+                    setCurLayouts={setCurLayouts}
                     origFilename={file ? `${file.name}` : "font.ttf"}
                 />}
         </React.Fragment>
     );
 }
 
-
-function array<T>(x: T | Array<T>): Array<T> {
-    if (Array.isArray(x)) {
-        return x;
-    }
-    return [x];
-}
-
-
 function CompositionLayouts(
-    {ttx, origFilename}: Readonly<{
-        ttx: TTXObject,
+    {ttx, curLayouts, setCurLayouts, origFilename}: Readonly<{
+        ttx: TTXWrapper,
+        curLayouts: Layouts,
+        setCurLayouts: (layouts: Layouts) => void,
         origFilename: string
     }>
 ) {
-    const fdarray = React.useRef<FontDict[]>(null);
-    const charstrings = React.useRef<Charstring[]>(null);
-    const os2 = React.useRef<OS2>(null);
-    const cmap4 = React.useRef<Cmap4>(null);
-
-    const [curLayouts, setCurLayouts] = React.useState<Layouts | null>(null);
-
-    const debug = false;
-
-    React.useEffect(() => {
-        fdarray.current = array(JSONPath.query(ttx, '$.ttFont.CFF.CFFFont.FDArray.FontDict')[0]);
-        charstrings.current = array(JSONPath.query(ttx, '$.ttFont.CFF.CFFFont.CharStrings.CharString')[0]);
-        os2.current = JSONPath.query(ttx, '$.ttFont.OS_2')[0];
-        cmap4.current = JSONPath.query(ttx, '$.ttFont.cmap.cmap_format_4[?(@.@_platformID == "0")]')[0];
-
-        console.log("Resetting layouts");
-        setCurLayouts(initLayouts(
-            cmap4.current as Cmap4,
-            charstrings.current as Charstring[],
-            fdarray.current as FontDict[],
-            os2.current as OS2,
-        ));
-    }, [ttx]);
+    const fdarray = ttx.getFDArray();
+    const charstrings = ttx.getCharstrings();
+    const os2 = ttx.getOS2();
+    const cmap4 = ttx.getCmap4();
 
     const [left, setLeft] = React.useState<number>(0);
     const [bottom, setBottom] = React.useState<number>(-200);
@@ -200,93 +181,79 @@ function CompositionLayouts(
 
     const ref = React.useRef<Konva.Text>(null);
 
+    const debug = false;
     if (debug) {
-        if (charstrings.current && fdarray.current && cmap4.current) {
-            const aspectRatio = 1.;
-            const canvasWidth = 600;
-            const canvasHeight = aspectRatio * canvasWidth;
+        const aspectRatio = 1.;
+        const canvasWidth = 600;
+        const canvasHeight = aspectRatio * canvasWidth;
 
-            const minCanvasSide = Math.min(canvasWidth, canvasHeight);
-            const scale = minCanvasSide / viewWidth;
+        const minCanvasSide = Math.min(canvasWidth, canvasHeight);
+        const scale = minCanvasSide / viewWidth;
 
-            function rescale(p: Point): number[] {
-                let x = (p.x - left) * scale;
-                x = x === -Infinity ? 0 : (x === Infinity ? canvasWidth : x);
-                let y = canvasHeight - (p.y - bottom) * scale;
-                y = y === -Infinity ? 0 : (y === Infinity ? canvasHeight : y);
+        function rescale(p: Point): number[] {
+            let x = (p.x - left) * scale;
+            x = x === -Infinity ? 0 : (x === Infinity ? canvasWidth : x);
+            let y = canvasHeight - (p.y - bottom) * scale;
+            y = y === -Infinity ? 0 : (y === Infinity ? canvasHeight : y);
 
-                return [x, y];
-            }
-
-            const cs = findCharstringByCodepoint(
-                'ㄱ'.codePointAt(0) as number,
-                cmap4.current,
-                charstrings.current,
-            );
-            const glyph: ResizedGlyph = {
-                glyph: parseGlyph(cs, fdarray.current),
-                bounds: {left: 0.2, right: 0.8, top: 0.8, bottom: 0.2},
-            }
-            const bounds = {left: 0, right: 1000, top: 800, bottom: 300};
-            const actualBounds = glyphActualBounds(glyph.glyph);
-            const resizedBounds = glyph.bounds;
-            const targetBounds = {
-                left: bounds.left + resizedBounds.left * (bounds.right - bounds.left),
-                right: bounds.left + resizedBounds.right * (bounds.right - bounds.left),
-                top: bounds.bottom + resizedBounds.top * (bounds.top - bounds.bottom),
-                bottom: bounds.bottom + resizedBounds.bottom * (bounds.top - bounds.bottom),
-            };
-
-            const xScale = (targetBounds.right - targetBounds.left) / (actualBounds.right - actualBounds.left);
-            const yScale = (targetBounds.top - targetBounds.bottom) / (actualBounds.top - actualBounds.bottom);
-            return (
-                <Paper>
-                    <Stage
-                        width={canvasWidth}
-                        height={canvasHeight}
-                        onMouseMove={(e) => {
-                            if (ref.current) {
-                                const x = e.evt.offsetX / scale + left;
-                                const y = (canvasHeight - e.evt.offsetY) / scale + bottom;
-                                const rx = (x - targetBounds.left) / xScale + actualBounds.left;
-                                const ry = (y - targetBounds.bottom) / yScale + actualBounds.bottom;
-                                ref.current.position({x: e.evt.offsetX, y: e.evt.offsetY - 10});
-                                ref.current.text(`${rx.toFixed(0)}, ${ry.toFixed(0)}`);
-                            }
-                        }}>
-                        <Layer>
-                            <ResizedGlyphView
-                                resizedGlyph={glyph}
-                                rescale={rescale}
-                                bounds={bounds}
-                                showPoints={false}
-                                strokeWidth={1}
-                                stroke="grey"
-                            />
-                            <Text
-                                ref={ref}
-                                x={10}
-                                y={10}
-                                text={"Test"}
-                                fontSize={10}
-                                fill="grey"
-                            />
-                        </Layer>
-                    </Stage>
-                </Paper>
-            );
+            return [x, y];
         }
-    }
 
-    if (
-        !curLayouts
-        || !charstrings.current
-        || !fdarray.current
-        || !cmap4.current
-    ) {
+        const cs = findCharstringByCodepoint(
+            'ㄱ'.codePointAt(0) as number,
+            cmap4,
+            charstrings,
+        );
+        const glyph: ResizedGlyph = {
+            glyph: parseGlyph(cs, fdarray),
+            bounds: {left: 0.2, right: 0.8, top: 0.8, bottom: 0.2},
+        }
+        const bounds = {left: 0, right: 1000, top: 800, bottom: 300};
+        const actualBounds = glyphActualBounds(glyph.glyph);
+        const resizedBounds = glyph.bounds;
+        const targetBounds = {
+            left: bounds.left + resizedBounds.left * (bounds.right - bounds.left),
+            right: bounds.left + resizedBounds.right * (bounds.right - bounds.left),
+            top: bounds.bottom + resizedBounds.top * (bounds.top - bounds.bottom),
+            bottom: bounds.bottom + resizedBounds.bottom * (bounds.top - bounds.bottom),
+        };
+
+        const xScale = (targetBounds.right - targetBounds.left) / (actualBounds.right - actualBounds.left);
+        const yScale = (targetBounds.top - targetBounds.bottom) / (actualBounds.top - actualBounds.bottom);
         return (
-            <Paper variant="outlined">
-                <Box>Loading...</Box>
+            <Paper>
+                <Stage
+                    width={canvasWidth}
+                    height={canvasHeight}
+                    onMouseMove={(e) => {
+                        if (ref.current) {
+                            const x = e.evt.offsetX / scale + left;
+                            const y = (canvasHeight - e.evt.offsetY) / scale + bottom;
+                            const rx = (x - targetBounds.left) / xScale + actualBounds.left;
+                            const ry = (y - targetBounds.bottom) / yScale + actualBounds.bottom;
+                            ref.current.position({x: e.evt.offsetX, y: e.evt.offsetY - 10});
+                            ref.current.text(`${rx.toFixed(0)}, ${ry.toFixed(0)}`);
+                        }
+                    }}>
+                    <Layer>
+                        <ResizedGlyphView
+                            resizedGlyph={glyph}
+                            rescale={rescale}
+                            bounds={bounds}
+                            showPoints={false}
+                            strokeWidth={1}
+                            stroke="grey"
+                        />
+                        <Text
+                            ref={ref}
+                            x={10}
+                            y={10}
+                            text={"Test"}
+                            fontSize={10}
+                            fill="grey"
+                        />
+                    </Layer>
+                </Stage>
             </Paper>
         );
     }
@@ -300,7 +267,7 @@ function CompositionLayouts(
                         cidx={cidx}
                         curLayouts={curLayouts}
                         setCurLayouts={setCurLayouts}
-                        os2={os2.current as OS2}
+                        os2={os2}
                     />
                 </Grid>
             )}
@@ -338,11 +305,15 @@ function LayoutCategory(
     }>
 ) {
     const [isExpanded, setIsExpanded] = React.useState(false);
+    const [expandedOnce, setExpandedOnce] = React.useState(false);
 
     return (
         <Accordion
             expanded={isExpanded}
-            onChange={(e, expanded) => {setIsExpanded(expanded);}}
+            onChange={(e, expanded) => {
+                setIsExpanded(expanded);
+                setExpandedOnce(expanded || expandedOnce);
+            }}
         >
             <AccordionSummary expandIcon={<ArrowDropDownIcon />}>
                 <Typography variant="h6">
@@ -350,7 +321,7 @@ function LayoutCategory(
                 </Typography>
             </AccordionSummary>
             <AccordionDetails>
-                {isExpanded &&
+                {expandedOnce &&
                     <Grid container spacing={2}>
                         {category.layouts.map((layout, idx) =>
                             <Grid key={idx} size={3}>
@@ -385,11 +356,11 @@ function LayoutCategory(
 
 
 function ShowFontSummary(
-    {ttx}: Readonly<{ ttx: TTXObject }>
+    {ttx}: Readonly<{ ttx: TTXWrapper }>
 ) {
-    const fontName = JSONPath.query(ttx, '$.ttFont.name.namerecord[?(@.@_nameID == "4")]')[0]['#text'];
-    const fontVersion = JSONPath.query(ttx, '$.ttFont.name.namerecord[?(@.@_nameID == "5")]')[0]['#text'];
-    const numberOfGlyphs = array(JSONPath.query(ttx, '$.ttFont.GlyphOrder.GlyphID')[0]).length;
+    const fontName = ttx.getFontName();
+    const fontVersion = ttx.getFontVersion();
+    const numberOfGlyphs = ttx.getNumberOfGlyphs();
 
     return (
         <Stack>
@@ -403,7 +374,7 @@ function ShowFontSummary(
 
 function DownloadFontButton(
     {ttx, curLayouts, origFilename}: Readonly<{
-        ttx: TTXObject;
+        ttx: TTXWrapper;
         curLayouts: Layouts;
         origFilename: string;
     }>
