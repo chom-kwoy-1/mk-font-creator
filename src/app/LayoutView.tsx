@@ -4,7 +4,7 @@ import {Layer, Line, Stage} from 'react-konva';
 import Grid from '@mui/material/Grid2';
 import {brown, teal} from "@mui/material/colors";
 
-import {Layout} from "@/app/jamo_layouts";
+import {Layout, Layouts} from "@/app/jamo_layouts";
 import UseDimensions from "@/app/useDimensions";
 import {Point} from "@/app/parse_glyph";
 import {OS2} from "@/app/TTXObject";
@@ -16,13 +16,15 @@ export function LayoutView(
     {
         layout,
         setLayout,
+        layoutTag,
         allLayouts,
         os2,
         showPoints,
     }: Readonly<{
         layout: Layout;
         setLayout: (layout: Layout) => void;
-        allLayouts: Layout[];
+        layoutTag: string;
+        allLayouts: Layouts;
         os2: OS2;
         showPoints: boolean;
     }>
@@ -56,7 +58,7 @@ export function LayoutView(
         .map((kind) => getJamos(kind))
         .toArray();
 
-    const [curJamos, setCurOtherJamos] = React.useState(
+    const [curJamos, setCurJamos] = React.useState(
         jamoLists.map((jamos) => jamos[0])
     );
 
@@ -64,6 +66,7 @@ export function LayoutView(
 
     return (
         <Stack>
+            <Box>{layout.name}</Box>
             <Stack ref={ref}>
                 <Stage width={width} height={width} >
                     <Layer>
@@ -84,6 +87,7 @@ export function LayoutView(
                                 xyScales={{x: scale, y: -scale}}
                                 layout={layout}
                                 setLayout={setLayout}
+                                layoutTag={layoutTag}
                                 allLayouts={allLayouts}
                                 curJamos={curJamos}
                                 topLevel={true}
@@ -138,37 +142,30 @@ export function LayoutView(
                     </Layer>
                 </Stage>
             </Stack>
-            <Grid container spacing={1} alignItems="center">
-                <Grid size={5}>
-                    <Box>{layout.name}</Box>
-                </Grid>
-                <Grid size={7}>
-                    <Stack direction="row" spacing={0.5} justifyContent="flex-end">
-                        {curJamos.map((jamo, i) =>
-                            <FormControl
-                                key={i}
-                                variant="standard"
-                                size="small">
-                                <Select
-                                    variant={i === 0? "outlined" : "outlined"}
-                                    labelId="jamo-select-label"
-                                    id="jamo-select"
-                                    value={jamo}
-                                    onChange={(e) => {
-                                        const newCurOtherJamos = [...curJamos];
-                                        newCurOtherJamos[i] = e.target.value as string;
-                                        setCurOtherJamos(newCurOtherJamos);
-                                    }}
-                                    label="Jamo">
-                                    {jamoLists[i].map((jamo, j) => (
-                                        <MenuItem key={j} value={jamo}>{jamo}</MenuItem>
-                                    ))}
-                                </Select>
-                            </FormControl>
-                        )}
-                    </Stack>
-                </Grid>
-            </Grid>
+            <Stack direction="row" spacing={0.5} justifyContent="space-evenly">
+                {curJamos.map((jamo, i) =>
+                    // <FormControl
+                    //     key={i}
+                    //     variant="standard"
+                    //     size="small">
+                        <Select
+                            key={i}
+                            variant={i === 0? "outlined" : "outlined"}
+                            size={"small"}
+                            value={jamo}
+                            onChange={(e) => {
+                                const newCurJamos = [...curJamos];
+                                newCurJamos[i] = e.target.value as string;
+                                setCurJamos(newCurJamos);
+                            }}
+                        >
+                            {jamoLists[i].map((jamo, j) => (
+                                <MenuItem key={j} value={jamo}>{jamo}</MenuItem>
+                            ))}
+                        </Select>
+                    // </FormControl>
+                )}
+            </Stack>
         </Stack>
     );
 }

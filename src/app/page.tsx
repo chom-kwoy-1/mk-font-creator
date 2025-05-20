@@ -22,7 +22,7 @@ import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 
 import {Charstring, Cmap4, FontDict, OS2, TTXObject} from "@/app/TTXObject";
 import {LayoutView} from "@/app/LayoutView";
-import {Layout, Layouts, ResizedGlyph} from "@/app/jamo_layouts";
+import {Category, Layout, Layouts, ResizedGlyph} from "@/app/jamo_layouts";
 import {initLayouts} from "@/app/init_layouts";
 import {ResizedGlyphView} from "@/app/ResizedGlyphView";
 import {parseGlyph, Point} from "@/app/parse_glyph";
@@ -291,47 +291,17 @@ function CompositionLayouts(
         );
     }
 
-    const allLayouts = curLayouts.flatMap((category) => category.layouts);
-
     const layoutGrid = (
         <Grid container spacing={2}>
             {curLayouts.map((category, cidx) =>
                 <Grid key={cidx} size={12}>
-                    <Accordion>
-                        <AccordionSummary expandIcon={<ArrowDropDownIcon />}>
-                            <Typography variant="h6">
-                                {category.category_name}
-                            </Typography>
-                        </AccordionSummary>
-                        <AccordionDetails>
-                            <Grid container spacing={2}>
-                                {category.layouts.map((layout, idx) =>
-                                    <Grid key={idx} size={3}>
-                                        <Paper variant="elevation">
-                                            <LayoutView
-                                                layout={layout}
-                                                setLayout={(newLayout) => {
-                                                    const newCategory = {
-                                                        ...category,
-                                                        layouts: category.layouts.map(
-                                                            (layout, li) => li === idx ? newLayout : layout
-                                                        )
-                                                    };
-                                                    const newLayouts = curLayouts.map(
-                                                        (category, ci) => ci === cidx ? newCategory : category
-                                                    );
-                                                    setCurLayouts(newLayouts);
-                                                }}
-                                                allLayouts={allLayouts}
-                                                os2={os2.current as OS2}
-                                                showPoints={false}
-                                            />
-                                        </Paper>
-                                    </Grid>
-                                )}
-                            </Grid>
-                        </AccordionDetails>
-                    </Accordion>
+                    <LayoutCategory
+                        category={category}
+                        cidx={cidx}
+                        curLayouts={curLayouts}
+                        setCurLayouts={setCurLayouts}
+                        os2={os2.current as OS2}
+                    />
                 </Grid>
             )}
         </Grid>
@@ -354,6 +324,62 @@ function CompositionLayouts(
                 {layoutGrid}
             </Paper>
         </React.Fragment>
+    );
+}
+
+
+function LayoutCategory(
+    {category, cidx, curLayouts, setCurLayouts, os2}: Readonly<{
+        category: Category;
+        cidx: number;
+        curLayouts: Layouts;
+        setCurLayouts: (layouts: Layouts) => void;
+        os2: OS2;
+    }>
+) {
+    const [isExpanded, setIsExpanded] = React.useState(false);
+
+    return (
+        <Accordion
+            expanded={isExpanded}
+            onChange={(e, expanded) => {setIsExpanded(expanded);}}
+        >
+            <AccordionSummary expandIcon={<ArrowDropDownIcon />}>
+                <Typography variant="h6">
+                    {category.category_name}
+                </Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+                {isExpanded &&
+                    <Grid container spacing={2}>
+                        {category.layouts.map((layout, idx) =>
+                            <Grid key={idx} size={3}>
+                                <Paper variant="elevation">
+                                    <LayoutView
+                                        layout={layout}
+                                        setLayout={(newLayout) => {
+                                            const newCategory = {
+                                                ...category,
+                                                layouts: category.layouts.map(
+                                                    (layout, li) => li === idx ? newLayout : layout
+                                                )
+                                            };
+                                            const newLayouts = curLayouts.map(
+                                                (category, ci) => ci === cidx ? newCategory : category
+                                            );
+                                            setCurLayouts(newLayouts);
+                                        }}
+                                        layoutTag={category.tag}
+                                        allLayouts={curLayouts}
+                                        os2={os2}
+                                        showPoints={false}
+                                    />
+                                </Paper>
+                            </Grid>
+                        )}
+                    </Grid>}
+            </AccordionDetails>
+        </Accordion>
     );
 }
 

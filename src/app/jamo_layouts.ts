@@ -16,7 +16,7 @@ export type JamoSubkind = (
     | 'double-leading' | 'double-leading-1' | 'double-leading-2'
     | 'triple-leading' | 'triple-leading-1' | 'triple-leading-2'
     | 'single-right-vowel' | 'double-right-vowel'
-    | 'single-bottom-vowel' | 'single-bottom-vowel-1' | 'single-bottom-vowel-2'
+    | 'single-bottom-vowel' | 'bottom-vowel-1' | 'bottom-vowel-2'
     | 'double-bottom-vowel'
     | 'single-mixed-vowel' | 'double-mixed-vowel'
     | 'mixed-vowel-1' | 'mixed-vowel-2' | 'bm-vowel'
@@ -29,7 +29,7 @@ export type JamoElement = {
     subkind?: JamoSubkind,
 };
 
-export type Divider = VerticalDivider | HorizontalDivider | MixedDivider | LayoutRef;
+export type Divider = VerticalDivider | HorizontalDivider | MixedDivider;
 
 type VerticalDivider = {
     type: 'vertical',
@@ -58,11 +58,6 @@ export type ResizedGlyph = {
     bounds: Bounds,
 };
 
-export type LayoutRef = {
-    type: 'layout-ref',
-    elems: Set<JamoKind | JamoSubkind>,
-}
-
 export type Layout = {
     name: string,
     focus: JamoKind,
@@ -71,15 +66,19 @@ export type Layout = {
     glyphs: Map<string, ResizedGlyph | null>,
 };
 
-export type Layouts = {
+export type Category = {
     category_name: string,
+    tag: string,
     layouts: Layout[];
-}[];
+};
+
+export type Layouts = Category[];
 
 export const jamoLayouts: Layouts = [
     // Leading
     {
         category_name: "초성 (기본자)",
+        tag: 'no-tailing',
         layouts: [
             {
                 name: '초성 (기본자) 가로모임',
@@ -147,6 +146,7 @@ export const jamoLayouts: Layouts = [
     },
     {
         category_name: "초성 (연서자)",
+        tag: 'no-tailing',
         layouts: [
             {
                 name: '초성 (연서자) 가로모임',
@@ -188,7 +188,8 @@ export const jamoLayouts: Layouts = [
         ]
     },
     {
-        category_name: "초성 (2중)",
+        category_name: "초성 (2중 병서)",
+        tag: 'no-tailing',
         layouts: [
             {
                 name: '초성 (2중) 가로모임',
@@ -230,7 +231,8 @@ export const jamoLayouts: Layouts = [
         ]
     },
     {
-        category_name: "초성 (3중)",
+        category_name: "초성 (3중 병서)",
+        tag: 'no-tailing',
         layouts: [
             {
                 name: '초성 (3중) 가로모임',
@@ -274,6 +276,7 @@ export const jamoLayouts: Layouts = [
     // Vowels
     {
         category_name: "중성 (기본자)",
+        tag: 'no-tailing',
         layouts: [
             {
                 name: '중성 (기본자) 가로모임',
@@ -339,30 +342,355 @@ export const jamoLayouts: Layouts = [
             },
         ]
     },
-    // Tail
     {
-        category_name: "종성 (기본자)",
+        category_name: "중성 (중첩자)",
+        tag: 'no-tailing',
         layouts: [
             {
-                name: 'LVT-1',
+                name: '중성 (중첩자) 가로모임',
+                focus: 'right-vowel',
+                elems: new Set(['leading', 'double-right-vowel']),
+                dividers: {
+                    type: 'vertical',
+                    x: 0.6,
+                    left: {type: 'jamo', kind: 'leading'},
+                    right: {type: 'jamo', kind: 'right-vowel', subkind: 'double-right-vowel'},
+                },
+                glyphs: new Map(jamoTable['double-right-vowel'].map(jamo => [jamo, null])),
+            },
+            {
+                name: '중성 (중첩자) 세로모임1',
+                focus: 'bottom-vowel',
+                elems: new Set(['leading-1', 'double-bottom-vowel']),
+                dividers: {
+                    type: 'horizontal',
+                    y: 0.6,
+                    top: {type: 'jamo', kind: 'leading-1'},
+                    bottom: {type: 'jamo', kind: 'bottom-vowel', subkind: 'double-bottom-vowel'},
+                },
+                glyphs: new Map(jamoTable['double-bottom-vowel'].map(jamo => [jamo, null])),
+            },
+            {
+                name: '중성 (중첩자) 세로모임2',
+                focus: 'bottom-vowel',
+                elems: new Set(['leading-2', 'double-bottom-vowel']),
+                dividers: {
+                    type: 'horizontal',
+                    y: 0.5,
+                    top: {type: 'jamo', kind: 'leading-2'},
+                    bottom: {type: 'jamo', kind: 'bottom-vowel', subkind: 'double-bottom-vowel'},
+                },
+                glyphs: new Map(jamoTable['double-bottom-vowel'].map(jamo => [jamo, null])),
+            },
+            {
+                name: '중성 (중첩자) 섞임모임1',
+                focus: 'mixed-vowel',
+                elems: new Set(['leading-1', 'double-mixed-vowel']),
+                dividers: {
+                    type: 'mixed',
+                    x: 0.6,
+                    y: 0.5,
+                    topLeft: {type: 'jamo', kind: 'leading-1'},
+                    rest: {type: 'jamo', kind: 'mixed-vowel', subkind: 'double-mixed-vowel'},
+                },
+                glyphs: new Map(jamoTable['double-mixed-vowel'].map(jamo => [jamo, null])),
+            },
+            {
+                name: '중성 (중첩자) 섞임모임2',
+                focus: 'mixed-vowel',
+                elems: new Set(['leading-2', 'double-mixed-vowel']),
+                dividers: {
+                    type: 'mixed',
+                    x: 0.6,
+                    y: 0.5,
+                    topLeft: {type: 'jamo', kind: 'leading-2'},
+                    rest: {type: 'jamo', kind: 'mixed-vowel', subkind: 'double-mixed-vowel'},
+                },
+                glyphs: new Map(jamoTable['double-mixed-vowel'].map(jamo => [jamo, null])),
+            },
+        ]
+    },
+    // Leading (with tailing)
+    {
+        category_name: "받침있는 초성 (기본자)",
+        tag: 'with-tailing',
+        layouts: [
+            {
+                name: '초성 (기본자) 가로모임',
+                focus: 'leading',
+                elems: new Set(['single-leading', 'right-vowel', 'tailing']),
+                dividers: {
+                    type: 'horizontal',
+                    y: 0.4,
+                    top: {
+                        type: 'vertical',
+                        x: 0.6,
+                        left: {type: 'jamo', kind: 'leading', subkind: 'single-leading'},
+                        right: {type: 'jamo', kind: 'right-vowel'},
+                    },
+                    bottom: {type: 'jamo', kind: 'tailing'},
+                },
+                glyphs: new Map(jamoTable['single-leading'].map(jamo => [jamo, null])),
+            },
+            {
+                name: '초성 (기본자) 세로모임',
+                focus: 'leading',
+                elems: new Set(['single-leading', 'bottom-vowel', 'tailing']),
+                dividers: {
+                    type: 'horizontal',
+                    y: 0.4,
+                    top: {
+                        type: 'horizontal',
+                        y: 0.4,
+                        top: {type: 'jamo', kind: 'leading', subkind: 'single-leading'},
+                        bottom: {type: 'jamo', kind: 'bottom-vowel'},
+                    },
+                    bottom: {type: 'jamo', kind: 'tailing'},
+                },
+                glyphs: new Map(jamoTable['single-leading'].map(jamo => [jamo, null])),
+            },
+            {
+                name: '초성 (기본자) 섞임모임',
+                focus: 'leading',
+                elems: new Set(['single-leading', 'mixed-vowel', 'tailing']),
+                dividers: {
+                    type: 'horizontal',
+                    y: 0.4,
+                    top: {
+                        type: 'mixed',
+                        x: 0.6,
+                        y: 0.4,
+                        topLeft: {type: 'jamo', kind: 'leading', subkind: 'single-leading'},
+                        rest: {type: 'jamo', kind: 'mixed-vowel'},
+                    },
+                    bottom: {type: 'jamo', kind: 'tailing'},
+                },
+                glyphs: new Map(jamoTable['single-leading'].map(jamo => [jamo, null])),
+            },
+        ],
+    },
+    // Vowels (with tailing)
+    {
+        category_name: "받침있는 중성 (기본자)",
+        tag: 'with-tailing',
+        layouts: [
+            {
+                name: '중성 (기본자) 가로모임',
+                focus: 'right-vowel',
+                elems: new Set(['leading', 'single-right-vowel', 'tailing']),
+                dividers: {
+                    type: 'horizontal',
+                    y: 0.4,
+                    top: {
+                        type: 'vertical',
+                        x: 0.6,
+                        left: {type: 'jamo', kind: 'leading'},
+                        right: {type: 'jamo', kind: 'right-vowel', subkind: 'single-right-vowel'},
+                    },
+                    bottom: {type: 'jamo', kind: 'tailing'},
+                },
+                glyphs: new Map(jamoTable['single-right-vowel'].map(jamo => [jamo, null])),
+            },
+            {
+                name: '중성 (기본자) 세로모임1',
+                focus: 'bottom-vowel',
+                elems: new Set(['leading-1', 'single-bottom-vowel', 'tailing']),
+                dividers: {
+                    type: 'horizontal',
+                    y: 0.4,
+                    top: {
+                        type: 'horizontal',
+                        y: 0.5,
+                        top: {type: 'jamo', kind: 'leading-1'},
+                        bottom: {type: 'jamo', kind: 'bottom-vowel', subkind: 'single-bottom-vowel'},
+                    },
+                    bottom: {type: 'jamo', kind: 'tailing'},
+                },
+                glyphs: new Map(jamoTable['single-bottom-vowel'].map(jamo => [jamo, null])),
+            },
+            {
+                name: '중성 (기본자) 세로모임2',
+                focus: 'bottom-vowel',
+                elems: new Set(['leading-2', 'single-bottom-vowel', 'tailing']),
+                dividers: {
+                    type: 'horizontal',
+                    y: 0.4,
+                    top: {
+                        type: 'horizontal',
+                        y: 0.5,
+                        top: {type: 'jamo', kind: 'leading-2'},
+                        bottom: {type: 'jamo', kind: 'bottom-vowel', subkind: 'single-bottom-vowel'},
+                    },
+                    bottom: {type: 'jamo', kind: 'tailing'},
+                },
+                glyphs: new Map(jamoTable['single-bottom-vowel'].map(jamo => [jamo, null])),
+            },
+            {
+                name: '중성 (기본자) 섞임모임1',
+                focus: 'mixed-vowel',
+                elems: new Set(['leading-1', 'single-mixed-vowel', 'tailing']),
+                dividers: {
+                    type: 'horizontal',
+                    y: 0.4,
+                    top: {
+                        type: 'mixed',
+                        x: 0.6,
+                        y: 0.4,
+                        topLeft: {type: 'jamo', kind: 'leading-1'},
+                        rest: {type: 'jamo', kind: 'mixed-vowel', subkind: 'single-mixed-vowel'},
+                    },
+                    bottom: {type: 'jamo', kind: 'tailing'},
+                },
+                glyphs: new Map(jamoTable['single-mixed-vowel'].map(jamo => [jamo, null])),
+            },
+            {
+                name: '중성 (기본자) 섞임모임2',
+                focus: 'mixed-vowel',
+                elems: new Set(['leading-2', 'single-mixed-vowel', 'tailing']),
+                dividers: {
+                    type: 'horizontal',
+                    y: 0.4,
+                    top: {
+                        type: 'mixed',
+                        x: 0.6,
+                        y: 0.4,
+                        topLeft: {type: 'jamo', kind: 'leading-2'},
+                        rest: {type: 'jamo', kind: 'mixed-vowel', subkind: 'single-mixed-vowel'},
+                    },
+                    bottom: {type: 'jamo', kind: 'tailing'},
+                },
+                glyphs: new Map(jamoTable['single-mixed-vowel'].map(jamo => [jamo, null])),
+            },
+        ]
+    },
+    {
+        category_name: "받침있는 중성 (중첩자)",
+        tag: 'with-tailing',
+        layouts: [
+            {
+                name: '중성 (중첩자) 가로모임',
+                focus: 'right-vowel',
+                elems: new Set(['leading', 'double-right-vowel', 'tailing']),
+                dividers: {
+                    type: 'horizontal',
+                    y: 0.4,
+                    top: {
+                        type: 'vertical',
+                        x: 0.6,
+                        left: {type: 'jamo', kind: 'leading'},
+                        right: {type: 'jamo', kind: 'right-vowel', subkind: 'double-right-vowel'},
+                    },
+                    bottom: {type: 'jamo', kind: 'tailing'},
+                },
+                glyphs: new Map(jamoTable['double-right-vowel'].map(jamo => [jamo, null])),
+            },
+            {
+                name: '중성 (중첩자) 세로모임1',
+                focus: 'bottom-vowel',
+                elems: new Set(['leading-1', 'double-bottom-vowel', 'tailing']),
+                dividers: {
+                    type: 'horizontal',
+                    y: 0.4,
+                    top: {
+                        type: 'horizontal',
+                        y: 0.5,
+                        top: {type: 'jamo', kind: 'leading-1'},
+                        bottom: {type: 'jamo', kind: 'bottom-vowel', subkind: 'double-bottom-vowel'},
+                    },
+                    bottom: {type: 'jamo', kind: 'tailing'},
+                },
+                glyphs: new Map(jamoTable['double-bottom-vowel'].map(jamo => [jamo, null])),
+            },
+            {
+                name: '중성 (중첩자) 세로모임2',
+                focus: 'bottom-vowel',
+                elems: new Set(['leading-2', 'double-bottom-vowel', 'tailing']),
+                dividers: {
+                    type: 'horizontal',
+                    y: 0.4,
+                    top: {
+                        type: 'horizontal',
+                        y: 0.5,
+                        top: {type: 'jamo', kind: 'leading-2'},
+                        bottom: {type: 'jamo', kind: 'bottom-vowel', subkind: 'double-bottom-vowel'},
+                    },
+                    bottom: {type: 'jamo', kind: 'tailing'},
+                },
+                glyphs: new Map(jamoTable['double-bottom-vowel'].map(jamo => [jamo, null])),
+            },
+            {
+                name: '중성 (중첩자) 섞임모임1',
+                focus: 'mixed-vowel',
+                elems: new Set(['leading-1', 'double-mixed-vowel', 'tailing']),
+                dividers: {
+                    type: 'horizontal',
+                    y: 0.4,
+                    top: {
+                        type: 'mixed',
+                        x: 0.6,
+                        y: 0.4,
+                        topLeft: {type: 'jamo', kind: 'leading-1'},
+                        rest: {type: 'jamo', kind: 'mixed-vowel', subkind: 'double-mixed-vowel'},
+                    },
+                    bottom: {type: 'jamo', kind: 'tailing'},
+                },
+                glyphs: new Map(jamoTable['double-mixed-vowel'].map(jamo => [jamo, null])),
+            },
+            {
+                name: '중성 (중첩자) 섞임모임2',
+                focus: 'mixed-vowel',
+                elems: new Set(['leading-2', 'double-mixed-vowel', 'tailing']),
+                dividers: {
+                    type: 'horizontal',
+                    y: 0.4,
+                    top: {
+                        type: 'mixed',
+                        x: 0.6,
+                        y: 0.4,
+                        topLeft: {type: 'jamo', kind: 'leading-2'},
+                        rest: {type: 'jamo', kind: 'mixed-vowel', subkind: 'double-mixed-vowel'},
+                    },
+                    bottom: {type: 'jamo', kind: 'tailing'},
+                },
+                glyphs: new Map(jamoTable['double-mixed-vowel'].map(jamo => [jamo, null])),
+            },
+        ]
+    },
+    // Tail
+    {
+        category_name: "받침 (기본자)",
+        tag: 'with-tailing',
+        layouts: [
+            {
+                name: '받침 (기본자) 1',
                 focus: 'tailing',
                 elems: new Set(['leading', 'right-vowel', 'single-tailing']),
                 dividers: {
                     type: 'horizontal',
                     y: 0.4,
-                    top: {type: 'layout-ref', elems: new Set(['leading', 'right-vowel'])},
+                    top: {
+                        type: 'vertical',
+                        x: 0.6,
+                        left: {type: 'jamo', kind: 'leading'},
+                        right: {type: 'jamo', kind: 'right-vowel'},
+                    },
                     bottom: {type: 'jamo', kind: 'tailing', subkind: 'single-tailing'},
                 },
                 glyphs: new Map(jamoTable['single-tailing'].map(jamo => [jamo, null])),
             },
             {
-                name: 'LVT-2',
+                name: '받침 (기본자) 2',
                 focus: 'tailing',
                 elems: new Set(['leading', 'bm-vowel', 'single-tailing']),
                 dividers: {
                     type: 'horizontal',
                     y: 0.4,
-                    top: {type: 'layout-ref', elems: new Set(['leading', 'bm-vowel'])},
+                    top: {
+                        type: 'horizontal',
+                        y: 0.4,
+                        top: {type: 'jamo', kind: 'leading'},
+                        bottom: {type: 'jamo', kind: 'bm-vowel'},
+                    },
                     bottom: {type: 'jamo', kind: 'tailing', subkind: 'single-tailing'},
                 },
                 glyphs: new Map(jamoTable['single-tailing'].map(jamo => [jamo, null])),

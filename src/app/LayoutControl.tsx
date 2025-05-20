@@ -1,4 +1,4 @@
-import {Divider, JamoElement, JamoSubkind, Layout, ResizedGlyph} from "@/app/jamo_layouts";
+import {Divider, JamoElement, JamoSubkind, Layout, Layouts, ResizedGlyph} from "@/app/jamo_layouts";
 import {Point} from "@/app/parse_glyph";
 import React from "react";
 import {Group, Line, Rect} from "react-konva";
@@ -25,7 +25,8 @@ export function LayoutControl(
         xyScales: { x: number, y: number },
         layout: Layout,
         setLayout: ((layout: Layout) => void) | null,
-        allLayouts: Layout[],
+        layoutTag: string,
+        allLayouts: Layouts,
         curJamos: string[],
         topLevel: boolean,
         drawBackground: boolean,
@@ -36,6 +37,7 @@ export function LayoutControl(
         rescale,
         xyScales,
         allLayouts,
+        layoutTag,
         drawBackground,
         showPoints,
     } = props;
@@ -50,6 +52,7 @@ export function LayoutControl(
 
     function getGlyph(
         jamoElem: JamoElement | Divider,
+        setDivider: (divider: JamoElement | Divider) => void,
         bounds: Bounds,
     ) {
         if (jamoElem.type === 'jamo') {
@@ -66,9 +69,10 @@ export function LayoutControl(
                 allLayouts,
                 jamo,
                 curJamos.filter((otherJamo) => otherJamo !== jamo),
+                layoutTag,
             );
 
-            const isFocus = topLevel && curFocus === jamoElem.kind;
+            const isFocus = curFocus === jamoElem.kind;
             const resizedGlyph = layout.glyphs.get(jamo);
 
             if (!resizedGlyph) {
@@ -100,45 +104,22 @@ export function LayoutControl(
                 />
             );
         }
-        else if (jamoElem.type === 'layout-ref') {
-            const jamos = curJamos.filter(
-                (jamo) => jamoElem.elems.values().some(
-                    (kind) => subkindOf(jamo).values().some(
-                        (subkind) => subkind.endsWith(kind)
-                    )
-                )
-            );
-
-            const layout = selectLayout(
-                allLayouts,
-                jamos[0],
-                jamos.slice(1),
-            );
-
-            console.log(layout);
-
+        else {
             return (
                 <LayoutControl
-                    divider={layout.dividers}
-                    setDivider={(newDivider) => {}}
+                    divider={jamoElem}
+                    setDivider={setDivider}
                     left={bounds.left}
                     right={bounds.right}
                     top={bounds.top}
                     bottom={bounds.bottom}
-                    rescale={rescale}
-                    xyScales={xyScales}
                     layout={layout}
-                    setLayout={null}
-                    allLayouts={allLayouts}
-                    curJamos={jamos}
+                    setLayout={setLayout}
+                    curJamos={curJamos}
                     topLevel={false}
-                    drawBackground={drawBackground}
-                    showPoints={showPoints}
+                    {...props}
                 />
             );
-        }
-        else {
-            throw new Error(`Unknown divider type: ${jamoElem}`);
         }
     }
 
@@ -147,18 +128,25 @@ export function LayoutControl(
 
         const leftGlyph = getGlyph(
             divider.left,
+            (newDivider) => { setDivider({...divider, left: newDivider}) },
             {left: left, right: x, top: top, bottom: bottom}
         );
         const rightGlyph = getGlyph(
             divider.right,
+            (newDivider) => { setDivider({...divider, right: newDivider}) },
             {left: x, right: right, top: top, bottom: bottom}
+        );
+
+        const isFocus = (
+            divider.left.type === 'jamo' && curFocus === divider.left.kind ||
+            divider.right.type === 'jamo' && curFocus === divider.right.kind
         );
 
         return (
             <React.Fragment>
                 {leftGlyph}
                 {rightGlyph}
-                {!drawBackground && topLevel &&
+                {!drawBackground && isFocus &&
                     <Group
                         draggable={true}
                         onDragStart={(e) => {
@@ -215,18 +203,25 @@ export function LayoutControl(
 
         const topGlyph = getGlyph(
             divider.top,
+            (newDivider) => { setDivider({...divider, top: newDivider}) },
             {left: left, right: right, top: top, bottom: y}
         );
         const bottomGlyph = getGlyph(
             divider.bottom,
+            (newDivider) => { setDivider({...divider, bottom: newDivider}) },
             {left: left, right: right, top: y, bottom: bottom}
+        );
+
+        const isFocus = (
+            divider.top.type === 'jamo' && curFocus === divider.top.kind ||
+            divider.bottom.type === 'jamo' && curFocus === divider.bottom.kind
         );
 
         return (
             <React.Fragment>
                 {topGlyph}
                 {bottomGlyph}
-                {!drawBackground && topLevel &&
+                {!drawBackground && isFocus &&
                     <Group
                         draggable={true}
                         onDragStart={(e) => {
@@ -283,18 +278,25 @@ export function LayoutControl(
 
         const topLeftGlyph = getGlyph(
             divider.topLeft,
+            (newDivider) => { setDivider({...divider, topLeft: newDivider}) },
             {left: left, right: x, top: top, bottom: y}
         );
         const restGlyph = getGlyph(
             divider.rest,
+            (newDivider) => { setDivider({...divider, rest: newDivider}) },
             {left: left, right: right, top: top, bottom: bottom}
+        );
+
+        const isFocus = (
+            divider.topLeft.type === 'jamo' && curFocus === divider.topLeft.kind ||
+            divider.rest.type === 'jamo' && curFocus === divider.rest.kind
         );
 
         return (
             <React.Fragment>
                 {topLeftGlyph}
                 {restGlyph}
-                {topLevel &&
+                {isFocus &&
                     <Line points={[
                         ...rescale({x: left, y: y}),
                         ...rescale({x: x, y: y}),
@@ -303,6 +305,6 @@ export function LayoutControl(
             </React.Fragment>
         );
     } else {
-        throw new Error(`Unknown divider type: ${divider}`);
+        throw new Error(`Unknown divider type: ${divider.type}`);
     }
 }

@@ -1,4 +1,4 @@
-import {JamoKind, JamoSubkind, Layout} from "@/app/jamo_layouts";
+import {JamoKind, JamoSubkind, Layout, Layouts} from "@/app/jamo_layouts";
 
 type JamoTable = {
     [key in JamoSubkind]: string[];
@@ -71,11 +71,13 @@ export const jamoTable: JamoTable = {
     'single-bottom-vowel': [
         'ᅩ', 'ᅭ', 'ᅮ', 'ᅲ', 'ᅳ', 'ᆞ', 'ᆢ', 'ᅠ',
     ],
-    'single-bottom-vowel-1': [
+    'bottom-vowel-1': [
         'ᅩ', 'ᅭ', 'ᅳ', 'ᆞ', 'ᆢ', 'ᅠ',
     ],
-    'single-bottom-vowel-2': [
+    'bottom-vowel-2': [
         'ᅮ', 'ᅲ',
+        'ᆂ', 'ᆃ', 'ᆇ', 'ᆍ', 'ᆓ', 'ᆕ', 'ᆕ', 'ᆖ',
+        'ᆠ', 'ힱ', 'ힸ', 'ힼ',
     ],
     'double-bottom-vowel': [
         'ᆂ', 'ᆃ', 'ᆇ', 'ᆍ', 'ᆓ', 'ᆕ', 'ᆕ', 'ᆖ',
@@ -207,14 +209,29 @@ export function getExampleJamo(requestedKind: JamoKind | JamoSubkind): string {
     return Object.keys(exampleJamo).find((kind) => kind.endsWith(requestedKind)) as string;
 }
 
-export function selectLayout(layouts: Layout[], focusJamo: string, jamos: string[]): Layout {
-    layouts = layouts.filter(
-        (layout) => Object.entries(jamoTable).some(
-            ([subkind, list]) => subkind.endsWith(layout.focus) && list.includes(focusJamo)
-        )
-    );
+export function selectLayout(
+    layouts: Layouts,
+    focusJamo: string,
+    jamos: string[],
+    tag?: string
+): Layout {
+    let filteredLayouts = layouts
+        .flatMap(
+            (category) => category.layouts.map(
+                (layout) => {
+                    return {...layout, tag: category.tag};
+                }
+            )
+        ).filter(
+            (layout) => Object.entries(jamoTable).some(
+                ([subkind, list]) => (
+                    subkind.endsWith(layout.focus)
+                    && list.includes(focusJamo)
+                )
+            )
+        );
     for (const jamo of [focusJamo, ...jamos]) {
-        layouts = layouts.filter(
+        filteredLayouts = filteredLayouts.filter(
             (layout) => layout.elems.values().some(
                 (elem) => Object.entries(jamoTable).some(
                     ([subkind, list]) => subkind.endsWith(elem) && list.includes(jamo)
@@ -222,11 +239,16 @@ export function selectLayout(layouts: Layout[], focusJamo: string, jamos: string
             )
         )
     }
-    if (layouts.length === 1) {
-        return layouts[0];
+    if (tag) {
+        filteredLayouts = filteredLayouts.filter((layout) => {
+            return layout.tag === tag;
+        });
+    }
+    if (filteredLayouts.length === 1) {
+        return filteredLayouts[0];
     }
     else {
-        console.error(focusJamo, jamos, layouts);
-        throw new Error(`Ambiguous layout for jamos: ${jamos}. Got ${layouts}.`);
+        console.error(focusJamo, jamos, tag, filteredLayouts);
+        throw new Error(`Ambiguous layout for jamos: '${focusJamo}' + '${jamos}'. Got '${filteredLayouts}'.`);
     }
 }
