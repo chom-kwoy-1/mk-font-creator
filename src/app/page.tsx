@@ -16,11 +16,10 @@ import UploadFileIcon from '@mui/icons-material/UploadFile';
 import DownloadIcon from '@mui/icons-material/Download';
 import prettyBytes from 'pretty-bytes';
 import {XMLParser} from "fast-xml-parser";
-import {JSONPath} from '@astronautlabs/jsonpath';
 import Grid from '@mui/material/Grid2';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 
-import {Charstring, Cmap4, FontDict, OS2, TTXWrapper} from "@/app/TTXObject";
+import {OS2, TTXWrapper} from "@/app/TTXObject";
 import {LayoutView} from "@/app/LayoutView";
 import {Category, Layouts, ResizedGlyph} from "@/app/jamo_layouts";
 import {initLayouts} from "@/app/init_layouts";
