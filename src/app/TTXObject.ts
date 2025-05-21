@@ -9,12 +9,14 @@ export type TTXObject = {
             }[]
         },
         GlyphOrder: {
-            GlyphID: {
-                "@_id": string,
-                "@_name": string,
-            }[]
+            GlyphID: GlyphID[]
         }
     }
+};
+
+export type GlyphID = {
+    "@_id": string,
+    "@_name": string,
 };
 
 export type Charstring = {
@@ -42,11 +44,27 @@ export type Cmap4 = {
     }[];
 };
 
+export type Hmtx = {
+    '@_name': string,
+    '@_width': string,
+    '@_lsb': string,
+};
+
+export type Vmtx = {
+    '@_name': string,
+    '@_height': string,
+    '@_tsb': string,
+};
+
 export class TTXWrapper {
     ttx: TTXObject;
 
     constructor(ttx: TTXObject) {
         this.ttx = ttx;
+    }
+
+    getGlyphOrder(): GlyphID[] {
+        return array(JSONPath.query(this.ttx, '$.ttFont.GlyphOrder.GlyphID')[0]);
     }
 
     getFontName(): string {
@@ -58,7 +76,7 @@ export class TTXWrapper {
     }
 
     getNumberOfGlyphs(): number {
-        return array(JSONPath.query(this.ttx, '$.ttFont.GlyphOrder.GlyphID')[0]).length;
+        return this.getGlyphOrder().length;
     }
 
     getFDArray(): FontDict[] {
@@ -77,6 +95,13 @@ export class TTXWrapper {
         return JSONPath.query(this.ttx, '$.ttFont.cmap.cmap_format_4[?(@.@_platformID == "0")]')[0];
     }
 
+    getHmtx(): Hmtx[] {
+        return array(JSONPath.query(this.ttx, '$.ttFont.hmtx.mtx')[0]);
+    }
+
+    getVmtx(): Vmtx[] {
+        return array(JSONPath.query(this.ttx, '$.ttFont.vmtx.mtx')[0]);
+    }
 }
 
 function array<T>(x: T | Array<T>): Array<T> {
