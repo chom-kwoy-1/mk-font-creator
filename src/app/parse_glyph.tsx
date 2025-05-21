@@ -28,8 +28,8 @@ export function parseGlyph(
 ): Glyph {
     const fdSelectIndex = parseInt(charstring['@_fdSelectIndex']);
     const fontDict = fdarray[fdSelectIndex];
-    const defaultWidth = parseInt(fontDict.Private.defaultWidthX['@_value']);
-    const nominalWidth = parseInt(fontDict.Private.nominalWidthX['@_value']);
+    const defaultWidth = parseInt(fontDict.Private[0].defaultWidthX[0]['@_value']);
+    const nominalWidth = parseInt(fontDict.Private[0].nominalWidthX[0]['@_value']);
 
     const lines = charstring['#text'].split("\n").map((line) => {
         return line.trim().split(' ').map((token) => {

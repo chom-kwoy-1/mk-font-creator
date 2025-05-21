@@ -29,8 +29,8 @@ export function LayoutView(
         showPoints: boolean;
     }>
 ) {
-    const ascender = parseInt(os2.sTypoAscender['@_value']);
-    const descender = parseInt(os2.sTypoDescender['@_value']);
+    const ascender = parseInt(os2.sTypoAscender[0]['@_value']);
+    const descender = parseInt(os2.sTypoDescender[0]['@_value']);
 
     const ref = React.useRef(null);
     const { width, } = UseDimensions(ref);

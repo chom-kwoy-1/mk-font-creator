@@ -44,7 +44,5 @@ export function makeCharstring(resizedGlyph: ResizedGlyph, bounds: Bounds): stri
     }
     result += "endchar";
 
-    console.log("charstring=", result);
-
     return result;
 }

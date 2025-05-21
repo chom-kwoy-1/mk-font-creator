@@ -99,6 +99,9 @@ export default function Home() {
                 const parser = new XMLParser({
                     alwaysCreateTextNode: true,
                     ignoreAttributes: false,
+                    isArray: (name, jpath, isLeafNode, isAttribute) => {
+                        return !isAttribute;
+                    }
                 });
                 const doc = parser.parse(text);
                 const ttx = new TTXWrapper(doc);
