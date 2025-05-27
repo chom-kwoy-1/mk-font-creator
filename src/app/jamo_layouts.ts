@@ -67,8 +67,9 @@ export type Layout = {
 };
 
 export type Category = {
-    category_name: string,
+    categoryName: string,
     tag: string,
+    substOrder: number,  // lower is earlier
     layouts: Layout[];
 };
 
@@ -77,8 +78,9 @@ export type Layouts = Category[];
 export const jamoLayouts: Layouts = [
     // Leading
     {
-        category_name: "초성 (기본자)",
+        categoryName: "초성 (기본자)",
         tag: 'no-trailing',
+        substOrder: 10,
         layouts: [
             {
                 name: '초성 (기본자) 가로모임',
@@ -145,8 +147,9 @@ export const jamoLayouts: Layouts = [
         ]
     },
     {
-        category_name: "초성 (연서자)",
+        categoryName: "초성 (연서자)",
         tag: 'no-trailing',
+        substOrder: 10,
         layouts: [
             {
                 name: '초성 (연서자) 가로모임',
@@ -188,8 +191,9 @@ export const jamoLayouts: Layouts = [
         ]
     },
     {
-        category_name: "초성 (2중 병서)",
+        categoryName: "초성 (2중 병서)",
         tag: 'no-trailing',
+        substOrder: 10,
         layouts: [
             {
                 name: '초성 (2중) 가로모임',
@@ -231,8 +235,9 @@ export const jamoLayouts: Layouts = [
         ]
     },
     {
-        category_name: "초성 (3중 병서)",
+        categoryName: "초성 (3중 병서)",
         tag: 'no-trailing',
+        substOrder: 10,
         layouts: [
             {
                 name: '초성 (3중) 가로모임',
@@ -275,8 +280,9 @@ export const jamoLayouts: Layouts = [
     },
     // Vowels
     {
-        category_name: "중성 (기본자)",
+        categoryName: "중성 (기본자)",
         tag: 'no-trailing',
+        substOrder: 10,
         layouts: [
             {
                 name: '중성 (기본자) 가로모임',
@@ -343,8 +349,9 @@ export const jamoLayouts: Layouts = [
         ]
     },
     {
-        category_name: "중성 (중첩자)",
+        categoryName: "중성 (중첩자)",
         tag: 'no-trailing',
+        substOrder: 10,
         layouts: [
             {
                 name: '중성 (중첩자) 가로모임',
@@ -412,8 +419,9 @@ export const jamoLayouts: Layouts = [
     },
     // Leading (with trailing)
     {
-        category_name: "받침있는 초성 (기본자)",
+        categoryName: "받침있는 초성 (기본자)",
         tag: 'with-trailing',
+        substOrder: 5,
         layouts: [
             {
                 name: '초성 (기본자) 가로모임',
@@ -470,8 +478,9 @@ export const jamoLayouts: Layouts = [
         ],
     },
     {
-        category_name: "받침있는 초성 (연서자)",
+        categoryName: "받침있는 초성 (연서자)",
         tag: 'with-trailing',
+        substOrder: 5,
         layouts: [
             {
                 name: '초성 (연서자) 가로모임',
@@ -528,8 +537,9 @@ export const jamoLayouts: Layouts = [
         ]
     },
     {
-        category_name: "받침있는 초성 (2중 병서)",
+        categoryName: "받침있는 초성 (2중 병서)",
         tag: 'with-trailing',
+        substOrder: 5,
         layouts: [
             {
                 name: '초성 (2중) 가로모임',
@@ -586,8 +596,9 @@ export const jamoLayouts: Layouts = [
         ]
     },
     {
-        category_name: "받침있는 초성 (3중 병서)",
+        categoryName: "받침있는 초성 (3중 병서)",
         tag: 'with-trailing',
+        substOrder: 5,
         layouts: [
             {
                 name: '초성 (3중) 가로모임',
@@ -645,8 +656,9 @@ export const jamoLayouts: Layouts = [
     },
     // Vowels (with trailing)
     {
-        category_name: "받침있는 중성 (기본자)",
+        categoryName: "받침있는 중성 (기본자)",
         tag: 'with-trailing',
+        substOrder: 5,
         layouts: [
             {
                 name: '중성 (기본자) 가로모임',
@@ -738,8 +750,9 @@ export const jamoLayouts: Layouts = [
         ]
     },
     {
-        category_name: "받침있는 중성 (중첩자)",
+        categoryName: "받침있는 중성 (중첩자)",
         tag: 'with-trailing',
+        substOrder: 5,
         layouts: [
             {
                 name: '중성 (중첩자) 가로모임',
@@ -832,8 +845,9 @@ export const jamoLayouts: Layouts = [
     },
     // Tail
     {
-        category_name: "받침 (기본자)",
+        categoryName: "받침 (기본자)",
         tag: 'with-trailing',
+        substOrder: 10,
         layouts: [
             {
                 name: '받침 (기본자) 가로모임',

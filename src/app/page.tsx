@@ -316,7 +316,7 @@ function LayoutCategory(
         >
             <AccordionSummary expandIcon={<ArrowDropDownIcon />}>
                 <Typography variant="h6">
-                    {category.category_name}
+                    {category.categoryName}
                 </Typography>
             </AccordionSummary>
             <AccordionDetails>

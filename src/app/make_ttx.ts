@@ -98,7 +98,8 @@ export function generateTtx(ttx: TTXWrapper, curLayouts: Layouts) {
 
     const substitutions: Map<string, Array<string>> = new Map();
 
-    for (const category of curLayouts) {
+    const sortedLayouts = curLayouts.toSorted((a, b) => a.substOrder - b.substOrder);
+    for (const category of sortedLayouts) {
         for (const layout of category.layouts) {
             const focusIdx = layout.elems.findIndex(
                 (kind) => kind.endsWith(layout.focus)
