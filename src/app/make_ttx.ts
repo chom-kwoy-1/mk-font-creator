@@ -2,48 +2,259 @@ import {TTXWrapper} from "@/app/TTXObject";
 import {Divider, JamoElement, Layout, Layouts, ResizedGlyph} from "@/app/jamo_layouts";
 import {makeCharstring} from "@/app/make_glyph";
 import {Bounds} from "@/app/font_utils";
+import {getJamos} from "@/app/jamos";
 
 export function generateTtx(ttx: TTXWrapper, curLayouts: Layouts) {
     const result = new TTXWrapper(structuredClone(ttx.ttx));
 
     const glyphOrder = result.getGlyphOrder();
     const charstrings = result.getCharstrings();
-    const cmap = result.getCmap4();
     const gsub = result.getGsub();
     const hmtx = result.getHmtx();
     const vmtx = result.getVmtx();
 
     let lastGlyphId = parseInt(glyphOrder[glyphOrder.length - 1]["@_name"].slice(3));
 
+    // Add ljmo feature to the feature list
+    const ljmoFeature = {
+        "@_index": gsub.FeatureList[0].FeatureRecord.length.toFixed(0),
+        FeatureTag: [{ "@_value": "ljmo" }],
+        Feature: [{
+            LookupListIndex: [] as {
+                '@_index': string,
+                '@_value': string,
+            }[],
+        }],
+    };
+    gsub.FeatureList[0].FeatureRecord.push(ljmoFeature);
+
+    // Add vjmo feature to the feature list
+    const vjmoFeature = {
+        "@_index": gsub.FeatureList[0].FeatureRecord.length.toFixed(0),
+        FeatureTag: [{ "@_value": "vjmo" }],
+        Feature: [{
+            LookupListIndex: [] as {
+                '@_index': string,
+                '@_value': string,
+            }[],
+        }],
+    };
+    gsub.FeatureList[0].FeatureRecord.push(vjmoFeature);
+
+    // Add tjmo feature to the feature list
+    const tjmoFeature = {
+        "@_index": gsub.FeatureList[0].FeatureRecord.length.toFixed(0),
+        FeatureTag: [{ "@_value": "tjmo" }],
+        Feature: [{
+            LookupListIndex: [] as {
+                '@_index': string,
+                '@_value': string,
+            }[],
+        }],
+    };
+    gsub.FeatureList[0].FeatureRecord.push(tjmoFeature);
+
+    // Add ligature feature to the feature list
+    const ligaFeature = {
+        "@_index": gsub.FeatureList[0].FeatureRecord.length.toFixed(0),
+        FeatureTag: [{ "@_value": "liga" }],
+        Feature: [{
+            LookupListIndex: [] as {
+                '@_index': string,
+                '@_value': string,
+            }[],
+        }],
+    }
+
+    // Enable features for default language system
+    const defaultFeatures = gsub
+        .ScriptList[0]
+        .ScriptRecord[0]
+        .Script[0]
+        .DefaultLangSys[0]
+        .FeatureIndex;
+    defaultFeatures.push({
+        "@_index": defaultFeatures.length.toFixed(0),
+        "@_value": ljmoFeature["@_index"],
+    });
+    defaultFeatures.push({
+        "@_index": defaultFeatures.length.toFixed(0),
+        "@_value": vjmoFeature["@_index"],
+    });
+    defaultFeatures.push({
+        "@_index": defaultFeatures.length.toFixed(0),
+        "@_value": tjmoFeature["@_index"],
+    });
+    defaultFeatures.push({
+        "@_index": defaultFeatures.length.toFixed(0),
+        "@_value": ligaFeature["@_index"],
+    });
+
+    const fdarray = ttx.getFDArray();
+    const fdSelectIndex = 0;
+    const fontDict = fdarray[fdSelectIndex];
+    const defaultWidth = parseInt(fontDict.Private[0].defaultWidthX[0]['@_value']);
+    const nominalWidth = parseInt(fontDict.Private[0].nominalWidthX[0]['@_value']);
+
+    const substitutions: Map<string, Array<string>> = new Map();
+
     for (const category of curLayouts) {
         for (const layout of category.layouts) {
+            const focusIdx = layout.elems.findIndex(
+                (kind) => kind.endsWith(layout.focus)
+            );
+            const prevGlyphs = layout.elems.slice(0, focusIdx)
+                .map((kind) => getJamos(kind))
+                .reverse();
+            const nextGlyphs = layout.elems.slice(focusIdx + 1)
+                .map((kind) => getJamos(kind));
+
+            const inputCoverage = [];
+            for (const ch of layout.glyphs.keys()) {
+                const glyphName = ttx.findGlyphName(ch.codePointAt(0) as number);
+                if (glyphName !== undefined) {
+                    inputCoverage.push({"@_value": glyphName});
+                }
+            }
+
+            const backtrackCoverage: {
+                '@_index': string,
+                Glyph: { '@_value': string }[],
+            }[] = [];
+            prevGlyphs.forEach((glyphs, idx) => {
+                const glyphNames: { '@_value': string }[] = [];
+                for (const g of glyphs) {
+                    const glyphName = ttx.findGlyphName(g.codePointAt(0) as number);
+                    if (glyphName !== undefined) {
+                        glyphNames.push({"@_value": glyphName});
+                        for (const sub of substitutions.get(glyphName) ?? []) {
+                            glyphNames.push({"@_value": sub});
+                        }
+                    }
+                }
+                backtrackCoverage.push({
+                    "@_index": idx.toFixed(0),
+                    Glyph: glyphNames,
+                });
+            });
+
+            const lookAheadCoverage: {
+                '@_index': string,
+                Glyph: { '@_value': string }[],
+            }[] = [];
+            nextGlyphs.forEach((glyphs, idx) => {
+                const glyphNames: { '@_value': string }[] = [];
+                for (const g of glyphs) {
+                    const glyphName = ttx.findGlyphName(g.codePointAt(0) as number);
+                    if (glyphName !== undefined) {
+                        glyphNames.push({"@_value": glyphName});
+                    }
+                }
+                lookAheadCoverage.push({
+                    "@_index": idx.toFixed(0),
+                    Glyph: glyphNames,
+                });
+            });
+
+            // Add lookups
+            const singleSubstLookup = {
+                "@_index": gsub.LookupList[0].Lookup.length.toFixed(0),
+                LookupType: [{ "@_value": "1" }],
+                LookupFlag: [{ "@_value": "0" }],
+                SingleSubst: [{
+                    Substitution: [] as {
+                        '@_in': string,
+                        '@_out': string,
+                    }[],
+                }],
+            };
+            gsub.LookupList[0].Lookup.push(singleSubstLookup);
+
+            const chainSubstLookup = {
+                "@_index": gsub.LookupList[0].Lookup.length.toFixed(0),
+                LookupType: [{ "@_value": "6" }],
+                LookupFlag: [{ "@_value": "0" }],
+                ChainContextSubst: [{
+                    "@_index": "0",
+                    "@_Format": "3",  // use coverage tables
+                    InputCoverage: [{
+                        "@_index": "0",
+                        Glyph: inputCoverage,
+                    }],
+                    BacktrackCoverage: backtrackCoverage,
+                    LookAheadCoverage: lookAheadCoverage,
+                    SubstLookupRecord: [{
+                        "@_index": "0",
+                        SequenceIndex: [{ "@_value": "0" }],
+                        LookupListIndex: [{
+                            "@_value": singleSubstLookup["@_index"],
+                        }],
+                    }],
+                }],
+            };
+            gsub.LookupList[0].Lookup.push(chainSubstLookup);
+
+            if (layout.focus.endsWith('leading')) {
+                ljmoFeature.Feature[0].LookupListIndex.push({
+                    "@_index": ljmoFeature.Feature[0].LookupListIndex.length.toFixed(0),
+                    "@_value": chainSubstLookup["@_index"],
+                });
+            }
+            else if (layout.focus.endsWith('vowel')) {
+                vjmoFeature.Feature[0].LookupListIndex.push({
+                    "@_index": vjmoFeature.Feature[0].LookupListIndex.length.toFixed(0),
+                    "@_value": chainSubstLookup["@_index"],
+                });
+            }
+            else if (layout.focus.endsWith('trailing')) {
+                tjmoFeature.Feature[0].LookupListIndex.push({
+                    "@_index": tjmoFeature.Feature[0].LookupListIndex.length.toFixed(0),
+                    "@_value": chainSubstLookup["@_index"],
+                });
+            }
+
             const bounds = getFocusGlyphBounds(layout, result);
             for (const [ch, glyph] of layout.glyphs.entries()) {
                 if (glyph == null) {
                     continue;
                 }
-                const curGlyphId = "cid" + (++lastGlyphId).toFixed(0).padStart(5, '0');
-                const charstring = makeCharstring(glyph, bounds);
+                const newGlyphId = "cid" + (++lastGlyphId).toFixed(0).padStart(5, '0');
+                const width = lookAheadCoverage.length === 0? 1000 : 0;
+                const charstring = makeCharstring(glyph, bounds, nominalWidth, width);
+
+                const origGlyphId = ttx.findGlyphName(ch.codePointAt(0) as number);
+                if (!origGlyphId) {
+                    throw new Error(`Glyph for codepoint ${ch} not found`);
+                }
+                singleSubstLookup.SingleSubst[0].Substitution.push({
+                    '@_in': origGlyphId,
+                    '@_out': newGlyphId,
+                });
+                substitutions.set(
+                    origGlyphId,
+                    substitutions.get(origGlyphId) ?? [],
+                );
+                substitutions.get(origGlyphId)?.push(newGlyphId);
 
                 glyphOrder.push({
                     "@_id": "0",  // this is ignored by the parser
-                    "@_name": curGlyphId,
+                    "@_name": newGlyphId,
                 });
 
                 charstrings.push({
-                    '@_name': curGlyphId,
-                    '@_fdSelectIndex': "0",
+                    '@_name': newGlyphId,
+                    '@_fdSelectIndex': fdSelectIndex.toFixed(0),
                     '#text': charstring,
                 });
 
                 hmtx.push({
-                    '@_name': curGlyphId,
+                    '@_name': newGlyphId,
                     '@_width': "1000",
                     '@_lsb': "0",
                 });
 
                 vmtx.push({
-                    '@_name': curGlyphId,
+                    '@_name': newGlyphId,
                     '@_height': "1000",
                     '@_tsb': "0",
                 });

@@ -1,20 +1,16 @@
-import {Charstring, Cmap4} from "@/app/TTXObject";
+import {Charstring, TTXWrapper} from "@/app/TTXObject";
 import {Glyph, Path, Point, Segment} from "@/app/parse_glyph";
 import {Bezier} from "bezier-js";
 
 export function findCharstringByCodepoint(
     codePoint: number,
-    cmap4: Cmap4,
-    charstrings: Charstring[]
-): Charstring {
-    let cid: string | null = null;
-    cmap4.map.forEach((c) => {
-        if (parseInt(c['@_code'], 16) === codePoint) {
-            cid = c['@_name'];
-        }
-    });
-    const csIndex = charstrings.findIndex((cs) => cs['@_name'] === cid);
-    return charstrings[csIndex];
+    ttx: TTXWrapper,
+): Charstring | undefined {
+    const cid = ttx.findGlyphName(codePoint);
+    if (cid === undefined) {
+        return undefined;
+    }
+    return ttx.findCharstring(cid);
 }
 
 export type Bounds = {

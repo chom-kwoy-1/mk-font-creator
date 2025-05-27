@@ -8,9 +8,7 @@ import {uniToPua} from "@/app/pua_uni_conv";
 
 export function initLayouts(ttx: TTXWrapper): Layouts {
     const fdarray = ttx.getFDArray();
-    const charstrings = ttx.getCharstrings();
     const os2 = ttx.getOS2();
-    const cmap4 = ttx.getCmap4();
 
     let layouts = structuredClone(jamoLayouts);
 
@@ -31,9 +29,11 @@ export function initLayouts(ttx: TTXWrapper): Layouts {
                         }
                         const cs = findCharstringByCodepoint(
                             uniToPua(syllable).codePointAt(0) as number,
-                            cmap4,
-                            charstrings,
+                            ttx,
                         );
+                        if (!cs) {
+                            continue;
+                        }
                         const resizedGlyph = getIntersectingGlyph(
                             layout.dividers,
                             layout.focus,
@@ -61,9 +61,12 @@ export function initLayouts(ttx: TTXWrapper): Layouts {
                             // Set default glyph with Unicode codepoint, if exists
                             const cs = findCharstringByCodepoint(
                                 jamo.codePointAt(0) as number,
-                                cmap4,
-                                charstrings,
+                                ttx,
                             );
+                            if (!cs) {
+                                console.error("Glyph for", jamo, "missing from the font");
+                                continue;
+                            }
                             const glyph = parseGlyph(cs, fdarray);
                             const newResizedGlyph: ResizedGlyph = {
                                 glyph: glyph,

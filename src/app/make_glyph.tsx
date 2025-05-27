@@ -2,7 +2,12 @@ import {ResizedGlyph} from "@/app/jamo_layouts";
 import {Bounds, glyphActualBounds} from "@/app/font_utils";
 import {Point} from "@/app/parse_glyph";
 
-export function makeCharstring(resizedGlyph: ResizedGlyph, bounds: Bounds): string {
+export function makeCharstring(
+    resizedGlyph: ResizedGlyph,
+    bounds: Bounds,
+    nominalWidth: number,
+    targetWidth: number
+): string {
     const actualBounds = glyphActualBounds(resizedGlyph.glyph);
     const resizedBounds = resizedGlyph.bounds;
     const targetBounds = {
@@ -22,7 +27,7 @@ export function makeCharstring(resizedGlyph: ResizedGlyph, bounds: Bounds): stri
         ];
     }
 
-    let result = "";
+    let result = (targetWidth - nominalWidth).toFixed(0) + " ";
     let [xOff, yOff] = [0, 0];
     for (const path of resizedGlyph.glyph.paths) {
         let [x, y] = glyphRescale(path.start);

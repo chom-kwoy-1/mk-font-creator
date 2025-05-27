@@ -100,14 +100,20 @@ export type Gsub = {
 
 export type SingleSubst = {
     'Substitution': {
-        'in': string,
-        'out': string,
+        '@_in': string,
+        '@_out': string,
     }[],
 };
 
 export type ChainContextSubst = {
     '@_index': string,
     '@_Format': string,
+    'BacktrackCoverage': {
+        '@_index': string,
+        'Glyph': {
+            '@_value': string,
+        }[];
+    }[],
     'InputCoverage': {
         '@_index': string,
         'Glyph': {
@@ -133,9 +139,31 @@ export type ChainContextSubst = {
 
 export class TTXWrapper {
     ttx: TTXObject;
+    uniToGlyphName: Map<number, string>;
+    glyphNameToCs: Map<string, Charstring>;
 
     constructor(ttx: TTXObject) {
         this.ttx = ttx;
+
+        const cmap = this.getCmap4();
+        const uniToGlyphName = new Map<number, string>();
+        cmap.map.forEach((c) => {
+            uniToGlyphName.set(
+                parseInt(c['@_code'], 16),
+                c['@_name'],
+            );
+        });
+        this.uniToGlyphName = uniToGlyphName;
+
+        const charstrings = this.getCharstrings();
+        const glyphNameToCs = new Map<string, Charstring>();
+        charstrings.forEach((cs) => {
+            glyphNameToCs.set(
+                cs["@_name"],
+                cs,
+            );
+        });
+        this.glyphNameToCs = glyphNameToCs;
     }
 
     getGlyphOrder(): GlyphID[] {
@@ -170,6 +198,14 @@ export class TTXWrapper {
         return JSONPath.query(this.ttx, '$.ttFont[0].cmap[0].cmap_format_4[?(@.@_platformID == "0")]')[0];
     }
 
+    findGlyphName(codePoint: number): string | undefined {
+        return this.uniToGlyphName.get(codePoint);
+    }
+
+    findCharstring(glyphName: string): Charstring | undefined {
+        return this.glyphNameToCs.get(glyphName);
+    }
+
     getHmtx(): Hmtx[] {
         return array(JSONPath.query(this.ttx, '$.ttFont[0].hmtx[0].mtx')[0]);
     }
@@ -202,8 +238,12 @@ export class TTXWrapper {
                         }],
                     }]
                 }],
-                'FeatureList': [],
-                'LookupList': [],
+                'FeatureList': [{
+                    'FeatureRecord': [],
+                }],
+                'LookupList': [{
+                    'Lookup': [],
+                }],
             };
             this.ttx.ttFont[0].GSUB = [gsub];
         }

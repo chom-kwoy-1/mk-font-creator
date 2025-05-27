@@ -19,7 +19,7 @@ import {XMLParser} from "fast-xml-parser";
 import Grid from '@mui/material/Grid2';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 
-import {OS2, TTXWrapper} from "@/app/TTXObject";
+import {Charstring, OS2, TTXWrapper} from "@/app/TTXObject";
 import {LayoutView} from "@/app/LayoutView";
 import {Category, Layouts, ResizedGlyph} from "@/app/jamo_layouts";
 import {initLayouts} from "@/app/init_layouts";
@@ -173,9 +173,7 @@ function CompositionLayouts(
     }>
 ) {
     const fdarray = ttx.getFDArray();
-    const charstrings = ttx.getCharstrings();
     const os2 = ttx.getOS2();
-    const cmap4 = ttx.getCmap4();
 
     const [left, setLeft] = React.useState<number>(0);
     const [bottom, setBottom] = React.useState<number>(-200);
@@ -203,9 +201,8 @@ function CompositionLayouts(
 
         const cs = findCharstringByCodepoint(
             'ㄱ'.codePointAt(0) as number,
-            cmap4,
-            charstrings,
-        );
+            ttx,
+        ) as Charstring;
         const glyph: ResizedGlyph = {
             glyph: parseGlyph(cs, fdarray),
             bounds: {left: 0.2, right: 0.8, top: 0.8, bottom: 0.2},

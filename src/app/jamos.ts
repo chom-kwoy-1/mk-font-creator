@@ -106,15 +106,15 @@ export const jamoTable: JamoTable = {
         'ᅯ', 'ᅰ', 'ᅱ', 'ᅷ', 'ᅻ', 'ᅾ', 'ᆉ', 'ᆎ',
         'ᆏ', 'ᆑ', 'ᆔ', 'ᆛ', 'ᆤ', 'ힵ', 'ퟃ',
     ],
-    'single-tailing': [
+    'single-trailing': [
         'ᆨ', 'ᆫ', 'ᆮ', 'ᆯ', 'ᆷ', 'ᆸ', 'ᆺ', 'ᆼ',
         'ᆽ', 'ᆾ', 'ᆿ', 'ᇀ', 'ᇁ', 'ᇂ', 'ᇫ', 'ᇰ',
         'ᇹ',
     ],
-    'stacked-tailing': [
+    'stacked-trailing': [
         'ᇢ', 'ᇦ', 'ᇴ', 'ퟝ', 
     ],
-    'double-tailing': [
+    'double-trailing': [
         'ᆩ', 'ᆪ', 'ᆬ', 'ᆭ', 'ᆰ', 'ᆱ', 'ᆲ', 'ᆳ',
         'ᆴ', 'ᆵ', 'ᆶ', 'ᆹ', 'ᆻ', 'ᇃ', 'ᇅ', 'ᇆ',
         'ᇇ', 'ᇈ', 'ᇉ', 'ᇊ', 'ᇋ', 'ᇍ', 'ᇎ', 'ᇐ',
@@ -128,7 +128,7 @@ export const jamoTable: JamoTable = {
         'ퟱ', 'ퟲ', 'ퟳ', 'ퟴ', 'ퟵ', 'ퟶ', 'ퟷ', 'ퟹ',
         'ퟺ', 'ퟻ',
     ],
-    'triple-tailing': [
+    'triple-trailing': [
         'ᇄ', 'ᇌ', 'ᇏ', 'ᇑ', 'ᇒ', 'ᇓ', 'ᇔ', 'ᇖ',
         'ᇞ', 'ᇭ', 'ퟎ', 'ퟑ', 'ퟕ', 'ퟖ', 'ퟗ', 'ퟘ',
         'ퟙ', 'ퟚ', 'ퟜ', 'ퟟ', 'ퟡ', 'ퟤ', 'ퟧ', 'ퟬ',
@@ -146,7 +146,7 @@ export const exampleJamo: ExampleJamo = {
     'single-leading-2': 'ᄆ',
     'stacked-leading': 'ᄫ',
     'double-leading': 'ᄈ',
-    'triple-leading': 'ᄢ',
+    'triple-leading': 'ᄣ',
     'single-right-vowel': 'ᅡ',
     'double-right-vowel': 'ᅢ',
     'single-bottom-vowel': 'ᅮ',
@@ -157,10 +157,10 @@ export const exampleJamo: ExampleJamo = {
     'double-mixed-vowel': 'ᅫ',
     'mixed-vowel-1': 'ᅫ',
     'mixed-vowel-2': 'ᅯ',
-    'single-tailing': 'ᆷ',
-    'stacked-tailing': 'ᇢ',
-    'double-tailing': 'ᆱ',
-    'triple-tailing': 'ᇌ',
+    'single-trailing': 'ᆷ',
+    'stacked-trailing': 'ᇢ',
+    'double-trailing': 'ᆱ',
+    'triple-trailing': 'ᇌ',
 };
 
 function invertMap(map: JamoTable): Map<string, Set<JamoSubkind>> {
