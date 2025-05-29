@@ -94,6 +94,7 @@ export type Gsub = {
             }[],
             'SingleSubst'?: SingleSubst[],
             'ChainContextSubst'?: ChainContextSubst[],
+            'LigatureSubst'?: LigatureSubst[],
         }[],
     }[],
 };
@@ -133,6 +134,17 @@ export type ChainContextSubst = {
         }[],
         'LookupListIndex': {
             '@_value': string,
+        }[],
+    }[],
+};
+
+export type LigatureSubst = {
+    '@_index': string,
+    'LigatureSet': {
+        '@_glyph': string,
+        'Ligature': {
+            '@_components': string,
+            '@_glyph': string,
         }[],
     }[],
 };
@@ -198,7 +210,10 @@ export class TTXWrapper {
         return JSONPath.query(this.ttx, '$.ttFont[0].cmap[0].cmap_format_4[?(@.@_platformID == "0")]')[0];
     }
 
-    findGlyphName(codePoint: number): string | undefined {
+    findGlyphName(codePoint: number | string): string | undefined {
+        if (typeof codePoint === 'string') {
+            codePoint = codePoint.codePointAt(0)!;
+        }
         return this.uniToGlyphName.get(codePoint);
     }
 
