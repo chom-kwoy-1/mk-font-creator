@@ -1,6 +1,6 @@
 import {Glyph} from "@/app/parse_glyph";
-import {jamoTable} from "@/app/jamos";
 import {Bounds} from "@/app/font_utils";
+import {getJamos} from "@/app/jamos";
 
 export type JamoKind = (
     'leading' | 'leading-1' | 'leading-2'
@@ -63,7 +63,7 @@ export type Layout = {
     focus: JamoKind,
     elems: Array<JamoKind | JamoSubkind>;
     dividers: Divider,
-    glyphs: Map<string, ResizedGlyph | null>,
+    glyphs: Map<string, ResizedGlyph>,
 };
 
 export type Category = {
@@ -75,7 +75,23 @@ export type Category = {
 
 export type Layouts = Category[];
 
-export const jamoLayouts: Layouts = [
+export type InitialLayout = {
+    name: string,
+    focus: JamoKind,
+    elems: Array<JamoKind | JamoSubkind>;
+    dividers: Divider,
+};
+
+export type InitialCategory = {
+    categoryName: string,
+    tag: string,
+    substOrder: number,  // lower is earlier
+    layouts: InitialLayout[];
+};
+
+export type InitialLayouts = InitialCategory[];
+
+export const jamoLayouts: InitialLayouts = [
     // Leading
     {
         categoryName: "초성 (기본자)",
@@ -92,7 +108,6 @@ export const jamoLayouts: Layouts = [
                     left: {type: 'jamo', kind: 'leading', subkind: 'single-leading'},
                     right: {type: 'jamo', kind: 'right-vowel'},
                 },
-                glyphs: new Map(jamoTable['single-leading'].map(jamo => [jamo, null])),
             },
             {
                 name: '초성 (기본자) 세로모임1',
@@ -104,7 +119,6 @@ export const jamoLayouts: Layouts = [
                     top: {type: 'jamo', kind: 'leading', subkind: 'single-leading'},
                     bottom: {type: 'jamo', kind: 'bottom-vowel-1'},
                 },
-                glyphs: new Map(jamoTable['single-leading'].map(jamo => [jamo, null])),
             },
             {
                 name: '초성 (기본자) 세로모임2',
@@ -116,7 +130,6 @@ export const jamoLayouts: Layouts = [
                     top: {type: 'jamo', kind: 'leading', subkind: 'single-leading'},
                     bottom: {type: 'jamo', kind: 'bottom-vowel-2'},
                 },
-                glyphs: new Map(jamoTable['single-leading'].map(jamo => [jamo, null])),
             },
             {
                 name: '초성 (기본자) 섞임모임1',
@@ -129,7 +142,6 @@ export const jamoLayouts: Layouts = [
                     topLeft: {type: 'jamo', kind: 'leading', subkind: 'single-leading'},
                     rest: {type: 'jamo', kind: 'mixed-vowel-1'},
                 },
-                glyphs: new Map(jamoTable['single-leading'].map(jamo => [jamo, null])),
             },
             {
                 name: '초성 (기본자) 섞임모임2',
@@ -142,7 +154,6 @@ export const jamoLayouts: Layouts = [
                     topLeft: {type: 'jamo', kind: 'leading', subkind: 'single-leading'},
                     rest: {type: 'jamo', kind: 'mixed-vowel-2'},
                 },
-                glyphs: new Map(jamoTable['single-leading'].map(jamo => [jamo, null])),
             },
         ]
     },
@@ -161,7 +172,6 @@ export const jamoLayouts: Layouts = [
                     left: {type: 'jamo', kind: 'leading', subkind: 'stacked-leading'},
                     right: {type: 'jamo', kind: 'right-vowel'},
                 },
-                glyphs: new Map(jamoTable['stacked-leading'].map(jamo => [jamo, null])),
             },
             {
                 name: '초성 (연서자) 세로모임',
@@ -173,7 +183,6 @@ export const jamoLayouts: Layouts = [
                     top: {type: 'jamo', kind: 'leading', subkind: 'stacked-leading'},
                     bottom: {type: 'jamo', kind: 'bottom-vowel'},
                 },
-                glyphs: new Map(jamoTable['stacked-leading'].map(jamo => [jamo, null])),
             },
             {
                 name: '초성 (연서자) 섞임모임',
@@ -186,7 +195,6 @@ export const jamoLayouts: Layouts = [
                     topLeft: {type: 'jamo', kind: 'leading', subkind: 'stacked-leading'},
                     rest: {type: 'jamo', kind: 'mixed-vowel'},
                 },
-                glyphs: new Map(jamoTable['stacked-leading'].map(jamo => [jamo, null])),
             },
         ]
     },
@@ -205,7 +213,6 @@ export const jamoLayouts: Layouts = [
                     left: {type: 'jamo', kind: 'leading', subkind: 'double-leading'},
                     right: {type: 'jamo', kind: 'right-vowel'},
                 },
-                glyphs: new Map(jamoTable['double-leading'].map(jamo => [jamo, null])),
             },
             {
                 name: '초성 (2중) 세로모임',
@@ -217,7 +224,6 @@ export const jamoLayouts: Layouts = [
                     top: {type: 'jamo', kind: 'leading', subkind: 'double-leading'},
                     bottom: {type: 'jamo', kind: 'bottom-vowel'},
                 },
-                glyphs: new Map(jamoTable['double-leading'].map(jamo => [jamo, null])),
             },
             {
                 name: '초성 (2중) 섞임모임',
@@ -230,7 +236,6 @@ export const jamoLayouts: Layouts = [
                     topLeft: {type: 'jamo', kind: 'leading', subkind: 'double-leading'},
                     rest: {type: 'jamo', kind: 'mixed-vowel'},
                 },
-                glyphs: new Map(jamoTable['double-leading'].map(jamo => [jamo, null])),
             },
         ]
     },
@@ -249,7 +254,6 @@ export const jamoLayouts: Layouts = [
                     left: {type: 'jamo', kind: 'leading', subkind: 'triple-leading'},
                     right: {type: 'jamo', kind: 'right-vowel'},
                 },
-                glyphs: new Map(jamoTable['triple-leading'].map(jamo => [jamo, null])),
             },
             {
                 name: '초성 (3중) 세로모임',
@@ -261,7 +265,6 @@ export const jamoLayouts: Layouts = [
                     top: {type: 'jamo', kind: 'leading', subkind: 'triple-leading'},
                     bottom: {type: 'jamo', kind: 'bottom-vowel'},
                 },
-                glyphs: new Map(jamoTable['triple-leading'].map(jamo => [jamo, null])),
             },
             {
                 name: '초성 (3중) 섞임모임',
@@ -274,7 +277,6 @@ export const jamoLayouts: Layouts = [
                     topLeft: {type: 'jamo', kind: 'leading', subkind: 'triple-leading'},
                     rest: {type: 'jamo', kind: 'mixed-vowel'},
                 },
-                glyphs: new Map(jamoTable['triple-leading'].map(jamo => [jamo, null])),
             },
         ]
     },
@@ -294,7 +296,6 @@ export const jamoLayouts: Layouts = [
                     left: {type: 'jamo', kind: 'leading'},
                     right: {type: 'jamo', kind: 'right-vowel', subkind: 'single-right-vowel'},
                 },
-                glyphs: new Map(jamoTable['single-right-vowel'].map(jamo => [jamo, null])),
             },
             {
                 name: '중성 (기본자) 세로모임1',
@@ -306,7 +307,6 @@ export const jamoLayouts: Layouts = [
                     top: {type: 'jamo', kind: 'leading-1'},
                     bottom: {type: 'jamo', kind: 'bottom-vowel', subkind: 'single-bottom-vowel'},
                 },
-                glyphs: new Map(jamoTable['single-bottom-vowel'].map(jamo => [jamo, null])),
             },
             {
                 name: '중성 (기본자) 세로모임2',
@@ -318,7 +318,6 @@ export const jamoLayouts: Layouts = [
                     top: {type: 'jamo', kind: 'leading-2'},
                     bottom: {type: 'jamo', kind: 'bottom-vowel', subkind: 'single-bottom-vowel'},
                 },
-                glyphs: new Map(jamoTable['single-bottom-vowel'].map(jamo => [jamo, null])),
             },
             {
                 name: '중성 (기본자) 섞임모임1',
@@ -331,7 +330,6 @@ export const jamoLayouts: Layouts = [
                     topLeft: {type: 'jamo', kind: 'leading-1'},
                     rest: {type: 'jamo', kind: 'mixed-vowel', subkind: 'single-mixed-vowel'},
                 },
-                glyphs: new Map(jamoTable['single-mixed-vowel'].map(jamo => [jamo, null])),
             },
             {
                 name: '중성 (기본자) 섞임모임2',
@@ -344,7 +342,6 @@ export const jamoLayouts: Layouts = [
                     topLeft: {type: 'jamo', kind: 'leading-2'},
                     rest: {type: 'jamo', kind: 'mixed-vowel', subkind: 'single-mixed-vowel'},
                 },
-                glyphs: new Map(jamoTable['single-mixed-vowel'].map(jamo => [jamo, null])),
             },
         ]
     },
@@ -363,7 +360,6 @@ export const jamoLayouts: Layouts = [
                     left: {type: 'jamo', kind: 'leading'},
                     right: {type: 'jamo', kind: 'right-vowel', subkind: 'double-right-vowel'},
                 },
-                glyphs: new Map(jamoTable['double-right-vowel'].map(jamo => [jamo, null])),
             },
             {
                 name: '중성 (중첩자) 세로모임1',
@@ -375,7 +371,6 @@ export const jamoLayouts: Layouts = [
                     top: {type: 'jamo', kind: 'leading-1'},
                     bottom: {type: 'jamo', kind: 'bottom-vowel', subkind: 'double-bottom-vowel'},
                 },
-                glyphs: new Map(jamoTable['double-bottom-vowel'].map(jamo => [jamo, null])),
             },
             {
                 name: '중성 (중첩자) 세로모임2',
@@ -387,7 +382,6 @@ export const jamoLayouts: Layouts = [
                     top: {type: 'jamo', kind: 'leading-2'},
                     bottom: {type: 'jamo', kind: 'bottom-vowel', subkind: 'double-bottom-vowel'},
                 },
-                glyphs: new Map(jamoTable['double-bottom-vowel'].map(jamo => [jamo, null])),
             },
             {
                 name: '중성 (중첩자) 섞임모임1',
@@ -400,7 +394,6 @@ export const jamoLayouts: Layouts = [
                     topLeft: {type: 'jamo', kind: 'leading-1'},
                     rest: {type: 'jamo', kind: 'mixed-vowel', subkind: 'double-mixed-vowel'},
                 },
-                glyphs: new Map(jamoTable['double-mixed-vowel'].map(jamo => [jamo, null])),
             },
             {
                 name: '중성 (중첩자) 섞임모임2',
@@ -413,7 +406,6 @@ export const jamoLayouts: Layouts = [
                     topLeft: {type: 'jamo', kind: 'leading-2'},
                     rest: {type: 'jamo', kind: 'mixed-vowel', subkind: 'double-mixed-vowel'},
                 },
-                glyphs: new Map(jamoTable['double-mixed-vowel'].map(jamo => [jamo, null])),
             },
         ]
     },
@@ -438,7 +430,6 @@ export const jamoLayouts: Layouts = [
                     },
                     bottom: {type: 'jamo', kind: 'trailing'},
                 },
-                glyphs: new Map(jamoTable['single-leading'].map(jamo => [jamo, null])),
             },
             {
                 name: '초성 (기본자) 세로모임',
@@ -455,7 +446,6 @@ export const jamoLayouts: Layouts = [
                     },
                     bottom: {type: 'jamo', kind: 'trailing'},
                 },
-                glyphs: new Map(jamoTable['single-leading'].map(jamo => [jamo, null])),
             },
             {
                 name: '초성 (기본자) 섞임모임',
@@ -473,7 +463,6 @@ export const jamoLayouts: Layouts = [
                     },
                     bottom: {type: 'jamo', kind: 'trailing'},
                 },
-                glyphs: new Map(jamoTable['single-leading'].map(jamo => [jamo, null])),
             },
         ],
     },
@@ -497,7 +486,6 @@ export const jamoLayouts: Layouts = [
                     },
                     bottom: {type: 'jamo', kind: 'trailing'},
                 },
-                glyphs: new Map(jamoTable['stacked-leading'].map(jamo => [jamo, null])),
             },
             {
                 name: '초성 (연서자) 세로모임',
@@ -514,7 +502,6 @@ export const jamoLayouts: Layouts = [
                     },
                     bottom: {type: 'jamo', kind: 'trailing'},
                 },
-                glyphs: new Map(jamoTable['stacked-leading'].map(jamo => [jamo, null])),
             },
             {
                 name: '초성 (연서자) 섞임모임',
@@ -532,7 +519,6 @@ export const jamoLayouts: Layouts = [
                     },
                     bottom: {type: 'jamo', kind: 'trailing'},
                 },
-                glyphs: new Map(jamoTable['stacked-leading'].map(jamo => [jamo, null])),
             },
         ]
     },
@@ -556,7 +542,6 @@ export const jamoLayouts: Layouts = [
                     },
                     bottom: {type: 'jamo', kind: 'trailing'},
                 },
-                glyphs: new Map(jamoTable['double-leading'].map(jamo => [jamo, null])),
             },
             {
                 name: '초성 (2중) 세로모임',
@@ -573,7 +558,6 @@ export const jamoLayouts: Layouts = [
                     },
                     bottom: {type: 'jamo', kind: 'trailing'},
                 },
-                glyphs: new Map(jamoTable['double-leading'].map(jamo => [jamo, null])),
             },
             {
                 name: '초성 (2중) 섞임모임',
@@ -591,7 +575,6 @@ export const jamoLayouts: Layouts = [
                     },
                     bottom: {type: 'jamo', kind: 'trailing'},
                 },
-                glyphs: new Map(jamoTable['double-leading'].map(jamo => [jamo, null])),
             },
         ]
     },
@@ -615,7 +598,6 @@ export const jamoLayouts: Layouts = [
                     },
                     bottom: {type: 'jamo', kind: 'trailing'},
                 },
-                glyphs: new Map(jamoTable['triple-leading'].map(jamo => [jamo, null])),
             },
             {
                 name: '초성 (3중) 세로모임',
@@ -632,7 +614,6 @@ export const jamoLayouts: Layouts = [
                     },
                     bottom: {type: 'jamo', kind: 'trailing'},
                 },
-                glyphs: new Map(jamoTable['triple-leading'].map(jamo => [jamo, null])),
             },
             {
                 name: '초성 (3중) 섞임모임',
@@ -650,7 +631,6 @@ export const jamoLayouts: Layouts = [
                     },
                     bottom: {type: 'jamo', kind: 'trailing'},
                 },
-                glyphs: new Map(jamoTable['triple-leading'].map(jamo => [jamo, null])),
             },
         ]
     },
@@ -675,7 +655,6 @@ export const jamoLayouts: Layouts = [
                     },
                     bottom: {type: 'jamo', kind: 'trailing'},
                 },
-                glyphs: new Map(jamoTable['single-right-vowel'].map(jamo => [jamo, null])),
             },
             {
                 name: '중성 (기본자) 세로모임1',
@@ -692,7 +671,6 @@ export const jamoLayouts: Layouts = [
                     },
                     bottom: {type: 'jamo', kind: 'trailing'},
                 },
-                glyphs: new Map(jamoTable['single-bottom-vowel'].map(jamo => [jamo, null])),
             },
             {
                 name: '중성 (기본자) 세로모임2',
@@ -709,7 +687,6 @@ export const jamoLayouts: Layouts = [
                     },
                     bottom: {type: 'jamo', kind: 'trailing'},
                 },
-                glyphs: new Map(jamoTable['single-bottom-vowel'].map(jamo => [jamo, null])),
             },
             {
                 name: '중성 (기본자) 섞임모임1',
@@ -727,7 +704,6 @@ export const jamoLayouts: Layouts = [
                     },
                     bottom: {type: 'jamo', kind: 'trailing'},
                 },
-                glyphs: new Map(jamoTable['single-mixed-vowel'].map(jamo => [jamo, null])),
             },
             {
                 name: '중성 (기본자) 섞임모임2',
@@ -745,7 +721,6 @@ export const jamoLayouts: Layouts = [
                     },
                     bottom: {type: 'jamo', kind: 'trailing'},
                 },
-                glyphs: new Map(jamoTable['single-mixed-vowel'].map(jamo => [jamo, null])),
             },
         ]
     },
@@ -769,7 +744,6 @@ export const jamoLayouts: Layouts = [
                     },
                     bottom: {type: 'jamo', kind: 'trailing'},
                 },
-                glyphs: new Map(jamoTable['double-right-vowel'].map(jamo => [jamo, null])),
             },
             {
                 name: '중성 (중첩자) 세로모임1',
@@ -786,7 +760,6 @@ export const jamoLayouts: Layouts = [
                     },
                     bottom: {type: 'jamo', kind: 'trailing'},
                 },
-                glyphs: new Map(jamoTable['double-bottom-vowel'].map(jamo => [jamo, null])),
             },
             {
                 name: '중성 (중첩자) 세로모임2',
@@ -803,7 +776,6 @@ export const jamoLayouts: Layouts = [
                     },
                     bottom: {type: 'jamo', kind: 'trailing'},
                 },
-                glyphs: new Map(jamoTable['double-bottom-vowel'].map(jamo => [jamo, null])),
             },
             {
                 name: '중성 (중첩자) 섞임모임1',
@@ -821,7 +793,6 @@ export const jamoLayouts: Layouts = [
                     },
                     bottom: {type: 'jamo', kind: 'trailing'},
                 },
-                glyphs: new Map(jamoTable['double-mixed-vowel'].map(jamo => [jamo, null])),
             },
             {
                 name: '중성 (중첩자) 섞임모임2',
@@ -839,7 +810,6 @@ export const jamoLayouts: Layouts = [
                     },
                     bottom: {type: 'jamo', kind: 'trailing'},
                 },
-                glyphs: new Map(jamoTable['double-mixed-vowel'].map(jamo => [jamo, null])),
             },
         ]
     },
@@ -864,7 +834,6 @@ export const jamoLayouts: Layouts = [
                     },
                     bottom: {type: 'jamo', kind: 'trailing', subkind: 'single-trailing'},
                 },
-                glyphs: new Map(jamoTable['single-trailing'].map(jamo => [jamo, null])),
             },
             {
                 name: '받침 (기본자) 세로모임',
@@ -881,7 +850,6 @@ export const jamoLayouts: Layouts = [
                     },
                     bottom: {type: 'jamo', kind: 'trailing', subkind: 'single-trailing'},
                 },
-                glyphs: new Map(jamoTable['single-trailing'].map(jamo => [jamo, null])),
             },
             {
                 name: '받침 (기본자) 섞임모임',
@@ -899,7 +867,6 @@ export const jamoLayouts: Layouts = [
                     },
                     bottom: {type: 'jamo', kind: 'trailing', subkind: 'single-trailing'},
                 },
-                glyphs: new Map(jamoTable['single-trailing'].map(jamo => [jamo, null])),
             },
         ]
     }

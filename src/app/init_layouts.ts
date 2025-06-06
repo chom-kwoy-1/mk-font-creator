@@ -1,8 +1,8 @@
-import {Divider, JamoElement, JamoKind, jamoLayouts, JamoSubkind, Layouts, ResizedGlyph} from "@/app/jamo_layouts";
+import {Divider, JamoElement, JamoKind, jamoLayouts, Layouts, ResizedGlyph} from "@/app/jamo_layouts";
 import {Bounds, findCharstringByCodepoint, glyphActualBounds, intersectGlyph} from "@/app/font_utils";
 import {TTXWrapper} from "@/app/TTXObject";
 import {Glyph, parseGlyph} from "@/app/parse_glyph";
-import {exampleJamo, jamoTable} from "@/app/jamos";
+import {getExampleJamos, getJamos} from "@/app/jamos";
 import {uniToPua} from "@/app/pua_uni_conv";
 
 
@@ -10,18 +10,19 @@ export function initLayouts(ttx: TTXWrapper): Layouts {
     const fdarray = ttx.getFDArray();
     const os2 = ttx.getOS2();
 
-    let layouts = structuredClone(jamoLayouts);
-
     const ascender = parseInt(os2.sTypoAscender[0]['@_value']);
     const descender = parseInt(os2.sTypoDescender[0]['@_value']);
 
     // Initialize glyphs with positional variants
-    layouts = layouts.map(
+    let layouts: Layouts = jamoLayouts.map(
         (category) => {
             return {
                 ...category,
                 layouts: category.layouts.map((layout) => {
-                    for (const jamo of layout.glyphs.keys()) {
+                    const focusSubkind = layout.elems.find((elem) => elem.endsWith(layout.focus));
+                    const jamos = getJamos(focusSubkind!);
+                    const glyphs = new Map<string, ResizedGlyph>();
+                    for (const jamo of jamos) {
                         const syllable = genSyllables(layout.dividers, layout.focus, jamo)
                             .find((s) => uniToPua(s).length === 1);
                         if (!syllable) {
@@ -41,10 +42,13 @@ export function initLayouts(ttx: TTXWrapper): Layouts {
                             {left: 0, right: 1000, top: ascender, bottom: descender},
                         );
                         if (resizedGlyph) {
-                            layout.glyphs.set(jamo, resizedGlyph);
+                            glyphs.set(jamo, resizedGlyph);
                         }
                     }
-                    return layout;
+                    return {
+                        ...layout,
+                        glyphs: glyphs,
+                    };
                 }),
             };
         }
@@ -56,8 +60,10 @@ export function initLayouts(ttx: TTXWrapper): Layouts {
             return {
                 ...category,
                 layouts: category.layouts.map((layout) => {
-                    for (const jamo of layout.glyphs.keys()) {
-                        if (layout.glyphs.get(jamo) === null) {
+                    const focusSubkind = layout.elems.find((elem) => elem.endsWith(layout.focus));
+                    const jamos = getJamos(focusSubkind!);
+                    for (const jamo of jamos) {
+                        if (layout.glyphs.get(jamo) === undefined) {
                             // Set default glyph with Unicode codepoint, if exists
                             const cs = findCharstringByCodepoint(
                                 jamo.codePointAt(0) as number,
@@ -189,14 +195,7 @@ function* genSyllables(
                 yield focusJamo;
             }
             else {
-                yield* Object.keys(jamoTable)
-                    .flatMap((kind) => {
-                        if (divider.subkind && kind == divider.subkind
-                            || kind.endsWith(divider.kind)) {
-                            return [exampleJamo[kind], ...jamoTable[kind as JamoSubkind]];
-                        }
-                        return [];
-                    });
+                yield* getExampleJamos(divider.subkind ?? divider.kind);
             }
             break;
         case 'vertical':

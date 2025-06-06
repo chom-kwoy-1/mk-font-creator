@@ -1,147 +1,373 @@
 import {JamoKind, JamoSubkind, Layout, Layouts} from "@/app/jamo_layouts";
 
-type JamoTable = {
-    [key in JamoSubkind]: string[];
+type JamoSpec = {
+    subkinds: Array<JamoSubkind>;
+    components?: Array<string>;
 };
-
-export const jamoTable: JamoTable = {
-    'single-leading': [
-        'ᄀ', 'ᄂ', 'ᄃ', 'ᄅ', 'ᄆ', 'ᄇ', 'ᄉ', 'ᄋ',
-        'ᄌ', 'ᄎ', 'ᄏ', 'ᄐ', 'ᄑ', 'ᄒ', 'ᄼ', 'ᄾ',
-        'ᅀ', 'ᅌ', 'ᅎ', 'ᅐ', 'ᅔ', 'ᅕ', 'ᅙ', 'ᅟ',
-    ],
-    'single-leading-1': [
-        'ᄀ', 'ᄏ',
-    ],
-    'single-leading-2': [
-        'ᄂ', 'ᄃ', 'ᄅ', 'ᄆ', 'ᄇ', 'ᄉ', 'ᄋ', 'ᄌ',
-        'ᄎ', 'ᄐ', 'ᄑ', 'ᄒ', 'ᄼ', 'ᄾ', 'ᅀ', 'ᅌ',
-        'ᅎ', 'ᅐ', 'ᅔ', 'ᅕ', 'ᅙ', 'ᅟ',
-    ],
-    'stacked-leading': [
-        'ᄛ', 'ᄝ', 'ᄫ', 'ᄬ', 'ᅗ',
-    ],
-    'stacked-leading-1': [],
-    'stacked-leading-2': [
-        'ᄛ', 'ᄝ', 'ᄫ', 'ᄬ', 'ᅗ',
-    ],
-    'double-leading': [
-        'ᄁ', 'ᄄ', 'ᄈ', 'ᄊ', 'ᄍ', 'ᄓ', 'ᄔ', 'ᄕ',
-        'ᄖ', 'ᄗ', 'ᄘ', 'ᄙ', 'ᄚ', 'ᄜ', 'ᄞ', 'ᄟ',
-        'ᄠ', 'ᄡ', 'ᄧ', 'ᄨ', 'ᄩ', 'ᄪ', 'ᄭ', 'ᄮ',
-        'ᄯ', 'ᄰ', 'ᄱ', 'ᄲ', 'ᄵ', 'ᄶ', 'ᄷ', 'ᄸ',
-        'ᄹ', 'ᄺ', 'ᄻ', 'ᄽ', 'ᄿ', 'ᅁ', 'ᅂ', 'ᅃ',
-        'ᅄ', 'ᅅ', 'ᅆ', 'ᅇ', 'ᅈ', 'ᅉ', 'ᅊ', 'ᅋ',
-        'ᅍ', 'ᅏ', 'ᅑ', 'ᅒ', 'ᅓ', 'ᅖ', 'ᅘ', 'ᅚ',
-        'ᅛ', 'ᅜ', 'ᅝ', 'ᅞ', 'ꥠ', 'ꥡ', 'ꥢ', 'ꥣ',
-        'ꥤ', 'ꥦ', 'ꥨ', 'ꥩ', 'ꥫ', 'ꥬ', 'ꥭ', 'ꥮ',
-        'ꥯ', 'ꥰ', 'ꥱ', 'ꥳ', 'ꥴ', 'ꥶ', 'ꥷ', 'ꥹ',
-        'ꥺ', 'ꥻ', 'ꥼ',
-    ],
-    'double-leading-1': [],
-    'double-leading-2': [
-        'ᄁ', 'ᄄ', 'ᄈ', 'ᄊ', 'ᄍ', 'ᄓ', 'ᄔ', 'ᄕ',
-        'ᄖ', 'ᄗ', 'ᄘ', 'ᄙ', 'ᄚ', 'ᄜ', 'ᄞ', 'ᄟ',
-        'ᄠ', 'ᄡ', 'ᄧ', 'ᄨ', 'ᄩ', 'ᄪ', 'ᄭ', 'ᄮ',
-        'ᄯ', 'ᄰ', 'ᄱ', 'ᄲ', 'ᄵ', 'ᄶ', 'ᄷ', 'ᄸ',
-        'ᄹ', 'ᄺ', 'ᄻ', 'ᄽ', 'ᄿ', 'ᅁ', 'ᅂ', 'ᅃ',
-        'ᅄ', 'ᅅ', 'ᅆ', 'ᅇ', 'ᅈ', 'ᅉ', 'ᅊ', 'ᅋ',
-        'ᅍ', 'ᅏ', 'ᅑ', 'ᅒ', 'ᅓ', 'ᅖ', 'ᅘ', 'ᅚ',
-        'ᅛ', 'ᅜ', 'ᅝ', 'ᅞ', 'ꥠ', 'ꥡ', 'ꥢ', 'ꥣ',
-        'ꥤ', 'ꥦ', 'ꥨ', 'ꥩ', 'ꥫ', 'ꥬ', 'ꥭ', 'ꥮ',
-        'ꥯ', 'ꥰ', 'ꥱ', 'ꥳ', 'ꥴ', 'ꥶ', 'ꥷ', 'ꥹ',
-        'ꥺ', 'ꥻ', 'ꥼ',
-    ],
-    'triple-leading': [
-        'ᄢ', 'ᄣ', 'ᄤ', 'ᄥ', 'ᄦ', 'ᄳ', 'ᄴ', 'ꥥ',
-        'ꥲ', 'ꥵ', 'ꥸ',
-    ],
-    'triple-leading-1': [],
-    'triple-leading-2': [
-        'ᄢ', 'ᄣ', 'ᄤ', 'ᄥ', 'ᄦ', 'ᄳ', 'ᄴ', 'ꥥ',
-        'ꥲ', 'ꥵ', 'ꥸ',
-    ],
-    'single-right-vowel': [
-        'ᅡ', 'ᅣ', 'ᅥ', 'ᅧ', 'ᅵ', 'ᆝ',
-    ],
-    'double-right-vowel': [
-        'ᅢ', 'ᅤ', 'ᅦ', 'ᅨ', 'ᆘ', 'ᆙ', 'ᆥ', 'ힾ',
-        'ힿ', 'ퟀ', 'ퟄ',
-    ],
-    'single-bottom-vowel': [
-        'ᅩ', 'ᅭ', 'ᅮ', 'ᅲ', 'ᅳ', 'ᆞ', 'ᆢ', 'ᅠ',
-    ],
-    'bottom-vowel-1': [
-        'ᅩ', 'ᅭ', 'ᅳ', 'ᆞ', 'ᆢ', 'ᅠ',
-    ],
-    'bottom-vowel-2': [
-        'ᅮ', 'ᅲ',
-        'ᆂ', 'ᆃ', 'ᆇ', 'ᆍ', 'ᆓ', 'ᆕ', 'ᆕ', 'ᆖ',
-        'ᆠ', 'ힱ', 'ힸ', 'ힼ',
-    ],
-    'double-bottom-vowel': [
-        'ᆂ', 'ᆃ', 'ᆇ', 'ᆍ', 'ᆓ', 'ᆕ', 'ᆕ', 'ᆖ',
-        'ᆠ', 'ힱ', 'ힸ', 'ힼ',
-    ],
-    'single-mixed-vowel': [
-        'ᅪ', 'ᅬ', 'ᅯ', 'ᅱ', 'ᅴ', 'ᅶ', 'ᅷ', 'ᅸ',
-        'ᅹ', 'ᅺ', 'ᅻ', 'ᅼ', 'ᅽ', 'ᅾ', 'ᅿ', 'ᆄ',
-        'ᆆ', 'ᆈ', 'ᆉ', 'ᆎ', 'ᆏ', 'ᆑ', 'ᆔ', 'ᆚ',
-        'ᆛ', 'ᆜ', 'ᆟ', 'ᆡ', 'ᆣ', 'ᆤ', 'ᆦ', 'ힰ',
-        'ힲ', 'ힴ', 'ힵ', 'ힹ', 'ힺ', 'ퟁ', 'ퟂ', 'ퟃ',
-        'ퟅ',
-    ],
-    'double-mixed-vowel': [
-        'ᅫ', 'ᅰ', 'ᆀ', 'ᆁ', 'ᆅ', 'ᆊ', 'ᆋ', 'ᆌ',
-        'ᆐ', 'ᆒ', 'ᆗ', 'ᆧ', 'ힳ', 'ힶ', 'ힷ', 'ힻ',
-        'ힽ', 'ퟆ',
-    ],
-    'mixed-vowel-1': [
-        'ᅪ', 'ᅫ', 'ᅬ', 'ᅴ', 'ᅶ', 'ᅸ', 'ᅹ', 'ᅺ',
-        'ᅼ', 'ᅽ', 'ᅿ', 'ᆄ', 'ᆆ', 'ᆈ', 'ᆚ', 'ᆜ',
-        'ᆟ', 'ᆡ', 'ᆣ', 'ᆦ', 'ힰ', 'ힲ', 'ힴ', 'ힹ',
-        'ힺ', 'ퟁ', 'ퟂ', 'ퟅ', 'ᆀ', 'ᆁ', 'ᆅ', 'ᆗ',
-        'ᆧ', 'ힳ', 'ힻ', 'ힽ', 'ퟆ',
-    ],
-    'mixed-vowel-2': [
-        'ᅯ', 'ᅰ', 'ᅱ', 'ᅷ', 'ᅻ', 'ᅾ', 'ᆉ', 'ᆎ',
-        'ᆏ', 'ᆑ', 'ᆔ', 'ᆛ', 'ᆤ', 'ힵ', 'ퟃ', 'ᆊ',
-        'ᆋ', 'ᆌ', 'ᆐ', 'ᆒ', 'ힶ', 'ힷ',
-    ],
-    'single-trailing': [
-        'ᆨ', 'ᆫ', 'ᆮ', 'ᆯ', 'ᆷ', 'ᆸ', 'ᆺ', 'ᆼ',
-        'ᆽ', 'ᆾ', 'ᆿ', 'ᇀ', 'ᇁ', 'ᇂ', 'ᇫ', 'ᇰ',
-        'ᇹ',
-    ],
-    'stacked-trailing': [
-        'ᇢ', 'ᇦ', 'ᇴ', 'ퟝ', 
-    ],
-    'double-trailing': [
-        'ᆩ', 'ᆪ', 'ᆬ', 'ᆭ', 'ᆰ', 'ᆱ', 'ᆲ', 'ᆳ',
-        'ᆴ', 'ᆵ', 'ᆶ', 'ᆹ', 'ᆻ', 'ᇃ', 'ᇅ', 'ᇆ',
-        'ᇇ', 'ᇈ', 'ᇉ', 'ᇊ', 'ᇋ', 'ᇍ', 'ᇎ', 'ᇐ',
-        'ᇕ', 'ᇗ', 'ᇘ', 'ᇙ', 'ᇚ', 'ᇛ', 'ᇜ', 'ᇝ',
-        'ᇟ', 'ᇠ', 'ᇡ', 'ᇣ', 'ᇤ', 'ᇥ', 'ᇧ', 'ᇨ',
-        'ᇩ', 'ᇪ', 'ᇬ', 'ᇮ', 'ᇯ', 'ᇱ', 'ᇲ', 'ᇳ',
-        'ᇵ', 'ᇶ', 'ᇷ', 'ᇸ', 'ᇺ', 'ᇻ', 'ᇼ', 'ᇽ',
-        'ᇾ', 'ᇿ', 'ퟋ', 'ퟌ', 'ퟍ', 'ퟏ', 'ퟐ', 'ퟒ',
-        'ퟓ', 'ퟔ', 'ퟛ', 'ퟞ', 'ퟠ', 'ퟢ', 'ퟣ', 'ퟥ',
-        'ퟦ', 'ퟨ', 'ퟩ', 'ퟪ', 'ퟫ', 'ퟮ', 'ퟯ', 'ퟰ',
-        'ퟱ', 'ퟲ', 'ퟳ', 'ퟴ', 'ퟵ', 'ퟶ', 'ퟷ', 'ퟹ',
-        'ퟺ', 'ퟻ',
-    ],
-    'triple-trailing': [
-        'ᇄ', 'ᇌ', 'ᇏ', 'ᇑ', 'ᇒ', 'ᇓ', 'ᇔ', 'ᇖ',
-        'ᇞ', 'ᇭ', 'ퟎ', 'ퟑ', 'ퟕ', 'ퟖ', 'ퟗ', 'ퟘ',
-        'ퟙ', 'ퟚ', 'ퟜ', 'ퟟ', 'ퟡ', 'ퟤ', 'ퟧ', 'ퟬ',
-        'ퟭ', 'ퟸ',
-    ],
-};
+const jamoSpecTable: Map<string, JamoSpec> = new Map([
+    // Leading consonants
+    ['ᄀ', {subkinds: ['single-leading', 'single-leading-1']}],
+    ['ᄂ', {subkinds: ['single-leading', 'single-leading-2']}],
+    ['ᄃ', {subkinds: ['single-leading', 'single-leading-2']}],
+    ['ᄅ', {subkinds: ['single-leading', 'single-leading-2']}],
+    ['ᄆ', {subkinds: ['single-leading', 'single-leading-2']}],
+    ['ᄇ', {subkinds: ['single-leading', 'single-leading-2']}],
+    ['ᄉ', {subkinds: ['single-leading', 'single-leading-2']}],
+    ['ᄋ', {subkinds: ['single-leading', 'single-leading-2']}],
+    ['ᄌ', {subkinds: ['single-leading', 'single-leading-2']}],
+    ['ᄎ', {subkinds: ['single-leading', 'single-leading-2']}],
+    ['ᄏ', {subkinds: ['single-leading', 'single-leading-1']}],
+    ['ᄐ', {subkinds: ['single-leading', 'single-leading-2']}],
+    ['ᄑ', {subkinds: ['single-leading', 'single-leading-2']}],
+    ['ᄒ', {subkinds: ['single-leading', 'single-leading-2']}],
+    ['ᄼ', {subkinds: ['single-leading', 'single-leading-2']}],
+    ['ᄾ', {subkinds: ['single-leading', 'single-leading-2']}],
+    ['ᅀ', {subkinds: ['single-leading', 'single-leading-2']}],
+    ['ᅌ', {subkinds: ['single-leading', 'single-leading-2']}],
+    ['ᅎ', {subkinds: ['single-leading', 'single-leading-2']}],
+    ['ᅐ', {subkinds: ['single-leading', 'single-leading-2']}],
+    ['ᅔ', {subkinds: ['single-leading', 'single-leading-2']}],
+    ['ᅕ', {subkinds: ['single-leading', 'single-leading-2']}],
+    ['ᅙ', {subkinds: ['single-leading', 'single-leading-2']}],
+    ['ᅟ', {subkinds: ['single-leading', 'single-leading-2']}],
+    ['ᄛ', {subkinds: ['stacked-leading', 'stacked-leading-2']}],
+    ['ᄝ', {subkinds: ['stacked-leading', 'stacked-leading-2']}],
+    ['ᄫ', {subkinds: ['stacked-leading', 'stacked-leading-2']}],
+    ['ᄬ', {subkinds: ['stacked-leading', 'stacked-leading-2']}],
+    ['ᅗ', {subkinds: ['stacked-leading', 'stacked-leading-2']}],
+    ['ᄁ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ᄄ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ᄈ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ᄊ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ᄍ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ᄓ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ᄔ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ᄕ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ᄖ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ᄗ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ᄘ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ᄙ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ᄚ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ᄜ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ᄞ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ᄟ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ᄠ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ᄡ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ᄧ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ᄨ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ᄩ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ᄪ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ᄭ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ᄮ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ᄯ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ᄰ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ᄱ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ᄲ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ᄵ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ᄶ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ᄷ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ᄸ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ᄹ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ᄺ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ᄻ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ᄽ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ᄿ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ᅁ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ᅂ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ᅃ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ᅄ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ᅅ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ᅆ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ᅇ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ᅈ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ᅉ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ᅊ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ᅋ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ᅍ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ᅏ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ᅑ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ᅒ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ᅓ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ᅖ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ᅘ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ᅚ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ᅛ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ᅜ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ᅝ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ᅞ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ꥠ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ꥡ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ꥢ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ꥣ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ꥤ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ꥦ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ꥨ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ꥩ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ꥫ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ꥬ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ꥭ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ꥮ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ꥯ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ꥰ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ꥱ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ꥳ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ꥴ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ꥶ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ꥷ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ꥹ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ꥺ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ꥻ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ꥼ', {subkinds: ['double-leading', 'double-leading-2']}],
+    ['ᄢ', {subkinds: ['triple-leading', 'triple-leading-2']}],
+    ['ᄣ', {subkinds: ['triple-leading', 'triple-leading-2']}],
+    ['ᄤ', {subkinds: ['triple-leading', 'triple-leading-2']}],
+    ['ᄥ', {subkinds: ['triple-leading', 'triple-leading-2']}],
+    ['ᄦ', {subkinds: ['triple-leading', 'triple-leading-2']}],
+    ['ᄳ', {subkinds: ['triple-leading', 'triple-leading-2']}],
+    ['ᄴ', {subkinds: ['triple-leading', 'triple-leading-2']}],
+    ['ꥥ', {subkinds: ['triple-leading', 'triple-leading-2']}],
+    ['ꥲ', {subkinds: ['triple-leading', 'triple-leading-2']}],
+    ['ꥵ', {subkinds: ['triple-leading', 'triple-leading-2']}],
+    ['ꥸ', {subkinds: ['triple-leading', 'triple-leading-2']}],
+    // Vowels
+    ['ᅡ', {subkinds: ['single-right-vowel']}],
+    ['ᅣ', {subkinds: ['single-right-vowel']}],
+    ['ᅥ', {subkinds: ['single-right-vowel']}],
+    ['ᅧ', {subkinds: ['single-right-vowel']}],
+    ['ᅵ', {subkinds: ['single-right-vowel']}],
+    ['ᆝ', {subkinds: ['single-right-vowel']}],
+    ['ᅢ', {subkinds: ['double-right-vowel']}],
+    ['ᅤ', {subkinds: ['double-right-vowel']}],
+    ['ᅦ', {subkinds: ['double-right-vowel']}],
+    ['ᅨ', {subkinds: ['double-right-vowel']}],
+    ['ᆘ', {subkinds: ['double-right-vowel']}],
+    ['ᆙ', {subkinds: ['double-right-vowel']}],
+    ['ᆥ', {subkinds: ['double-right-vowel']}],
+    ['ힾ', {subkinds: ['double-right-vowel']}],
+    ['ힿ', {subkinds: ['double-right-vowel']}],
+    ['ퟀ', {subkinds: ['double-right-vowel']}],
+    ['ퟄ', {subkinds: ['double-right-vowel']}],
+    ['ᅩ', {subkinds: ['single-bottom-vowel', 'bottom-vowel-1']}],
+    ['ᅭ', {subkinds: ['single-bottom-vowel', 'bottom-vowel-1']}],
+    ['ᅮ', {subkinds: ['single-bottom-vowel', 'bottom-vowel-2']}],
+    ['ᅲ', {subkinds: ['single-bottom-vowel', 'bottom-vowel-2']}],
+    ['ᅳ', {subkinds: ['single-bottom-vowel', 'bottom-vowel-1']}],
+    ['ᆞ', {subkinds: ['single-bottom-vowel', 'bottom-vowel-1']}],
+    ['ᆢ', {subkinds: ['single-bottom-vowel', 'bottom-vowel-1']}],
+    ['ᅠ', {subkinds: ['single-bottom-vowel', 'bottom-vowel-1']}],
+    ['ᆂ', {subkinds: ['double-bottom-vowel', 'bottom-vowel-2']}],
+    ['ᆃ', {subkinds: ['double-bottom-vowel', 'bottom-vowel-2']}],
+    ['ᆇ', {subkinds: ['double-bottom-vowel', 'bottom-vowel-2']}],
+    ['ᆍ', {subkinds: ['double-bottom-vowel', 'bottom-vowel-2']}],
+    ['ᆓ', {subkinds: ['double-bottom-vowel', 'bottom-vowel-2']}],
+    ['ᆕ', {subkinds: ['double-bottom-vowel', 'bottom-vowel-2']}],
+    ['ᆖ', {subkinds: ['double-bottom-vowel', 'bottom-vowel-2']}],
+    ['ᆠ', {subkinds: ['double-bottom-vowel', 'bottom-vowel-2']}],
+    ['ힱ', {subkinds: ['double-bottom-vowel', 'bottom-vowel-2']}],
+    ['ힸ', {subkinds: ['double-bottom-vowel', 'bottom-vowel-2']}],
+    ['ힼ', {subkinds: ['double-bottom-vowel', 'bottom-vowel-2']}],
+    ['ᅪ', {subkinds: ['single-mixed-vowel', 'mixed-vowel-1']}],
+    ['ᅬ', {subkinds: ['single-mixed-vowel', 'mixed-vowel-1']}],
+    ['ᅯ', {subkinds: ['single-mixed-vowel', 'mixed-vowel-2']}],
+    ['ᅱ', {subkinds: ['single-mixed-vowel', 'mixed-vowel-2']}],
+    ['ᅴ', {subkinds: ['single-mixed-vowel', 'mixed-vowel-1']}],
+    ['ᅶ', {subkinds: ['single-mixed-vowel', 'mixed-vowel-1']}],
+    ['ᅷ', {subkinds: ['single-mixed-vowel', 'mixed-vowel-2']}],
+    ['ᅸ', {subkinds: ['single-mixed-vowel', 'mixed-vowel-1']}],
+    ['ᅹ', {subkinds: ['single-mixed-vowel', 'mixed-vowel-1']}],
+    ['ᅺ', {subkinds: ['single-mixed-vowel', 'mixed-vowel-1']}],
+    ['ᅻ', {subkinds: ['single-mixed-vowel', 'mixed-vowel-2']}],
+    ['ᅼ', {subkinds: ['single-mixed-vowel', 'mixed-vowel-1']}],
+    ['ᅽ', {subkinds: ['single-mixed-vowel', 'mixed-vowel-1']}],
+    ['ᅾ', {subkinds: ['single-mixed-vowel', 'mixed-vowel-2']}],
+    ['ᅿ', {subkinds: ['single-mixed-vowel', 'mixed-vowel-1']}],
+    ['ᆄ', {subkinds: ['single-mixed-vowel', 'mixed-vowel-1']}],
+    ['ᆆ', {subkinds: ['single-mixed-vowel', 'mixed-vowel-1']}],
+    ['ᆈ', {subkinds: ['single-mixed-vowel', 'mixed-vowel-1']}],
+    ['ᆉ', {subkinds: ['single-mixed-vowel', 'mixed-vowel-2']}],
+    ['ᆎ', {subkinds: ['single-mixed-vowel', 'mixed-vowel-2']}],
+    ['ᆏ', {subkinds: ['single-mixed-vowel', 'mixed-vowel-2']}],
+    ['ᆑ', {subkinds: ['single-mixed-vowel', 'mixed-vowel-2']}],
+    ['ᆔ', {subkinds: ['single-mixed-vowel', 'mixed-vowel-2']}],
+    ['ᆚ', {subkinds: ['single-mixed-vowel', 'mixed-vowel-1']}],
+    ['ᆛ', {subkinds: ['single-mixed-vowel', 'mixed-vowel-2']}],
+    ['ᆜ', {subkinds: ['single-mixed-vowel', 'mixed-vowel-1']}],
+    ['ᆟ', {subkinds: ['single-mixed-vowel', 'mixed-vowel-1']}],
+    ['ᆡ', {subkinds: ['single-mixed-vowel', 'mixed-vowel-1']}],
+    ['ᆣ', {subkinds: ['single-mixed-vowel', 'mixed-vowel-1']}],
+    ['ᆤ', {subkinds: ['single-mixed-vowel', 'mixed-vowel-2']}],
+    ['ᆦ', {subkinds: ['single-mixed-vowel', 'mixed-vowel-1']}],
+    ['ힰ', {subkinds: ['single-mixed-vowel', 'mixed-vowel-1']}],
+    ['ힲ', {subkinds: ['single-mixed-vowel', 'mixed-vowel-1']}],
+    ['ힴ', {subkinds: ['single-mixed-vowel', 'mixed-vowel-1']}],
+    ['ힵ', {subkinds: ['single-mixed-vowel', 'mixed-vowel-2']}],
+    ['ힹ', {subkinds: ['single-mixed-vowel', 'mixed-vowel-1']}],
+    ['ힺ', {subkinds: ['single-mixed-vowel', 'mixed-vowel-1']}],
+    ['ퟁ', {subkinds: ['single-mixed-vowel', 'mixed-vowel-1']}],
+    ['ퟂ', {subkinds: ['single-mixed-vowel', 'mixed-vowel-1']}],
+    ['ퟃ', {subkinds: ['single-mixed-vowel', 'mixed-vowel-2']}],
+    ['ퟅ', {subkinds: ['single-mixed-vowel', 'mixed-vowel-1']}],
+    ['ᅫ', {subkinds: ['double-mixed-vowel', 'mixed-vowel-1']}],
+    ['ᅰ', {subkinds: ['double-mixed-vowel', 'mixed-vowel-2']}],
+    ['ᆀ', {subkinds: ['double-mixed-vowel', 'mixed-vowel-1']}],
+    ['ᆁ', {subkinds: ['double-mixed-vowel', 'mixed-vowel-1']}],
+    ['ᆅ', {subkinds: ['double-mixed-vowel', 'mixed-vowel-1']}],
+    ['ᆊ', {subkinds: ['double-mixed-vowel', 'mixed-vowel-2']}],
+    ['ᆋ', {subkinds: ['double-mixed-vowel', 'mixed-vowel-2']}],
+    ['ᆌ', {subkinds: ['double-mixed-vowel', 'mixed-vowel-2']}],
+    ['ᆐ', {subkinds: ['double-mixed-vowel', 'mixed-vowel-2']}],
+    ['ᆒ', {subkinds: ['double-mixed-vowel', 'mixed-vowel-2']}],
+    ['ᆗ', {subkinds: ['double-mixed-vowel', 'mixed-vowel-1']}],
+    ['ᆧ', {subkinds: ['double-mixed-vowel', 'mixed-vowel-1']}],
+    ['ힳ', {subkinds: ['double-mixed-vowel', 'mixed-vowel-1']}],
+    ['ힶ', {subkinds: ['double-mixed-vowel', 'mixed-vowel-2']}],
+    ['ힷ', {subkinds: ['double-mixed-vowel', 'mixed-vowel-2']}],
+    ['ힻ', {subkinds: ['double-mixed-vowel', 'mixed-vowel-1']}],
+    ['ힽ', {subkinds: ['double-mixed-vowel', 'mixed-vowel-1']}],
+    ['ퟆ', {subkinds: ['double-mixed-vowel', 'mixed-vowel-1']}],
+    // Trailing consonants
+    ['ᆨ', {subkinds: ['single-trailing']}],
+    ['ᆫ', {subkinds: ['single-trailing']}],
+    ['ᆮ', {subkinds: ['single-trailing']}],
+    ['ᆯ', {subkinds: ['single-trailing']}],
+    ['ᆷ', {subkinds: ['single-trailing']}],
+    ['ᆸ', {subkinds: ['single-trailing']}],
+    ['ᆺ', {subkinds: ['single-trailing']}],
+    ['ᆼ', {subkinds: ['single-trailing']}],
+    ['ᆽ', {subkinds: ['single-trailing']}],
+    ['ᆾ', {subkinds: ['single-trailing']}],
+    ['ᆿ', {subkinds: ['single-trailing']}],
+    ['ᇀ', {subkinds: ['single-trailing']}],
+    ['ᇁ', {subkinds: ['single-trailing']}],
+    ['ᇂ', {subkinds: ['single-trailing']}],
+    ['ᇫ', {subkinds: ['single-trailing']}],
+    ['ᇰ', {subkinds: ['single-trailing']}],
+    ['ᇹ', {subkinds: ['single-trailing']}],
+    ['ᇢ', {subkinds: ['stacked-trailing']}],
+    ['ᇦ', {subkinds: ['stacked-trailing']}],
+    ['ᇴ', {subkinds: ['stacked-trailing']}],
+    ['ퟝ', {subkinds: ['stacked-trailing']}],
+    ['ᆩ', {subkinds: ['double-trailing']}],
+    ['ᆪ', {subkinds: ['double-trailing']}],
+    ['ᆬ', {subkinds: ['double-trailing']}],
+    ['ᆭ', {subkinds: ['double-trailing']}],
+    ['ᆰ', {subkinds: ['double-trailing']}],
+    ['ᆱ', {subkinds: ['double-trailing']}],
+    ['ᆲ', {subkinds: ['double-trailing']}],
+    ['ᆳ', {subkinds: ['double-trailing']}],
+    ['ᆴ', {subkinds: ['double-trailing']}],
+    ['ᆵ', {subkinds: ['double-trailing']}],
+    ['ᆶ', {subkinds: ['double-trailing']}],
+    ['ᆹ', {subkinds: ['double-trailing']}],
+    ['ᆻ', {subkinds: ['double-trailing']}],
+    ['ᇃ', {subkinds: ['double-trailing']}],
+    ['ᇅ', {subkinds: ['double-trailing']}],
+    ['ᇆ', {subkinds: ['double-trailing']}],
+    ['ᇇ', {subkinds: ['double-trailing']}],
+    ['ᇈ', {subkinds: ['double-trailing']}],
+    ['ᇉ', {subkinds: ['double-trailing']}],
+    ['ᇊ', {subkinds: ['double-trailing']}],
+    ['ᇋ', {subkinds: ['double-trailing']}],
+    ['ᇍ', {subkinds: ['double-trailing']}],
+    ['ᇎ', {subkinds: ['double-trailing']}],
+    ['ᇐ', {subkinds: ['double-trailing']}],
+    ['ᇕ', {subkinds: ['double-trailing']}],
+    ['ᇗ', {subkinds: ['double-trailing']}],
+    ['ᇘ', {subkinds: ['double-trailing']}],
+    ['ᇙ', {subkinds: ['double-trailing']}],
+    ['ᇚ', {subkinds: ['double-trailing']}],
+    ['ᇛ', {subkinds: ['double-trailing']}],
+    ['ᇜ', {subkinds: ['double-trailing']}],
+    ['ᇝ', {subkinds: ['double-trailing']}],
+    ['ᇟ', {subkinds: ['double-trailing']}],
+    ['ᇠ', {subkinds: ['double-trailing']}],
+    ['ᇡ', {subkinds: ['double-trailing']}],
+    ['ᇣ', {subkinds: ['double-trailing']}],
+    ['ᇤ', {subkinds: ['double-trailing']}],
+    ['ᇥ', {subkinds: ['double-trailing']}],
+    ['ᇧ', {subkinds: ['double-trailing']}],
+    ['ᇨ', {subkinds: ['double-trailing']}],
+    ['ᇩ', {subkinds: ['double-trailing']}],
+    ['ᇪ', {subkinds: ['double-trailing']}],
+    ['ᇬ', {subkinds: ['double-trailing']}],
+    ['ᇮ', {subkinds: ['double-trailing']}],
+    ['ᇯ', {subkinds: ['double-trailing']}],
+    ['ᇱ', {subkinds: ['double-trailing']}],
+    ['ᇲ', {subkinds: ['double-trailing']}],
+    ['ᇳ', {subkinds: ['double-trailing']}],
+    ['ᇵ', {subkinds: ['double-trailing']}],
+    ['ᇶ', {subkinds: ['double-trailing']}],
+    ['ᇷ', {subkinds: ['double-trailing']}],
+    ['ᇸ', {subkinds: ['double-trailing']}],
+    ['ᇺ', {subkinds: ['double-trailing']}],
+    ['ᇻ', {subkinds: ['double-trailing']}],
+    ['ᇼ', {subkinds: ['double-trailing']}],
+    ['ᇽ', {subkinds: ['double-trailing']}],
+    ['ᇾ', {subkinds: ['double-trailing']}],
+    ['ᇿ', {subkinds: ['double-trailing']}],
+    ['ퟋ', {subkinds: ['double-trailing']}],
+    ['ퟌ', {subkinds: ['double-trailing']}],
+    ['ퟍ', {subkinds: ['double-trailing']}],
+    ['ퟏ', {subkinds: ['double-trailing']}],
+    ['ퟐ', {subkinds: ['double-trailing']}],
+    ['ퟒ', {subkinds: ['double-trailing']}],
+    ['ퟓ', {subkinds: ['double-trailing']}],
+    ['ퟔ', {subkinds: ['double-trailing']}],
+    ['ퟛ', {subkinds: ['double-trailing']}],
+    ['ퟞ', {subkinds: ['double-trailing']}],
+    ['ퟠ', {subkinds: ['double-trailing']}],
+    ['ퟢ', {subkinds: ['double-trailing']}],
+    ['ퟣ', {subkinds: ['double-trailing']}],
+    ['ퟥ', {subkinds: ['double-trailing']}],
+    ['ퟦ', {subkinds: ['double-trailing']}],
+    ['ퟨ', {subkinds: ['double-trailing']}],
+    ['ퟩ', {subkinds: ['double-trailing']}],
+    ['ퟪ', {subkinds: ['double-trailing']}],
+    ['ퟫ', {subkinds: ['double-trailing']}],
+    ['ퟮ', {subkinds: ['double-trailing']}],
+    ['ퟯ', {subkinds: ['double-trailing']}],
+    ['ퟰ', {subkinds: ['double-trailing']}],
+    ['ퟱ', {subkinds: ['double-trailing']}],
+    ['ퟲ', {subkinds: ['double-trailing']}],
+    ['ퟳ', {subkinds: ['double-trailing']}],
+    ['ퟴ', {subkinds: ['double-trailing']}],
+    ['ퟵ', {subkinds: ['double-trailing']}],
+    ['ퟶ', {subkinds: ['double-trailing']}],
+    ['ퟷ', {subkinds: ['double-trailing']}],
+    ['ퟹ', {subkinds: ['double-trailing']}],
+    ['ퟺ', {subkinds: ['double-trailing']}],
+    ['ퟻ', {subkinds: ['double-trailing']}],
+    ['ᇄ', {subkinds: ['triple-trailing']}],
+    ['ᇌ', {subkinds: ['triple-trailing']}],
+    ['ᇏ', {subkinds: ['triple-trailing']}],
+    ['ᇑ', {subkinds: ['triple-trailing']}],
+    ['ᇒ', {subkinds: ['triple-trailing']}],
+    ['ᇓ', {subkinds: ['triple-trailing']}],
+    ['ᇔ', {subkinds: ['triple-trailing']}],
+    ['ᇖ', {subkinds: ['triple-trailing']}],
+    ['ᇞ', {subkinds: ['triple-trailing']}],
+    ['ᇭ', {subkinds: ['triple-trailing']}],
+    ['ퟎ', {subkinds: ['triple-trailing']}],
+    ['ퟑ', {subkinds: ['triple-trailing']}],
+    ['ퟕ', {subkinds: ['triple-trailing']}],
+    ['ퟖ', {subkinds: ['triple-trailing']}],
+    ['ퟗ', {subkinds: ['triple-trailing']}],
+    ['ퟘ', {subkinds: ['triple-trailing']}],
+    ['ퟙ', {subkinds: ['triple-trailing']}],
+    ['ퟚ', {subkinds: ['triple-trailing']}],
+    ['ퟜ', {subkinds: ['triple-trailing']}],
+    ['ퟟ', {subkinds: ['triple-trailing']}],
+    ['ퟡ', {subkinds: ['triple-trailing']}],
+    ['ퟤ', {subkinds: ['triple-trailing']}],
+    ['ퟧ', {subkinds: ['triple-trailing']}],
+    ['ퟬ', {subkinds: ['triple-trailing']}],
+    ['ퟭ', {subkinds: ['triple-trailing']}],
+    ['ퟸ', {subkinds: ['triple-trailing']}],
+]);
 
 interface ExampleJamo {
     [key: string]: string;
 }
-
 export const exampleJamo: ExampleJamo = {
     'single-leading': 'ᄆ',
     'single-leading-1': 'ᄏ',
@@ -165,36 +391,26 @@ export const exampleJamo: ExampleJamo = {
     'triple-trailing': 'ᇌ',
 };
 
-function invertMap(map: JamoTable): Map<string, Set<JamoSubkind>> {
-    const result = new Map();
-    for (const [key, value] of Object.entries(map)) {
-        for (const elem of value) {
-            if (!result.has(elem)) {
-                result.set(elem, new Set());
-            }
-            result.get(elem).add(key);
-        }
-    }
-    return result;
-}
-
-const subkindOfTable: Map<string, Set<JamoSubkind>> = invertMap(jamoTable);
-
 export function subkindOf(jamo: string): Set<JamoSubkind> {
-    return subkindOfTable.get(jamo) ?? new Set();
+    return new Set(jamoSpecTable.get(jamo)?.subkinds ?? []);
 }
 
 export function getJamos(requestedKind: JamoKind | JamoSubkind): string[] {
-    return Object.keys(jamoTable).flatMap((kind) => {
-        if (kind.endsWith(requestedKind)) {
-            return jamoTable[kind as JamoSubkind];
-        }
-        return [];
-    });
+    return jamoSpecTable
+        .entries()
+        .filter(([_, spec]) => {
+            return spec.subkinds.some(
+                (subkind) => subkind.endsWith(requestedKind)
+            );
+        })
+        .map(([jamo, _]) => jamo)
+        .toArray();
 }
 
-export function getExampleJamo(requestedKind: JamoKind | JamoSubkind): string {
-    return Object.keys(exampleJamo).find((kind) => kind.endsWith(requestedKind)) as string;
+export function getExampleJamos(kind: JamoKind | JamoSubkind): string[] {
+    return Object.entries(exampleJamo)
+        .filter(([subkind, _]) => subkind.endsWith(kind))
+        .map(([_, jamo]) => jamo);
 }
 
 export function selectLayout(
@@ -211,19 +427,12 @@ export function selectLayout(
                 }
             )
         ).filter(
-            (layout) => Object.entries(jamoTable).some(
-                ([subkind, list]) => (
-                    subkind.endsWith(layout.focus)
-                    && list.includes(focusJamo)
-                )
-            )
+            (layout) => getJamos(layout.focus).includes(focusJamo)
         );
     for (const jamo of [focusJamo, ...jamos]) {
         filteredLayouts = filteredLayouts.filter(
             (layout) => layout.elems.values().some(
-                (elem) => Object.entries(jamoTable).some(
-                    ([subkind, list]) => subkind.endsWith(elem) && list.includes(jamo)
-                )
+                (elem) => getJamos(elem).includes(jamo)
             )
         )
     }
