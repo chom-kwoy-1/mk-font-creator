@@ -417,6 +417,7 @@ export function generateTtx(ttx: TTXWrapper, curLayouts: Layouts) {
                 }
                 const newGlyphId = "cid" + (++lastGlyphId).toFixed(0).padStart(5, '0');
                 const width = lookAheadCoverage.length === 0 ? 1000 : 0;
+                const height = lookAheadCoverage.length === 0 ? 1000 : 0;
                 const charstring = makeCharstring(glyph, bounds, nominalWidth, width);
 
                 const origGlyphId = ttx.findGlyphName(ch);
@@ -446,13 +447,13 @@ export function generateTtx(ttx: TTXWrapper, curLayouts: Layouts) {
 
                 hmtx.push({
                     '@_name': newGlyphId,
-                    '@_width': "1000",
+                    '@_width': width.toFixed(0),
                     '@_lsb': "0",
                 });
 
                 vmtx.push({
                     '@_name': newGlyphId,
-                    '@_height': "1000",
+                    '@_height': height.toFixed(0),
                     '@_tsb': "0",
                 });
             }
