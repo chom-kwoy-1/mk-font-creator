@@ -4,7 +4,8 @@ import prettyBytes from "pretty-bytes";
 addEventListener("message", async (event: MessageEvent<Document>) => {
 
     const builder = new XMLBuilder({
-        ignoreAttributes : false,
+        ignoreAttributes: false,
+        format: true,
     });
     const xml = builder.build(event.data);
 

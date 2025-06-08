@@ -25,6 +25,10 @@ export type FontDict = {
 export type OS2 = {
     sTypoAscender: { '@_value': string }[],
     sTypoDescender: { '@_value': string }[],
+    ulUnicodeRange1: { '@_value': string }[],
+    ulUnicodeRange2: { '@_value': string }[],
+    ulUnicodeRange3: { '@_value': string }[],
+    ulUnicodeRange4: { '@_value': string }[],
 };
 
 export type Cmap4 = {

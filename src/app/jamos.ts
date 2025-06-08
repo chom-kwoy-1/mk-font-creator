@@ -4,7 +4,7 @@ type JamoSpec = {
     subkinds: Array<JamoSubkind>;
     components?: Array<string>;
 };
-const jamoSpecTable: Map<string, JamoSpec> = new Map([
+export const jamoSpecTable: Map<string, JamoSpec> = new Map([
     // Leading consonants
     ['ᄀ', {subkinds: ['single-leading', 'single-leading-1']}],
     ['ᄂ', {subkinds: ['single-leading', 'single-leading-2']}],

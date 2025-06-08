@@ -58,12 +58,14 @@ export async function POST(req: Request) {
 function convertFont(inputFileName: string): ReadableStream<Uint8Array> {
     const ttx_converter = child_process.spawn(
         "ttx",
-        [inputFileName, //"-o", "-"
-        ]
+        [inputFileName, "-o", "-"],
     );
 
     ttx_converter.stderr.on("data", (data) => {
-        console.error(`ttx_converter stderr: ${data}`);
+        data = "" + data;
+        if (!data.includes('WARNING')) {
+            console.error(`ttx: ${data.trimEnd()}`);
+        }
     });
 
     return makeByteReadableStreamFromNodeReadable(ttx_converter.stdout);

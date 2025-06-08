@@ -1,18 +1,31 @@
-import {LigatureSubst, TTXWrapper} from "@/app/TTXObject";
+import {ChainContextSubst, TTXWrapper} from "@/app/TTXObject";
 import {Divider, JamoElement, Layout, Layouts} from "@/app/jamo_layouts";
 import {makeCharstring} from "@/app/make_glyph";
 import {Bounds} from "@/app/font_utils";
-import {getJamos} from "@/app/jamos";
+import {getJamos, jamoSpecTable} from "@/app/jamos";
 import {PUA_CONV_TAB} from "@/app/pua_uni_table";
 
 export function generateTtx(ttx: TTXWrapper, curLayouts: Layouts) {
     const result = new TTXWrapper(structuredClone(ttx.ttx));
 
+    const os2 = result.getOS2();
     const glyphOrder = result.getGlyphOrder();
     const charstrings = result.getCharstrings();
     const gsub = result.getGsub();
     const hmtx = result.getHmtx();
     const vmtx = result.getVmtx();
+
+    const fdarray = ttx.getFDArray();
+    const fdSelectIndex = 0;
+    const fontDict = fdarray[fdSelectIndex];
+    const defaultWidth = parseInt(fontDict.Private[0].defaultWidthX[0]['@_value']);
+    const nominalWidth = parseInt(fontDict.Private[0].nominalWidthX[0]['@_value']);
+
+    // Set bit for Hangul jamo
+    const range1 = os2.ulUnicodeRange1[0]['@_value'];
+    os2.ulUnicodeRange1[0]['@_value'] = (
+        range1.slice(0, 3) + '1' + range1.slice(4)
+    );
 
     let lastGlyphId = parseInt(glyphOrder[glyphOrder.length - 1]["@_name"].slice(3));
 
@@ -92,16 +105,10 @@ export function generateTtx(ttx: TTXWrapper, curLayouts: Layouts) {
         "@_value": tjmoFeature["@_index"],
     });
 
-    const fdarray = ttx.getFDArray();
-    const fdSelectIndex = 0;
-    const fontDict = fdarray[fdSelectIndex];
-    const defaultWidth = parseInt(fontDict.Private[0].defaultWidthX[0]['@_value']);
-    const nominalWidth = parseInt(fontDict.Private[0].nominalWidthX[0]['@_value']);
-
     const substitutions: Map<string, Array<string>> = new Map();
 
-    // Add ligatures for precomposed glyphs
-    const ligatureSubstLookup = {
+    // Add 3-jamo ligatures
+    const ligatureSubstLookup3 = {
         "@_index": gsub.LookupList[0].Lookup.length.toFixed(0),
         LookupType: [{ "@_value": "4" }],
         LookupFlag: [{ "@_value": "0" }],
@@ -116,9 +123,9 @@ export function generateTtx(ttx: TTXWrapper, curLayouts: Layouts) {
             }[],
         }],
     };
-    gsub.LookupList[0].Lookup.push(ligatureSubstLookup);
+    gsub.LookupList[0].Lookup.push(ligatureSubstLookup3);
 
-    for (const [first, ligatures] of getPuaLigatures().entries()) {
+    for (const [first, ligatures] of precomposedLigatures(3).entries()) {
         const firstGlyphName = ttx.findGlyphName(first);
         if (firstGlyphName === undefined) {
             console.error(`Glyph for codepoint ${first} not found`);
@@ -132,19 +139,19 @@ export function generateTtx(ttx: TTXWrapper, curLayouts: Layouts) {
 
         for (const lig of ligatures) {
             const rest = lig.rest.map((ch) => ttx.findGlyphName(ch));
-            const pua = ttx.findGlyphName(lig.pua);
-            if (rest.some((ch) => ch === undefined) || pua === undefined) {
-                console.error(`Glyph for codepoint ${lig.pua} or its components not found`);
+            const composed = ttx.findGlyphName(lig.composed);
+            if (rest.some((ch) => ch === undefined) || composed === undefined) {
+                console.error(`Glyph for codepoint ${lig.composed} or its components not found`);
                 continue;
             }
             ligatureList.push({
                 '@_components': rest.join(','),
-                '@_glyph': pua,
+                '@_glyph': composed,
             });
         }
 
         if (ligatureList.length > 0) {
-            ligatureSubstLookup.LigatureSubst[0].LigatureSet.push({
+            ligatureSubstLookup3.LigatureSubst[0].LigatureSet.push({
                 '@_glyph': firstGlyphName,
                 Ligature: ligatureList,
             });
@@ -153,7 +160,137 @@ export function generateTtx(ttx: TTXWrapper, curLayouts: Layouts) {
 
     ccmpFeature.Feature[0].LookupListIndex.push({
         "@_index": ccmpFeature.Feature[0].LookupListIndex.length.toFixed(0),
-        "@_value": ligatureSubstLookup["@_index"],
+        "@_value": ligatureSubstLookup3["@_index"],
+    });
+
+    // Add ligatures for 2-jamo precomposed glyphs
+    const chainSubstLookup = {
+        "@_index": gsub.LookupList[0].Lookup.length.toFixed(0),
+        LookupType: [{ "@_value": "6" }],
+        LookupFlag: [{ "@_value": "0" }],
+        ChainContextSubst: [] as ChainContextSubst[],
+    };
+    gsub.LookupList[0].Lookup.push(chainSubstLookup);
+
+    const ligatureSubstLookup2 = {
+        "@_index": gsub.LookupList[0].Lookup.length.toFixed(0),
+        LookupType: [{ "@_value": "4" }],
+        LookupFlag: [{ "@_value": "0" }],
+        LigatureSubst: [{
+            "@_index": "0",
+            LigatureSet: [] as {
+                '@_glyph': string,
+                'Ligature': {
+                    '@_components': string,
+                    '@_glyph': string,
+                }[],
+            }[],
+        }],
+    };
+    gsub.LookupList[0].Lookup.push(ligatureSubstLookup2);
+
+    const trailingJamos = new Set(
+        jamoSpecTable.entries()
+            .filter(([_, spec]) => spec.subkinds.some((subkind) => subkind.endsWith('trailing')))
+            .map(([jamo, _]) => ttx.findGlyphName(jamo))
+            .filter((jamo) => jamo !== undefined)
+            .toArray()
+    );
+
+    // Skip composition if trailing jamo is present
+    for (const [first, ligatures] of precomposedLigatures(2).entries()) {
+        const firstGlyphName = ttx.findGlyphName(first);
+        if (firstGlyphName === undefined) {
+            console.error(`Glyph for codepoint ${first} not found`);
+            continue;
+        }
+
+        for (const lig of ligatures) {
+            const rest = ttx.findGlyphName(lig.rest[0]);
+            if (rest === undefined) {
+                console.error(`Glyph for codepoint ${lig.rest[0]} not found`);
+                continue;
+            }
+
+            chainSubstLookup.ChainContextSubst.push({
+                "@_index": chainSubstLookup.ChainContextSubst.length.toFixed(0),
+                "@_Format": "3",  // use coverage tables
+                InputCoverage: [
+                    { "@_index": "0", Glyph: [{ "@_value": firstGlyphName }]},
+                    { "@_index": "1", Glyph: [{ "@_value": rest }] }
+                ],
+                BacktrackCoverage: [],
+                LookAheadCoverage: [{
+                    "@_index": "0",
+                    Glyph: (
+                        trailingJamos
+                        .values()
+                        .map((jamo) => ({ "@_value": jamo }))
+                        .toArray()
+                    )
+                }],
+                SubstLookupRecord: [],
+            });
+        }
+    }
+
+    for (const [first, ligatures] of precomposedLigatures(2).entries()) {
+        const firstGlyphName = ttx.findGlyphName(first);
+        if (firstGlyphName === undefined) {
+            continue;
+        }
+
+        const ligatureList: {
+            '@_components': string,
+            '@_glyph': string,
+        }[] = [];
+
+        for (const lig of ligatures) {
+            const rest = ttx.findGlyphName(lig.rest[0]);
+            const composed = ttx.findGlyphName(lig.composed);
+            if (rest === undefined) {
+                continue;
+            }
+            if (composed === undefined) {
+                console.error(`Glyph for codepoint ${lig.composed} not found`);
+                continue;
+            }
+
+            chainSubstLookup.ChainContextSubst.push({
+                "@_index": chainSubstLookup.ChainContextSubst.length.toFixed(0),
+                "@_Format": "3",  // use coverage tables
+                InputCoverage: [
+                    { "@_index": "0", Glyph: [{ "@_value": firstGlyphName }]},
+                    { "@_index": "1", Glyph: [{ "@_value": rest }] }
+                ],
+                BacktrackCoverage: [],
+                LookAheadCoverage: [],
+                SubstLookupRecord: [{
+                    "@_index": "0",
+                    SequenceIndex: [{"@_value": "0"}],
+                    LookupListIndex: [{
+                        "@_value": ligatureSubstLookup2["@_index"],
+                    }],
+                }],
+            });
+
+            ligatureList.push({
+                '@_components': rest,
+                '@_glyph': composed,
+            })
+        }
+
+        if (ligatureList.length > 0) {
+            ligatureSubstLookup2.LigatureSubst[0].LigatureSet.push({
+                '@_glyph': firstGlyphName,
+                Ligature: ligatureList,
+            });
+        }
+    }
+
+    ccmpFeature.Feature[0].LookupListIndex.push({
+        "@_index": ccmpFeature.Feature[0].LookupListIndex.length.toFixed(0),
+        "@_value": chainSubstLookup["@_index"],
     });
 
     // Add contextual jamo glyph variants
@@ -368,37 +505,33 @@ export function* standardSyllables(): Generator<{jamos: string, comp: string}> {
     }
 }
 
-let PUA_LIGATURES: Map<string, Array<{rest: Array<string>, pua: string}>> | null = null;
-function getPuaLigatures(): Map<string, Array<{rest: Array<string>, pua: string}>> {
-    if (PUA_LIGATURES === null) {
-        PUA_LIGATURES = new Map();
+function precomposedLigatures(length: number): Map<string, Array<{rest: Array<string>, composed: string}>> {
+    const PUA_LIGATURES = new Map();
 
-        function addToMapEntry(uni: string, pua: string) {
-            const key = uni[0];
-            const rest = Array.from(uni).slice(1);
-            if (!PUA_LIGATURES!.has(key)) {
-                PUA_LIGATURES!.set(key, []);
-            }
-            PUA_LIGATURES!.get(key)?.push({
-                rest: rest,
-                pua: pua,
-            });
+    function addToMapEntry(uni: string, pua: string) {
+        const key = uni[0];
+        const rest = Array.from(uni).slice(1);
+        if (!PUA_LIGATURES!.has(key)) {
+            PUA_LIGATURES!.set(key, []);
         }
+        PUA_LIGATURES!.get(key)?.push({
+            rest: rest,
+            composed: pua,
+        });
+    }
 
-        // Convert longer sequences first
-        for (let length = 3; length >= 2; --length) {
-            for (const [pua, uni] of PUA_CONV_TAB.entries()) {
-                if (uni.length === length) {
-                    addToMapEntry(uni, pua);
-                }
-            }
-            for (const {jamos, comp} of standardSyllables()) {
-                if (jamos.length === length) {
-                    addToMapEntry(jamos, comp);
-                }
-            }
+    // Convert longer sequences first
+    for (const [pua, uni] of PUA_CONV_TAB.entries()) {
+        if (uni.length === length) {
+            addToMapEntry(uni, pua);
         }
     }
+    // FIXME: is this needed?
+    // for (const {jamos, comp} of standardSyllables()) {
+    //     if (jamos.length === length) {
+    //         addToMapEntry(jamos, comp);
+    //     }
+    // }
     return PUA_LIGATURES;
 }
 
