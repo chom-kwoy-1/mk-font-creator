@@ -25,10 +25,11 @@ import {Category, Layouts, ResizedGlyph} from "@/app/jamo_layouts";
 import {initLayouts} from "@/app/init_layouts";
 import {ResizedGlyphView} from "@/app/ResizedGlyphView";
 import {parseGlyph, Point} from "@/app/parse_glyph";
-import {Layer, Stage, Text} from "react-konva";
+import {Layer, Line, Stage, Text} from "react-konva";
 import {findCharstringByCodepoint, glyphActualBounds} from "@/app/font_utils";
 import Konva from "konva";
 import {generateTtx} from "@/app/make_ttx";
+import {brown} from "@mui/material/colors";
 
 
 const VisuallyHiddenInput = styled('input')({
@@ -200,14 +201,14 @@ function CompositionLayouts(
         }
 
         const cs = findCharstringByCodepoint(
-            'ㄱ'.codePointAt(0) as number,
+            'ㅌ'.codePointAt(0) as number,
             ttx,
         ) as Charstring;
         const glyph: ResizedGlyph = {
             glyph: parseGlyph(cs, fdarray),
-            bounds: {left: 0.2, right: 0.8, top: 0.8, bottom: 0.2},
+            bounds: {left: 0.2, right: 0.8, top: 0.8, bottom: 0.7},
         }
-        const bounds = {left: 0, right: 1000, top: 800, bottom: 300};
+        const bounds = {left: 0, right: 1000, top: 800, bottom: -200};
         const actualBounds = glyphActualBounds(glyph.glyph);
         const resizedBounds = glyph.bounds;
         const targetBounds = {
@@ -235,11 +236,51 @@ function CompositionLayouts(
                         }
                     }}>
                     <Layer>
+                        <Line
+                            points={[
+                                ...rescale({ x: 0, y: -Infinity }),
+                                ...rescale({ x: 0, y: Infinity }),
+                            ]}
+                            stroke={"white"}
+                            strokeWidth={1}
+                        />
+                        <Line
+                            points={[
+                                ...rescale({ x: 1000, y: -Infinity }),
+                                ...rescale({ x: 1000, y: Infinity }),
+                            ]}
+                            stroke={"white"}
+                            strokeWidth={1}
+                        />
+                        <Line
+                            points={[
+                                ...rescale({ x: -Infinity, y: 0 }),
+                                ...rescale({ x: Infinity, y: 0 }),
+                            ]}
+                            stroke={brown[500]}
+                            strokeWidth={1}
+                        />
+                        <Line
+                            points={[
+                                ...rescale({ x: -Infinity, y: 800 }),
+                                ...rescale({ x: Infinity, y: 800 }),
+                            ]}
+                            stroke={"white"}
+                            strokeWidth={1}
+                        />
+                        <Line
+                            points={[
+                                ...rescale({ x: -Infinity, y: -200 }),
+                                ...rescale({ x: Infinity, y: -200 }),
+                            ]}
+                            stroke={"white"}
+                            strokeWidth={1}
+                        />
                         <ResizedGlyphView
                             resizedGlyph={glyph}
                             rescale={rescale}
                             bounds={bounds}
-                            showPoints={false}
+                            showPoints={true}
                             strokeWidth={1}
                             stroke="grey"
                         />

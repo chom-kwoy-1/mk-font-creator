@@ -1,9 +1,18 @@
 import {ResizedGlyph} from "@/app/jamo_layouts";
 import {Glyph, Point} from "@/app/parse_glyph";
-import {adjustGlyphThickness, Bounds, glyphActualBounds, reduceGlyphPaths, synthesizeBoldGlyph} from "@/app/font_utils";
+import {
+    adjustGlyphThickness,
+    Bounds,
+    glyphActualBounds,
+    offsetGlyphSegments,
+    reduceGlyphPaths,
+    synthesizeBoldGlyph
+} from "@/app/font_utils";
 import {GlyphView} from "@/app/GlyphView";
 import React from "react";
 import Konva from "konva";
+import {Bezier} from "bezier-js";
+import {Circle, Line} from "react-konva";
 
 type PropType = Readonly<{
     stageRef?: React.RefObject<Konva.Group | null>,
@@ -14,7 +23,7 @@ type PropType = Readonly<{
 } & Konva.LineConfig>;
 
 export function ResizedGlyphView(
-    {resizedGlyph, rescale, bounds, ...props}: PropType
+    {resizedGlyph, rescale, bounds, showPoints, ...props}: PropType
 ) {
     const actualBounds = glyphActualBounds(resizedGlyph.glyph);
     const resizedBounds = resizedGlyph.bounds;
@@ -39,6 +48,13 @@ export function ResizedGlyphView(
         return [reducedGlyph, boldGlyph];
     }, [resizedGlyph.glyph]);
 
+    // const start = performance.now();
+    // const reducedGlyph = reduceGlyphPaths(resizedGlyph.glyph);
+    // const reduceTime = performance.now() - start;
+    // const boldGlyph = synthesizeBoldGlyph(reducedGlyph, boldOffset);
+    // const synthTime = performance.now() - reduceTime - start;
+    // console.log("Synthesize bold glyph reducetime=", reduceTime, "ms, synthtime=", synthTime, "ms");
+
     const adjustedGlyph = React.useMemo(() => {
         return adjustGlyphThickness(reducedGlyph, boldGlyph, boldOffset, xScale, yScale);
     }, [resizedGlyph.glyph, xScale, yScale]);
@@ -50,11 +66,67 @@ export function ResizedGlyphView(
         });
     }
 
+    function glyphRescale2(p: Point): number[] {
+        return rescale({
+            x: targetBounds.left + (p.x - actualBounds.left) * xScale,
+            y: targetBounds.bottom + (p.y - actualBounds.bottom) * yScale - 200,
+        });
+    }
+    function glyphRescale3(p: Point): number[] {
+        return rescale({
+            x: targetBounds.left + (p.x - actualBounds.left) * xScale,
+            y: targetBounds.bottom + (p.y - actualBounds.bottom) * yScale - 400,
+        });
+    }
+
+    const offsetBeziers: Bezier[][] = offsetGlyphSegments(reducedGlyph, boldOffset);
+
     return (
-        <GlyphView
-            glyph={adjustedGlyph}
-            rescale={glyphRescale}
-            {...props}
-        />
+        <React.Fragment>
+            <GlyphView
+                glyph={adjustedGlyph}
+                rescale={glyphRescale}
+                showPoints={false}
+                {...props}
+            />
+            {/*{offsetBeziers.map((bezier, idx) => (*/}
+            {/*    <React.Fragment key={idx}>*/}
+            {/*        {bezier.map((b, bIdx) =>*/}
+            {/*            <React.Fragment key={bIdx}>*/}
+            {/*                <Line*/}
+            {/*                    points={[*/}
+            {/*                        ...glyphRescale(b.points[0]),*/}
+            {/*                        ...glyphRescale(b.points[1]),*/}
+            {/*                        ...glyphRescale(b.points[2]),*/}
+            {/*                        ...glyphRescale(b.points[3])*/}
+            {/*                    ]}*/}
+            {/*                    bezier={true}*/}
+            {/*                    stroke={"white"}*/}
+            {/*                    strokeWidth={1}*/}
+            {/*                />*/}
+            {/*                <Circle*/}
+            {/*                    x={glyphRescale(b.points[0])[0]}*/}
+            {/*                    y={glyphRescale(b.points[0])[1]}*/}
+            {/*                    radius={1}*/}
+            {/*                    fill={"red"}*/}
+            {/*                />*/}
+            {/*            </React.Fragment>*/}
+            {/*        )}*/}
+            {/*    </React.Fragment>*/}
+            {/*))}*/}
+            {/*<GlyphView*/}
+            {/*    glyph={boldGlyph}*/}
+            {/*    rescale={glyphRescale2}*/}
+            {/*    showPoints={false}*/}
+            {/*    {...props}*/}
+            {/*/>*/}
+            {/*<GlyphView*/}
+            {/*    glyph={adjustedGlyph}*/}
+            {/*    rescale={glyphRescale3}*/}
+            {/*    showPoints={false}*/}
+            {/*    {...props}*/}
+            {/*    stroke={"yellow"}*/}
+            {/*/>*/}
+        </React.Fragment>
     );
 }

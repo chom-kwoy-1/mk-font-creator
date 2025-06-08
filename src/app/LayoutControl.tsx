@@ -81,7 +81,7 @@ export function LayoutControl(
 
             const setResizedGlyph = (
                 isFocus && setLayout ?
-                    (newResizedGlyph: ResizedGlyph | null) => {
+                    (newResizedGlyph: ResizedGlyph) => {
                         const newGlyphs = new Map(layout.glyphs);
                         newGlyphs.set(jamo, newResizedGlyph);
                         setLayout({...layout, glyphs: newGlyphs});

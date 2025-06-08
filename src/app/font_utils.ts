@@ -113,7 +113,7 @@ export function adjustGlyphThickness(
         xThickness: 100,  // TODO: parse these values from file
         yThickness: 50,
         boldOffset: boldOffset,
-        alpha: 0.2,
+        alpha: 0.6,
     };
 
     const newGlyph = structuredClone(reducedGlyph);
@@ -166,13 +166,16 @@ function dist(p1: Point, p2: Point): number {
     return Math.sqrt((p1.x - p2.x) ** 2 + (p1.y - p2.y) ** 2);
 }
 
-function offsetGlyphSegments(glyph: Glyph, d: number): Bezier[][] {
+export function offsetGlyphSegments(glyph: Glyph, d: number): Bezier[][] {
     const newGlyph = structuredClone(glyph);
 
-    return newGlyph.paths.map((path) => {
+    return newGlyph.paths.map((path, pathIdx) => {
         const beziers: Bezier[] = [];
         let lastPoint = path.start;
         for (let segIdx = 0; segIdx <= path.segments.length; segIdx++) {
+            if (segIdx === path.segments.length && dist(lastPoint, path.start) < 1e-6) {
+                break;
+            }
             const segment = (
                 segIdx < path.segments.length ?
                     path.segments[segIdx] :
@@ -196,36 +199,60 @@ function offsetGlyphSegments(glyph: Glyph, d: number): Bezier[][] {
             }
             const bezier = new Bezier(points);
             const offset = bezier.offset(-d) as Bezier[];
-            beziers.push(offset[0]);
+            if (offset.length === 0) {
+                console.log("Offset failed for segment", segIdx, "in path", pathIdx, bezier);
+                beziers.push(bezier);
+            }
+            else {
+                beziers.push(offset[0]);
+            }
             lastPoint = segment.p;
         }
         return beziers;
     });
 }
 
+// This is a simple random number generator based on the sfc32 algorithm.
+function sfc32(a: number, b: number, c: number, d: number): () => number {
+    return function() {
+        a |= 0; b |= 0; c |= 0; d |= 0;
+        let t = (a + b | 0) + d | 0;
+        d = d + 1 | 0;
+        a = b ^ b >>> 9;
+        b = c + (c << 3) | 0;
+        c = (c << 21 | c >>> 11);
+        c = c + t | 0;
+        return (t >>> 0) / 4294967296;
+    }
+}
+
 function curveIntersect(b1: Bezier, b2: Bezier): {t1: number, t2: number}[] {
-    // FIXME: Workaround for degenerate cases
-    const noise = 1e-4;
+    const getRand = sfc32(0, 0, 0, 0);
+    const noise = 0.001;
     function n() {
-        return noise * (Math.random() - .5);
+        return noise * (getRand() - .5);
     }
     const b1_ = new Bezier([
-        {x: b1.points[0].x + n(), y: b1.points[0].y + n()},
+        {x: b1.points[0].x, y: b1.points[0].y},
         {x: b1.points[1].x + n(), y: b1.points[1].y + n()},
         {x: b1.points[2].x + n(), y: b1.points[2].y + n()},
-        {x: b1.points[3].x + n(), y: b1.points[3].y + n()},
+        {x: b1.points[3].x, y: b1.points[3].y},
     ]);
     const b2_ = new Bezier([
         {x: b2.points[0].x + n(), y: b2.points[0].y + n()},
         {x: b2.points[1].x + n(), y: b2.points[1].y + n()},
         {x: b2.points[2].x + n(), y: b2.points[2].y + n()},
-        {x: b2.points[3].x + n(), y: b2.points[3].y + n()},
+        {x: b2.points[3].x, y: b2.points[3].y},
     ]);
-    const intersections = b1_.intersects(b2_, 1e-1);
+    const intersections = b1_.intersects(b2_);
     return intersections.map((t1_t2) => {
         const [t1, t2] = (t1_t2 as string).split("/").map(parseFloat);
         return {t1, t2};
     });
+}
+
+function distance(p1: Point, p2: Point): number {
+    return Math.sqrt((p1.x - p2.x) ** 2 + (p1.y - p2.y) ** 2);
 }
 
 export function synthesizeBoldGlyph(glyph: Glyph, d: number): Glyph {
@@ -252,6 +279,13 @@ export function synthesizeBoldGlyph(glyph: Glyph, d: number): Glyph {
             }
             if (lastBezier === null) {
                 path.start = structuredClone(offsetBezier.points[0]);
+                lastBezier = offsetBezier;
+            }
+            else if (distance(lastBezier.points[3], offsetBezier.points[0]) < 0.1) {
+                // We can just continue
+                if (verbose) {
+                    console.log("skipping", segIdx, "because points are equal");
+                }
                 lastBezier = offsetBezier;
             }
             else {
@@ -303,6 +337,7 @@ export function synthesizeBoldGlyph(glyph: Glyph, d: number): Glyph {
                         if (verbose) {
                             console.log("no intersection", segIdx, offsetBezier);
                         }
+                        //lastBezier = offsetBezier;
                     }
                 }
             }
