@@ -50,6 +50,21 @@ export type Vmtx = {
     '@_tsb': string,
 };
 
+export type CFF = {
+    major: { '@_value': string }[],
+    minor: { '@_value': string }[],
+    CFFFont: {
+        '@_name': string,
+        CIDCount: { '@_value': string }[],
+        FDArray: {
+            FontDict: FontDict[],
+        }[],
+        CharStrings: {
+            CharString: Charstring[],
+        }[],
+    }[];
+};
+
 export type Gsub = {
     'Version': {
         '@_value': '0x00010000',
@@ -196,6 +211,10 @@ export class TTXWrapper {
 
     getNumberOfGlyphs(): number {
         return this.getGlyphOrder().length;
+    }
+
+    getCFF(): CFF {
+        return JSONPath.query(this.ttx, '$.ttFont[0].CFF[0]')[0];
     }
 
     getFDArray(): FontDict[] {

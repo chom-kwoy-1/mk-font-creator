@@ -10,6 +10,7 @@ export function generateTtx(ttx: TTXWrapper, curLayouts: Layouts) {
 
     const os2 = result.getOS2();
     const glyphOrder = result.getGlyphOrder();
+    const cff = result.getCFF();
     const charstrings = result.getCharstrings();
     const gsub = result.getGsub();
     const hmtx = result.getHmtx();
@@ -459,6 +460,9 @@ export function generateTtx(ttx: TTXWrapper, curLayouts: Layouts) {
             }
         }
     }
+
+    // Update CID count in CFF
+    cff.CFFFont[0].CIDCount[0]['@_value'] = (lastGlyphId + 1).toFixed(0);
 
     return result.ttx;
 }
