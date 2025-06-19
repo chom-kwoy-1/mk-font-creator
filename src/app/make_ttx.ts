@@ -2,7 +2,7 @@ import {ChainContextSubst, TTXWrapper} from "@/app/TTXObject";
 import {Divider, JamoElement, Layout, Layouts} from "@/app/jamo_layouts";
 import {makeCharstring} from "@/app/make_glyph";
 import {Bounds} from "@/app/font_utils";
-import {getJamos, jamoSpecTable, subkindOf} from "@/app/jamos";
+import {getJamos, trailingJamos, subkindOf} from "@/app/jamos";
 import {PUA_CONV_TAB} from "@/app/pua_uni_table";
 
 export function generateTtx(ttx: TTXWrapper, curLayouts: Layouts) {
@@ -207,10 +207,10 @@ export function generateTtx(ttx: TTXWrapper, curLayouts: Layouts) {
     };
     gsub.LookupList[0].Lookup.push(ligatureSubstLookup2);
 
-    const trailingJamos = new Set(
-        jamoSpecTable.entries()
-            .filter(([_, spec]) => spec.subkinds.some((subkind) => subkind.endsWith('trailing')))
-            .map(([jamo, _]) => ttx.findGlyphName(jamo))
+    const trailingJamoNames = new Set(
+        trailingJamos()
+            .values()
+            .map((jamo) => ttx.findGlyphName(jamo))
             .filter((jamo) => jamo !== undefined)
             .toArray()
     );
@@ -241,7 +241,7 @@ export function generateTtx(ttx: TTXWrapper, curLayouts: Layouts) {
                 LookAheadCoverage: [{
                     "@_index": "0",
                     Glyph: (
-                        trailingJamos
+                        trailingJamoNames
                         .values()
                         .map((jamo) => ({ "@_value": jamo }))
                         .toArray()

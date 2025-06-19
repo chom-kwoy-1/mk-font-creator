@@ -4,7 +4,7 @@ type JamoSpec = {
     subkinds: Array<JamoSubkind>;
     components?: Array<string>;
 };
-export const jamoSpecTable: Map<string, JamoSpec> = new Map([
+const jamoSpecTable: Map<string, JamoSpec> = new Map([
     // Leading consonants
     ['ᄀ', {subkinds: ['single-leading', 'single-leading-1']}],
     ['ᄂ', {subkinds: ['single-leading', 'single-leading-2']}],
@@ -368,7 +368,7 @@ export const jamoSpecTable: Map<string, JamoSpec> = new Map([
 interface ExampleJamo {
     [key: string]: string;
 }
-export const exampleJamo: ExampleJamo = {
+const exampleJamo: ExampleJamo = {
     'single-leading': 'ᄆ',
     'single-leading-1': 'ᄏ',
     'single-leading-2': 'ᄆ',
@@ -393,6 +393,14 @@ export const exampleJamo: ExampleJamo = {
 
 export function subkindOf(jamo: string): Set<JamoSubkind> {
     return new Set(jamoSpecTable.get(jamo)?.subkinds ?? []);
+}
+
+export function trailingJamos(): Set<string> {
+    return new Set(
+        jamoSpecTable.entries()
+            .filter(([_, spec]) => spec.subkinds.some((subkind) => subkind.endsWith('trailing')))
+            .map(([jamo, _]) => jamo)
+    );
 }
 
 export function getJamos(requestedKind: JamoKind | JamoSubkind): string[] {
