@@ -2,7 +2,7 @@
 
 import {FileResult, fileSync} from "tmp";
 import fs from "fs";
-import child_process from "node:child_process";
+import child_process, {ChildProcess} from "node:child_process";
 import {makeByteReadableStreamFromNodeReadable} from "node-readable-to-web-readable-stream";
 
 export async function POST(req: Request) {
@@ -35,9 +35,19 @@ export async function POST(req: Request) {
 
         console.log("TTX file written to: " + tmpFileOrNull.name);
 
-        const result = convertFont(tmpFileOrNull.name).pipeThrough(new CompressionStream("gzip"));
+        const [process, result] = convertTtxToFont(tmpFileOrNull.name);
+        process.on('close', (code) => {
+            if (code !== 0) {
+                console.error(`ttx process exited with code ${code}`);
+                // TODO: get this error to the client
+            }
+            if (tmpFileOrNull !== null) {
+                console.log("Removing temporary file: " + tmpFileOrNull.name);
+                tmpFileOrNull.removeCallback();
+            }
+        });
 
-        return new Response(result);
+        return new Response(result.pipeThrough(new CompressionStream("gzip")));
     }
     catch (err) {
         let message = "Unknown Error";
@@ -47,18 +57,12 @@ export async function POST(req: Request) {
         }
         return Response.json({ error: message }, { status: 500 });
     }
-    finally {
-        if (tmpFileOrNull != null) {
-            //console.log("Removing temporary file: " + tmpFileOrNull.name);
-            //tmpFileOrNull.removeCallback();
-        }
-    }
 }
 
-function convertFont(inputFileName: string): ReadableStream<Uint8Array> {
+function convertTtxToFont(inputFileName: string): [ChildProcess, ReadableStream<Uint8Array>] {
     const ttx_converter = child_process.spawn(
         "ttx",
-        [inputFileName, "-o", "-"],
+        ["-o", "-", inputFileName],
     );
 
     ttx_converter.stderr.on("data", (data) => {
@@ -68,5 +72,5 @@ function convertFont(inputFileName: string): ReadableStream<Uint8Array> {
         }
     });
 
-    return makeByteReadableStreamFromNodeReadable(ttx_converter.stdout);
+    return [ttx_converter, makeByteReadableStreamFromNodeReadable(ttx_converter.stdout)];
 }
