@@ -869,5 +869,173 @@ export const jamoLayouts: InitialLayouts = [
                 },
             },
         ]
-    }
+    },
+    {
+        categoryName: "받침 (연서자)",
+        tag: 'with-trailing',
+        substOrder: 10,
+        layouts: [
+            {
+                name: '받침 (연서자) 가로모임',
+                focus: 'trailing',
+                elems: ['leading', 'right-vowel', 'stacked-trailing'],
+                dividers: {
+                    type: 'horizontal',
+                    y: 0.4,
+                    top: {
+                        type: 'vertical',
+                        x: 0.6,
+                        left: {type: 'jamo', kind: 'leading'},
+                        right: {type: 'jamo', kind: 'right-vowel'},
+                    },
+                    bottom: {type: 'jamo', kind: 'trailing', subkind: 'stacked-trailing'},
+                },
+            },
+            {
+                name: '받침 (연서자) 세로모임',
+                focus: 'trailing',
+                elems: ['leading', 'bottom-vowel', 'stacked-trailing'],
+                dividers: {
+                    type: 'horizontal',
+                    y: 0.4,
+                    top: {
+                        type: 'horizontal',
+                        y: 0.4,
+                        top: {type: 'jamo', kind: 'leading'},
+                        bottom: {type: 'jamo', kind: 'bottom-vowel'},
+                    },
+                    bottom: {type: 'jamo', kind: 'trailing', subkind: 'stacked-trailing'},
+                },
+            },
+            {
+                name: '받침 (연서자) 섞임모임',
+                focus: 'trailing',
+                elems: ['leading', 'mixed-vowel', 'stacked-trailing'],
+                dividers: {
+                    type: 'horizontal',
+                    y: 0.4,
+                    top: {
+                        type: 'mixed',
+                        x: 0.6,
+                        y: 0.4,
+                        topLeft: {type: 'jamo', kind: 'leading'},
+                        rest: {type: 'jamo', kind: 'mixed-vowel'},
+                    },
+                    bottom: {type: 'jamo', kind: 'trailing', subkind: 'stacked-trailing'},
+                },
+            },
+        ]
+    },
+    {
+        categoryName: "받침 (2중 병서)",
+        tag: 'with-trailing',
+        substOrder: 10,
+        layouts: [
+            {
+                name: '받침 (2중 병서) 가로모임',
+                focus: 'trailing',
+                elems: ['leading', 'right-vowel', 'double-trailing'],
+                dividers: {
+                    type: 'horizontal',
+                    y: 0.4,
+                    top: {
+                        type: 'vertical',
+                        x: 0.6,
+                        left: {type: 'jamo', kind: 'leading'},
+                        right: {type: 'jamo', kind: 'right-vowel'},
+                    },
+                    bottom: {type: 'jamo', kind: 'trailing', subkind: 'double-trailing'},
+                },
+            },
+            {
+                name: '받침 (2중 병서) 세로모임',
+                focus: 'trailing',
+                elems: ['leading', 'bottom-vowel', 'double-trailing'],
+                dividers: {
+                    type: 'horizontal',
+                    y: 0.4,
+                    top: {
+                        type: 'horizontal',
+                        y: 0.4,
+                        top: {type: 'jamo', kind: 'leading'},
+                        bottom: {type: 'jamo', kind: 'bottom-vowel'},
+                    },
+                    bottom: {type: 'jamo', kind: 'trailing', subkind: 'double-trailing'},
+                },
+            },
+            {
+                name: '받침 (2중 병서) 섞임모임',
+                focus: 'trailing',
+                elems: ['leading', 'mixed-vowel', 'double-trailing'],
+                dividers: {
+                    type: 'horizontal',
+                    y: 0.4,
+                    top: {
+                        type: 'mixed',
+                        x: 0.6,
+                        y: 0.4,
+                        topLeft: {type: 'jamo', kind: 'leading'},
+                        rest: {type: 'jamo', kind: 'mixed-vowel'},
+                    },
+                    bottom: {type: 'jamo', kind: 'trailing', subkind: 'double-trailing'},
+                },
+            },
+        ]
+    },
+    {
+        categoryName: "받침 (3중 병서)",
+        tag: 'with-trailing',
+        substOrder: 10,
+        layouts: [
+            {
+                name: '받침 (3중 병서) 가로모임',
+                focus: 'trailing',
+                elems: ['leading', 'right-vowel', 'triple-trailing'],
+                dividers: {
+                    type: 'horizontal',
+                    y: 0.4,
+                    top: {
+                        type: 'vertical',
+                        x: 0.6,
+                        left: {type: 'jamo', kind: 'leading'},
+                        right: {type: 'jamo', kind: 'right-vowel'},
+                    },
+                    bottom: {type: 'jamo', kind: 'trailing', subkind: 'triple-trailing'},
+                },
+            },
+            {
+                name: '받침 (3중 병서) 세로모임',
+                focus: 'trailing',
+                elems: ['leading', 'bottom-vowel', 'triple-trailing'],
+                dividers: {
+                    type: 'horizontal',
+                    y: 0.4,
+                    top: {
+                        type: 'horizontal',
+                        y: 0.4,
+                        top: {type: 'jamo', kind: 'leading'},
+                        bottom: {type: 'jamo', kind: 'bottom-vowel'},
+                    },
+                    bottom: {type: 'jamo', kind: 'trailing', subkind: 'triple-trailing'},
+                },
+            },
+            {
+                name: '받침 (3중 병서) 섞임모임',
+                focus: 'trailing',
+                elems: ['leading', 'mixed-vowel', 'triple-trailing'],
+                dividers: {
+                    type: 'horizontal',
+                    y: 0.4,
+                    top: {
+                        type: 'mixed',
+                        x: 0.6,
+                        y: 0.4,
+                        topLeft: {type: 'jamo', kind: 'leading'},
+                        rest: {type: 'jamo', kind: 'mixed-vowel'},
+                    },
+                    bottom: {type: 'jamo', kind: 'trailing', subkind: 'triple-trailing'},
+                },
+            },
+        ]
+    },
 ];

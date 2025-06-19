@@ -6,7 +6,9 @@ export function makeCharstring(
     resizedGlyph: ResizedGlyph,
     bounds: Bounds,
     nominalWidth: number,
-    targetWidth: number
+    targetWidth: number,
+    xOffset: number = 0,
+    yOffset: number = 0,
 ): string {
     const actualBounds = glyphActualBounds(resizedGlyph.glyph);
     const resizedBounds = resizedGlyph.bounds;
@@ -22,8 +24,8 @@ export function makeCharstring(
 
     function glyphRescale(p: Point): number[] {
         return [
-            targetBounds.left + (p.x - actualBounds.left) * xScale,
-            targetBounds.bottom + (p.y - actualBounds.bottom) * yScale,
+            targetBounds.left + (p.x - actualBounds.left) * xScale + xOffset,
+            targetBounds.bottom + (p.y - actualBounds.bottom) * yScale + yOffset,
         ];
     }
 
