@@ -10,7 +10,7 @@ import {
     Typography,
     Accordion,
     AccordionSummary,
-    AccordionDetails
+    AccordionDetails, Checkbox, FormControlLabel, RadioGroup, Radio
 } from "@mui/material";
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import DownloadIcon from '@mui/icons-material/Download';
@@ -28,7 +28,7 @@ import {parseGlyph, Point} from "@/app/parse_glyph";
 import {Layer, Line, Stage, Text} from "react-konva";
 import {findCharstringByCodepoint, glyphActualBounds} from "@/app/font_utils";
 import Konva from "konva";
-import {generateTtx} from "@/app/make_ttx";
+import {generateTtx, OrientationMode} from "@/app/make_ttx";
 import {brown} from "@mui/material/colors";
 
 
@@ -421,6 +421,7 @@ function DownloadFontButton(
 ) {
     const [downloadState, setDownloadState] = React.useState<string | null>(null);
     const [downloadDone, setDownloadDone] = React.useState<boolean>(false);
+    const [orientationMode, setOrientationMode] = React.useState<OrientationMode>("horz-and-vert");
 
     const workerRef = React.useRef<Worker>(null);
     React.useEffect(() => {
@@ -441,7 +442,7 @@ function DownloadFontButton(
             setDownloadDone(false);
             setDownloadState("Preparing download...");
 
-            const modifiedTtx = generateTtx(ttx, curLayouts);
+            const modifiedTtx = generateTtx(ttx, curLayouts, orientationMode);
 
             const blob: Blob = await new Promise((resolve, reject) => {
                 if (!workerRef.current) {
@@ -492,16 +493,26 @@ function DownloadFontButton(
     return (
         <Stack spacing={1}>
             <Box display={"flex"}>
-                <Stack spacing={0}>
-                    <Button
-                        variant="contained"
-                        startIcon={<DownloadIcon/>}
-                        onClick={() => downloadFont()}
-                        loading={downloadState !== null && !downloadDone}
+                <Stack direction="row" spacing={1} alignItems={"center"}>
+                    <Stack spacing={0}>
+                        <Button
+                            variant="contained"
+                            startIcon={<DownloadIcon/>}
+                            onClick={() => downloadFont()}
+                            loading={downloadState !== null && !downloadDone}
+                        >
+                            Download font
+                        </Button>
+                        {downloadState && !downloadDone && <LinearProgress/>}
+                    </Stack>
+                    <RadioGroup
+                        row
+                        value={orientationMode}
+                        onChange={(e) => setOrientationMode(e.target.value as OrientationMode)}
                     >
-                        Download font
-                    </Button>
-                    {downloadState && !downloadDone && <LinearProgress/>}
+                        <FormControlLabel value="horz-and-vert" control={<Radio />} label="가로쓰기 (+세로)" />
+                        <FormControlLabel value="vert-only" control={<Radio />} label="세로쓰기 전용" />
+                    </RadioGroup>
                 </Stack>
             </Box>
             {downloadState &&

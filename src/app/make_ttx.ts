@@ -5,7 +5,12 @@ import {Bounds} from "@/app/font_utils";
 import {getJamos, trailingJamos, subkindOf} from "@/app/jamos";
 import {PUA_CONV_TAB} from "@/app/pua_uni_table";
 
-export function generateTtx(ttx: TTXWrapper, curLayouts: Layouts) {
+export type OrientationMode = 'horz-and-vert' | 'vert-only';
+export function generateTtx(
+    ttx: TTXWrapper,
+    curLayouts: Layouts,
+    orientationMode: OrientationMode,
+) {
     const result = new TTXWrapper(structuredClone(ttx.ttx));
 
     const os2 = result.getOS2();
@@ -82,19 +87,6 @@ export function generateTtx(ttx: TTXWrapper, curLayouts: Layouts) {
     };
     gsub.FeatureList[0].FeatureRecord.push(ccmpFeature);
 
-    // Adjust position for vertical orientation
-    const vertFeature = {
-        "@_index": gsub.FeatureList[0].FeatureRecord.length.toFixed(0),
-        FeatureTag: [{ "@_value": "vert" }],
-        Feature: [{
-            LookupListIndex: [] as {
-                '@_index': string,
-                '@_value': string,
-            }[],
-        }],
-    };
-    gsub.FeatureList[0].FeatureRecord.push(vertFeature);
-
     // Enable features for default language system
     const defaultFeatures = gsub
         .ScriptList[0]
@@ -117,10 +109,6 @@ export function generateTtx(ttx: TTXWrapper, curLayouts: Layouts) {
     defaultFeatures.push({
         "@_index": defaultFeatures.length.toFixed(0),
         "@_value": tjmoFeature["@_index"],
-    });
-    defaultFeatures.push({
-        "@_index": defaultFeatures.length.toFixed(0),
-        "@_value": vertFeature["@_index"],
     });
 
     const substitutions: Map<string, Array<string>> = new Map();
@@ -311,24 +299,6 @@ export function generateTtx(ttx: TTXWrapper, curLayouts: Layouts) {
         "@_value": chainSubstLookup["@_index"],
     });
 
-    const vertSingleSubstLookup = {
-        "@_index": gsub.LookupList[0].Lookup.length.toFixed(0),
-        LookupType: [{"@_value": "1"}],
-        LookupFlag: [{"@_value": "0"}],
-        SingleSubst: [{
-            Substitution: [] as {
-                '@_in': string,
-                '@_out': string,
-            }[],
-        }],
-    };
-    gsub.LookupList[0].Lookup.push(vertSingleSubstLookup);
-
-    vertFeature.Feature[0].LookupListIndex.push({
-        "@_index": vertFeature.Feature[0].LookupListIndex.length.toFixed(0),
-        "@_value": vertSingleSubstLookup["@_index"],
-    });
-
     // Add contextual jamo glyph variants
     const sortedLayouts = curLayouts.toSorted((a, b) => a.substOrder - b.substOrder);
     for (const category of sortedLayouts) {
@@ -451,70 +421,61 @@ export function generateTtx(ttx: TTXWrapper, curLayouts: Layouts) {
                 if (glyph == null) {
                     continue;
                 }
-                let horzGlyphId = null;
-                for (const orientation of ['vert', 'horz']) {
-                    const newGlyphId = "cid" + (++lastGlyphId).toFixed(0).padStart(5, '0');
-                    const isLeading = subkindOf(ch).values().some((subkind) => subkind.endsWith('leading'));
-                    const width = (isLeading || orientation === 'vert') ? 1000 : 0;
-                    const height = isLeading ? 1000 : 0;
-                    const offset = isLeading ? 0 : -1000;
-                    const xOffset = orientation === 'horz' ? offset : 0;
-                    const yOffset = orientation === 'vert' ? -offset : 0;
+                const orientation = orientationMode === 'horz-and-vert' ? 'horz' : 'vert';
+                const newGlyphId = "cid" + (++lastGlyphId).toFixed(0).padStart(5, '0');
+                const isLeading = subkindOf(ch).values().some((subkind) => subkind.endsWith('leading'));
+                const width = (isLeading || orientation === 'vert') ? 1000 : 0;
+                const height = isLeading ? 1000 : 0;
+                const offset = isLeading ? 0 : -1000;
+                const xOffset = orientation === 'horz' ? offset : 0;
+                const yOffset = orientation === 'vert' ? -offset : 0;
 
-                    const charstring = makeCharstring(glyph, bounds, nominalWidth, width, xOffset, yOffset);
+                const charstring = makeCharstring(glyph, bounds, nominalWidth, width, xOffset, yOffset);
 
-                    glyphOrder.push({
-                        "@_id": "0",  // this is ignored by the parser
-                        "@_name": newGlyphId,
-                    });
+                glyphOrder.push({
+                    "@_id": "0",  // this is ignored by the parser
+                    "@_name": newGlyphId,
+                });
 
-                    charstrings.push({
-                        '@_name': newGlyphId,
-                        '@_fdSelectIndex': fdSelectIndex.toFixed(0),
-                        '#text': charstring,
-                    });
+                charstrings.push({
+                    '@_name': newGlyphId,
+                    '@_fdSelectIndex': fdSelectIndex.toFixed(0),
+                    '#text': charstring,
+                });
 
-                    hmtx.push({
-                        '@_name': newGlyphId,
-                        '@_width': width.toFixed(0),
-                        '@_lsb': "0",
-                    });
+                hmtx.push({
+                    '@_name': newGlyphId,
+                    '@_width': width.toFixed(0),
+                    '@_lsb': "0",
+                });
 
-                    vmtx.push({
-                        '@_name': newGlyphId,
-                        '@_height': height.toFixed(0),
-                        '@_tsb': "0",
-                    });
+                vmtx.push({
+                    '@_name': newGlyphId,
+                    '@_height': height.toFixed(0),
+                    '@_tsb': "0",
+                });
 
-                    if (orientation === 'vert') {
-                        const origGlyphId = ttx.findGlyphName(ch);
-                        if (!origGlyphId) {
-                            throw new Error(`Glyph for codepoint ${ch} not found`);
-                        }
-                        horzGlyphId = newGlyphId;
-                        singleSubstLookup.SingleSubst[0].Substitution.push({
-                            '@_in': origGlyphId,
-                            '@_out': horzGlyphId,
-                        });
-                        substitutions.set(
-                            origGlyphId,
-                            substitutions.get(origGlyphId) ?? [],
-                        );
-                        substitutions.get(origGlyphId)?.push(horzGlyphId);
-                    }
-                    // else if (orientation === 'vert') {
-                    //     vertSingleSubstLookup.SingleSubst[0].Substitution.push({
-                    //         '@_in': horzGlyphId!,
-                    //         '@_out': newGlyphId,
-                    //     });
-                    // }
+                const origGlyphId = ttx.findGlyphName(ch);
+                if (!origGlyphId) {
+                    throw new Error(`Glyph for codepoint ${ch} not found`);
                 }
+                singleSubstLookup.SingleSubst[0].Substitution.push({
+                    '@_in': origGlyphId,
+                    '@_out': newGlyphId,
+                });
+                substitutions.set(
+                    origGlyphId,
+                    substitutions.get(origGlyphId) ?? [],
+                );
+                substitutions.get(origGlyphId)?.push(newGlyphId);
             }
         }
     }
 
     // Update CID count in CFF
     cff.CFFFont[0].CIDCount[0]['@_value'] = (lastGlyphId + 1).toFixed(0);
+
+    // TODO: add GPOS for adjusting glyph positions for horz-and-vert mode
 
     return result.ttx;
 }
