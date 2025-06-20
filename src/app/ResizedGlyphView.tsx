@@ -37,12 +37,12 @@ export function ResizedGlyphView(
     const xScale = (targetBounds.right - targetBounds.left) / (actualBounds.right - actualBounds.left);
     const yScale = (targetBounds.top - targetBounds.bottom) / (actualBounds.top - actualBounds.bottom);
 
-    const boldOffset = 20;
+    const boldOffset = 30;
     const [reducedGlyph, boldGlyph] = React.useMemo(() => {
         const start = performance.now();
         const reducedGlyph = reduceGlyphPaths(resizedGlyph.glyph);
         const reduceTime = performance.now() - start;
-        const boldGlyph = synthesizeBoldGlyph(reducedGlyph, boldOffset);
+        const [boldBeziers, boldGlyph] = synthesizeBoldGlyph(reducedGlyph, boldOffset);
         const synthTime = performance.now() - reduceTime - start;
         console.log("Synthesize bold glyph reducetime=", reduceTime, "ms, synthtime=", synthTime, "ms");
         return [reducedGlyph, boldGlyph];
@@ -51,7 +51,7 @@ export function ResizedGlyphView(
     // const start = performance.now();
     // const reducedGlyph = reduceGlyphPaths(resizedGlyph.glyph);
     // const reduceTime = performance.now() - start;
-    // const boldGlyph = synthesizeBoldGlyph(reducedGlyph, boldOffset);
+    // const [boldBeziers, boldGlyph] = synthesizeBoldGlyph(reducedGlyph, boldOffset);
     // const synthTime = performance.now() - reduceTime - start;
     // console.log("Synthesize bold glyph reducetime=", reduceTime, "ms, synthtime=", synthTime, "ms");
 
@@ -89,6 +89,25 @@ export function ResizedGlyphView(
                 showPoints={false}
                 {...props}
             />
+            {/*{reducedGlyph.paths.map((path, idx) => (*/}
+            {/*    <React.Fragment key={idx}>*/}
+            {/*        <Circle*/}
+            {/*            x={glyphRescale(path.start)[0]}*/}
+            {/*            y={glyphRescale(path.start)[1]}*/}
+            {/*            radius={1}*/}
+            {/*            fill={"#ff0000"}*/}
+            {/*        />*/}
+            {/*        {path.segments.map((segment, sIdx) => (*/}
+            {/*            <Circle*/}
+            {/*                key={sIdx}*/}
+            {/*                x={glyphRescale(segment.p)[0]}*/}
+            {/*                y={glyphRescale(segment.p)[1]}*/}
+            {/*                radius={1}*/}
+            {/*                fill={"#00ff00"}*/}
+            {/*            />*/}
+            {/*        ))}*/}
+            {/*    </React.Fragment>*/}
+            {/*))}*/}
             {/*{offsetBeziers.map((bezier, idx) => (*/}
             {/*    <React.Fragment key={idx}>*/}
             {/*        {bezier.map((b, bIdx) =>*/}
@@ -107,19 +126,38 @@ export function ResizedGlyphView(
             {/*                <Circle*/}
             {/*                    x={glyphRescale(b.points[0])[0]}*/}
             {/*                    y={glyphRescale(b.points[0])[1]}*/}
-            {/*                    radius={1}*/}
-            {/*                    fill={"red"}*/}
+            {/*                    radius={1.5}*/}
+            {/*                    fill={"yellow"}*/}
             {/*                />*/}
             {/*            </React.Fragment>*/}
             {/*        )}*/}
             {/*    </React.Fragment>*/}
             {/*))}*/}
-            {/*<GlyphView*/}
-            {/*    glyph={boldGlyph}*/}
-            {/*    rescale={glyphRescale2}*/}
-            {/*    showPoints={false}*/}
-            {/*    {...props}*/}
-            {/*/>*/}
+            {/*{boldBeziers.map((bezier, idx) => (*/}
+            {/*    <React.Fragment key={idx}>*/}
+            {/*        {bezier.map((b, bIdx) =>*/}
+            {/*            <React.Fragment key={bIdx}>*/}
+            {/*                <Line*/}
+            {/*                    points={[*/}
+            {/*                        ...glyphRescale2(b.points[0]),*/}
+            {/*                        ...glyphRescale2(b.points[1]),*/}
+            {/*                        ...glyphRescale2(b.points[2]),*/}
+            {/*                        ...glyphRescale2(b.points[3])*/}
+            {/*                    ]}*/}
+            {/*                    bezier={true}*/}
+            {/*                    stroke={"white"}*/}
+            {/*                    strokeWidth={1}*/}
+            {/*                />*/}
+            {/*                <Circle*/}
+            {/*                    x={glyphRescale2(b.points[0])[0]}*/}
+            {/*                    y={glyphRescale2(b.points[0])[1]}*/}
+            {/*                    radius={1.5}*/}
+            {/*                    fill={"yellow"}*/}
+            {/*                />*/}
+            {/*            </React.Fragment>*/}
+            {/*        )}*/}
+            {/*    </React.Fragment>*/}
+            {/*))}*/}
             {/*<GlyphView*/}
             {/*    glyph={adjustedGlyph}*/}
             {/*    rescale={glyphRescale3}*/}

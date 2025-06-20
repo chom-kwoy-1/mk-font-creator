@@ -239,7 +239,7 @@ function curveIntersect(b1: Bezier, b2: Bezier): {t1: number, t2: number}[] {
         {x: b1.points[3].x, y: b1.points[3].y},
     ]);
     const b2_ = new Bezier([
-        {x: b2.points[0].x + n(), y: b2.points[0].y + n()},
+        {x: b2.points[0].x, y: b2.points[0].y},
         {x: b2.points[1].x + n(), y: b2.points[1].y + n()},
         {x: b2.points[2].x + n(), y: b2.points[2].y + n()},
         {x: b2.points[3].x, y: b2.points[3].y},
@@ -251,11 +251,12 @@ function curveIntersect(b1: Bezier, b2: Bezier): {t1: number, t2: number}[] {
     });
 }
 
-function distance(p1: Point, p2: Point): number {
-    return Math.sqrt((p1.x - p2.x) ** 2 + (p1.y - p2.y) ** 2);
+function normalize(p: Point): Point {
+    const len = Math.sqrt(p.x * p.x + p.y * p.y);
+    return {x: p.x / len, y: p.y / len};
 }
 
-export function synthesizeBoldGlyph(glyph: Glyph, d: number): Glyph {
+export function synthesizeBoldGlyph(glyph: Glyph, d: number): [Bezier[][], Glyph] {
     const offsetBeziers: Bezier[][] = offsetGlyphSegments(glyph, d);
 
     const verbose = false;
@@ -265,23 +266,20 @@ export function synthesizeBoldGlyph(glyph: Glyph, d: number): Glyph {
         console.log("offsetBeziers", offsetBeziers);
     }
 
-    const newGlyph = structuredClone(glyph);
-
-    for (let pathIdx = 0; pathIdx < newGlyph.paths.length; pathIdx++) {
-        const path = newGlyph.paths[pathIdx];
+    for (let pathIdx = 0; pathIdx < glyph.paths.length; pathIdx++) {
+        const path = glyph.paths[pathIdx];
         let lastBezier: Bezier | null = null;
         let isResolved = true;
-        const newSegments: Segment[] = [];
+        let lastResolvedIdx = 0;
         for (let segIdx = 0; segIdx <= path.segments.length; segIdx++) {
-            const offsetBezier = offsetBeziers[pathIdx][segIdx];
+            let offsetBezier = offsetBeziers[pathIdx][segIdx];
             if (offsetBezier === undefined) {
                 break;
             }
             if (lastBezier === null) {
-                path.start = structuredClone(offsetBezier.points[0]);
                 lastBezier = offsetBezier;
             }
-            else if (distance(lastBezier.points[3], offsetBezier.points[0]) < 0.1) {
+            else if (isResolved && dist(lastBezier.points[3], offsetBezier.points[0]) < 2.0) {
                 // We can just continue
                 if (verbose) {
                     console.log("skipping", segIdx, "because points are equal");
@@ -289,15 +287,17 @@ export function synthesizeBoldGlyph(glyph: Glyph, d: number): Glyph {
                 lastBezier = offsetBezier;
             }
             else {
-                const lastDir = lastBezier.derivative(1.0);
-                const curDir = offsetBezier.derivative(0.0);
+                const lastDir = endDirection(lastBezier);
+                const curDir = startDirection(offsetBezier);
                 const intersect = rayIntersect(
                     lastBezier.points[3], lastDir,
                     offsetBezier.points[0], {x: -curDir.x, y: -curDir.y},
                 );
                 if (typeof intersect !== "string") {
-                    // Outward sharp point
-                    newSegments[newSegments.length - 1].p = intersect.p;
+                    // Outward sharp point -- meet the bezier at the intersection point
+                    // newSegments[newSegments.length - 1].p = intersect.p;
+                    offsetBeziers[pathIdx][segIdx - 1].points[3] = structuredClone(intersect.p);
+                    offsetBeziers[pathIdx][segIdx].points[0] = structuredClone(intersect.p);
                     lastBezier = offsetBezier;
                 }
                 else if (intersect === "degenerate") {
@@ -307,29 +307,30 @@ export function synthesizeBoldGlyph(glyph: Glyph, d: number): Glyph {
                 else if (intersect === "no intersection") {
                     // Inward sharp point
                     let corrected = false;
-                    for (let i = newSegments.length - 1; i >= 0; i--) {
-                        const prevBezier = offsetBeziers[pathIdx][i];
+                    for (let i = lastResolvedIdx; i > lastResolvedIdx - 5; i--) {
+                        const pos_i = i < 0 ? path.segments.length + i : i;
+                        const prevBezier = offsetBeziers[pathIdx][pos_i];
                         const intersect = curveIntersect(prevBezier, offsetBezier);
                         if (intersect.length > 0) {
                             const {t1, t2} = intersect[intersect.length - 1];
                             const split = prevBezier.split(t1);
-                            newSegments[i] = {
-                                ct1: structuredClone(split.left.points[1]),
-                                ct2: structuredClone(split.left.points[2]),
-                                p: structuredClone(split.left.points[3]),
-                            };
-                            for (let j = i + 1; j < newSegments.length; j++) {
-                                newSegments[j] = {
-                                    ct1: structuredClone(split.left.points[3]),
-                                    ct2: structuredClone(split.left.points[3]),
-                                    p: structuredClone(split.left.points[3]),
-                                };
+                            offsetBeziers[pathIdx][pos_i].points[2] = structuredClone(split.left.points[2]);
+                            offsetBeziers[pathIdx][pos_i].points[3] = structuredClone(split.left.points[3]);
+                            for (let j = i + 1; j < segIdx; j++) {
+                                const pos_j = j < 0 ? path.segments.length + j : j;
+                                offsetBeziers[pathIdx][pos_j].points = [
+                                    structuredClone(split.left.points[3]),
+                                    structuredClone(split.left.points[3]),
+                                    structuredClone(split.left.points[3]),
+                                    structuredClone(split.left.points[3]),
+                                ];
                             }
                             if (verbose) {
                                 console.log(segIdx, "resolved at", i);
                             }
-                            corrected = true;
+                            offsetBeziers[pathIdx][segIdx] = offsetBezier.split(t2).right;
                             lastBezier = offsetBezier;
+                            corrected = true;
                             break;
                         }
                     }
@@ -337,9 +338,34 @@ export function synthesizeBoldGlyph(glyph: Glyph, d: number): Glyph {
                         if (verbose) {
                             console.log("no intersection", segIdx, offsetBezier);
                         }
-                        //lastBezier = offsetBezier;
                     }
                 }
+            }
+
+            isResolved = Object.is(lastBezier, offsetBezier);
+            if (isResolved) {
+                lastResolvedIdx = segIdx;
+            }
+        }
+
+        if (!isResolved) {
+            if (verbose) {
+                console.log("warning: unresolved offset connection", path, lastBezier);
+            }
+        }
+    }
+
+    const newGlyph = structuredClone(glyph);
+    for (let pathIdx = 0; pathIdx < newGlyph.paths.length; pathIdx++) {
+        const path = newGlyph.paths[pathIdx];
+        const newSegments: Segment[] = [];
+        for (let segIdx = 0; segIdx <= path.segments.length; segIdx++) {
+            let offsetBezier = offsetBeziers[pathIdx][segIdx];
+            if (offsetBezier === undefined) {
+                break;
+            }
+            if (segIdx === 0) {
+                path.start = structuredClone(offsetBezier.points[0]);
             }
             if (segIdx < path.segments.length) {
                 newSegments.push({
@@ -348,15 +374,81 @@ export function synthesizeBoldGlyph(glyph: Glyph, d: number): Glyph {
                     p: structuredClone(offsetBezier.points[3]),
                 });
             }
-            isResolved = Object.is(lastBezier, offsetBezier);
         }
+        path.segments = newSegments;
+    }
 
-        if (!isResolved) {
-            if (verbose) {
-                console.log("warning: unresolved offset connection", path, lastBezier);
+    return [offsetBeziers, newGlyph];
+}
+
+function startDirection(bezier: Bezier): Point {
+    const p1 = bezier.points[0];
+    const p2 = bezier.points[1];
+    if (dist(p1, p2) < 1e-6) {
+        // Special case: first control point is the same as the start point
+        const p3 = bezier.points[2];
+        return {
+            x: (-p1.x + p3.x) / dist(p1, p3),
+            y: (-p1.y + p3.y) / dist(p1, p3),
+        };
+    }
+    return normalize(bezier.derivative(0.0));
+}
+
+function endDirection(bezier: Bezier): Point {
+    const p3 = bezier.points[2];
+    const p4 = bezier.points[3];
+    if (dist(p3, p4) < 1e-6) {
+        // Special case: last control point is the same as the end point
+        const p2 = bezier.points[1];
+        return {
+            x: (-p2.x + p4.x) / dist(p2, p4),
+            y: (-p2.y + p4.y) / dist(p2, p4),
+        };
+    }
+    return normalize(bezier.derivative(1.0));
+}
+
+// 0 if smooth, positive if convex sharp point, negative if concave sharp point
+function angleBetween(lastBezier: Bezier, curBezier: Bezier): number {
+    const lastDir = endDirection(lastBezier);
+    const curDir = startDirection(curBezier);
+    let angle = (Math.atan2(curDir.y, curDir.x) - Math.atan2(lastDir.y, lastDir.x));
+    angle = angle > Math.PI ? angle - 2 * Math.PI : angle <= -Math.PI ? angle + 2 * Math.PI : angle;
+    return angle;
+}
+
+function padSharpPoints(glyph: Glyph): Glyph {
+    const newGlyph = structuredClone(glyph);
+
+    for (const path of newGlyph.paths) {
+        const newSegments: Segment[] = [];
+        let lastPoint = path.start;
+
+        let lastBezier = new Bezier(structuredClone([
+            path.segments[path.segments.length - 1].p,
+            path.segments[path.segments.length - 1].ct2,
+            lastPoint,
+            lastPoint,
+        ]));
+        let idx = 0;
+        for (const segment of path.segments) {
+            const bezier = new Bezier(structuredClone([
+                lastPoint, segment.ct1, segment.ct2, segment.p
+            ]));
+            const angle = angleBetween(lastBezier, bezier) * 180 / Math.PI;
+            if (Math.abs(angle) > 5) {
+                console.log(idx, "Angle:", angle);
             }
+            newSegments.push({
+                ct1: structuredClone(bezier.points[1]),
+                ct2: structuredClone(bezier.points[2]),
+                p: structuredClone(bezier.points[3]),
+            });
+            lastPoint = segment.p;
+            lastBezier = bezier;
+            idx += 1;
         }
-
         path.segments = newSegments;
     }
 

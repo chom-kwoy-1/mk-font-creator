@@ -54,7 +54,7 @@ export function GlyphView(
                             x={rescale(mid)[0]}
                             y={rescale(mid)[1]}
                             text={`${idx}`}
-                            fontSize={7}
+                            fontSize={9}
                             fill={["#dddd33", "#33dddd", "#dd33dd"][pathIdx % 3]}
                             align={"center"}
                             verticalAlign={"middle"}

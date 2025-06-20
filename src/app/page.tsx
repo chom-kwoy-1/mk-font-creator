@@ -185,7 +185,7 @@ function CompositionLayouts(
     const debug = false;
     if (debug) {
         const aspectRatio = 1.;
-        const canvasWidth = 600;
+        const canvasWidth = 1400;
         const canvasHeight = aspectRatio * canvasWidth;
 
         const minCanvasSide = Math.min(canvasWidth, canvasHeight);
@@ -201,7 +201,7 @@ function CompositionLayouts(
         }
 
         const cs = findCharstringByCodepoint(
-            'ㅌ'.codePointAt(0) as number,
+            'ㅊ'.codePointAt(0) as number,
             ttx,
         ) as Charstring;
         const glyph: ResizedGlyph = {
