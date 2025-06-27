@@ -37,16 +37,16 @@ export function ResizedGlyphView(
     const xScale = (targetBounds.right - targetBounds.left) / (actualBounds.right - actualBounds.left);
     const yScale = (targetBounds.top - targetBounds.bottom) / (actualBounds.top - actualBounds.bottom);
 
-    const boldOffset = 30;
-    const [reducedGlyph, boldGlyph] = React.useMemo(() => {
-        const start = performance.now();
-        const reducedGlyph = reduceGlyphPaths(resizedGlyph.glyph);
-        const reduceTime = performance.now() - start;
-        const [boldBeziers, boldGlyph] = synthesizeBoldGlyph(reducedGlyph, boldOffset);
-        const synthTime = performance.now() - reduceTime - start;
-        console.log("Synthesize bold glyph reducetime=", reduceTime, "ms, synthtime=", synthTime, "ms");
-        return [reducedGlyph, boldGlyph];
-    }, [resizedGlyph.glyph]);
+    // const boldOffset = 30;
+    // const [reducedGlyph, boldGlyph] = React.useMemo(() => {
+    //     const start = performance.now();
+    //     const reducedGlyph = reduceGlyphPaths(resizedGlyph.glyph);
+    //     const reduceTime = performance.now() - start;
+    //     const [boldBeziers, boldGlyph] = synthesizeBoldGlyph(reducedGlyph, boldOffset);
+    //     const synthTime = performance.now() - reduceTime - start;
+    //     console.log("Synthesize bold glyph reducetime=", reduceTime, "ms, synthtime=", synthTime, "ms");
+    //     return [reducedGlyph, boldGlyph];
+    // }, [resizedGlyph.glyph]);
 
     // const start = performance.now();
     // const reducedGlyph = reduceGlyphPaths(resizedGlyph.glyph);
@@ -55,9 +55,9 @@ export function ResizedGlyphView(
     // const synthTime = performance.now() - reduceTime - start;
     // console.log("Synthesize bold glyph reducetime=", reduceTime, "ms, synthtime=", synthTime, "ms");
 
-    const adjustedGlyph = React.useMemo(() => {
-        return adjustGlyphThickness(reducedGlyph, boldGlyph, boldOffset, xScale, yScale);
-    }, [resizedGlyph.glyph, xScale, yScale]);
+    // const adjustedGlyph = React.useMemo(() => {
+    //     return adjustGlyphThickness(reducedGlyph, boldGlyph, boldOffset, xScale, yScale);
+    // }, [resizedGlyph.glyph, xScale, yScale]);
 
     function glyphRescale(p: Point): number[] {
         return rescale({
@@ -66,25 +66,25 @@ export function ResizedGlyphView(
         });
     }
 
-    function glyphRescale2(p: Point): number[] {
-        return rescale({
-            x: targetBounds.left + (p.x - actualBounds.left) * xScale,
-            y: targetBounds.bottom + (p.y - actualBounds.bottom) * yScale - 200,
-        });
-    }
-    function glyphRescale3(p: Point): number[] {
-        return rescale({
-            x: targetBounds.left + (p.x - actualBounds.left) * xScale,
-            y: targetBounds.bottom + (p.y - actualBounds.bottom) * yScale - 400,
-        });
-    }
-
-    const offsetBeziers: Bezier[][] = offsetGlyphSegments(reducedGlyph, boldOffset);
+    // function glyphRescale2(p: Point): number[] {
+    //     return rescale({
+    //         x: targetBounds.left + (p.x - actualBounds.left) * xScale,
+    //         y: targetBounds.bottom + (p.y - actualBounds.bottom) * yScale - 200,
+    //     });
+    // }
+    // function glyphRescale3(p: Point): number[] {
+    //     return rescale({
+    //         x: targetBounds.left + (p.x - actualBounds.left) * xScale,
+    //         y: targetBounds.bottom + (p.y - actualBounds.bottom) * yScale - 400,
+    //     });
+    // }
+    //
+    // const offsetBeziers: Bezier[][] = offsetGlyphSegments(reducedGlyph, boldOffset);
 
     return (
         <React.Fragment>
             <GlyphView
-                glyph={adjustedGlyph}
+                glyph={resizedGlyph.glyph}
                 rescale={glyphRescale}
                 showPoints={false}
                 {...props}

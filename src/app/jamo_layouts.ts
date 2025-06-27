@@ -70,6 +70,7 @@ export type Category = {
     categoryName: string,
     tag: string,
     substOrder: number,  // lower is earlier
+    focus: JamoSubkind,
     layouts: Layout[];
 };
 
@@ -86,6 +87,7 @@ export type InitialCategory = {
     categoryName: string,
     tag: string,
     substOrder: number,  // lower is earlier
+    focus: JamoSubkind,
     layouts: InitialLayout[];
 };
 
@@ -97,6 +99,7 @@ export const jamoLayouts: InitialLayouts = [
         categoryName: "초성 (기본자)",
         tag: 'no-trailing',
         substOrder: 10,
+        focus: 'single-leading',
         layouts: [
             {
                 name: '초성 (기본자) 가로모임',
@@ -161,6 +164,7 @@ export const jamoLayouts: InitialLayouts = [
         categoryName: "초성 (연서자)",
         tag: 'no-trailing',
         substOrder: 10,
+        focus: 'stacked-leading',
         layouts: [
             {
                 name: '초성 (연서자) 가로모임',
@@ -202,6 +206,7 @@ export const jamoLayouts: InitialLayouts = [
         categoryName: "초성 (2중 병서)",
         tag: 'no-trailing',
         substOrder: 10,
+        focus: 'double-leading',
         layouts: [
             {
                 name: '초성 (2중) 가로모임',
@@ -243,6 +248,7 @@ export const jamoLayouts: InitialLayouts = [
         categoryName: "초성 (3중 병서)",
         tag: 'no-trailing',
         substOrder: 10,
+        focus: 'triple-leading',
         layouts: [
             {
                 name: '초성 (3중) 가로모임',
@@ -285,6 +291,7 @@ export const jamoLayouts: InitialLayouts = [
         categoryName: "중성 (기본자)",
         tag: 'no-trailing',
         substOrder: 10,
+        focus: 'single-right-vowel',
         layouts: [
             {
                 name: '중성 (기본자) 가로모임',
@@ -349,6 +356,7 @@ export const jamoLayouts: InitialLayouts = [
         categoryName: "중성 (중첩자)",
         tag: 'no-trailing',
         substOrder: 10,
+        focus: 'double-right-vowel',
         layouts: [
             {
                 name: '중성 (중첩자) 가로모임',
@@ -414,6 +422,7 @@ export const jamoLayouts: InitialLayouts = [
         categoryName: "받침있는 초성 (기본자)",
         tag: 'with-trailing',
         substOrder: 5,
+        focus: 'single-leading',
         layouts: [
             {
                 name: '초성 (기본자) 가로모임',
@@ -470,6 +479,7 @@ export const jamoLayouts: InitialLayouts = [
         categoryName: "받침있는 초성 (연서자)",
         tag: 'with-trailing',
         substOrder: 5,
+        focus: 'stacked-leading',
         layouts: [
             {
                 name: '초성 (연서자) 가로모임',
@@ -526,6 +536,7 @@ export const jamoLayouts: InitialLayouts = [
         categoryName: "받침있는 초성 (2중 병서)",
         tag: 'with-trailing',
         substOrder: 5,
+        focus: 'double-leading',
         layouts: [
             {
                 name: '초성 (2중) 가로모임',
@@ -582,6 +593,7 @@ export const jamoLayouts: InitialLayouts = [
         categoryName: "받침있는 초성 (3중 병서)",
         tag: 'with-trailing',
         substOrder: 5,
+        focus: 'triple-leading',
         layouts: [
             {
                 name: '초성 (3중) 가로모임',
@@ -639,6 +651,7 @@ export const jamoLayouts: InitialLayouts = [
         categoryName: "받침있는 중성 (기본자)",
         tag: 'with-trailing',
         substOrder: 5,
+        focus: 'single-right-vowel',
         layouts: [
             {
                 name: '중성 (기본자) 가로모임',
@@ -728,6 +741,7 @@ export const jamoLayouts: InitialLayouts = [
         categoryName: "받침있는 중성 (중첩자)",
         tag: 'with-trailing',
         substOrder: 5,
+        focus: 'double-right-vowel',
         layouts: [
             {
                 name: '중성 (중첩자) 가로모임',
@@ -818,6 +832,7 @@ export const jamoLayouts: InitialLayouts = [
         categoryName: "받침 (기본자)",
         tag: 'with-trailing',
         substOrder: 10,
+        focus: 'single-trailing',
         layouts: [
             {
                 name: '받침 (기본자) 가로모임',
@@ -874,6 +889,7 @@ export const jamoLayouts: InitialLayouts = [
         categoryName: "받침 (연서자)",
         tag: 'with-trailing',
         substOrder: 10,
+        focus: 'stacked-trailing',
         layouts: [
             {
                 name: '받침 (연서자) 가로모임',
@@ -930,6 +946,7 @@ export const jamoLayouts: InitialLayouts = [
         categoryName: "받침 (2중 병서)",
         tag: 'with-trailing',
         substOrder: 10,
+        focus: 'double-trailing',
         layouts: [
             {
                 name: '받침 (2중 병서) 가로모임',
@@ -986,6 +1003,7 @@ export const jamoLayouts: InitialLayouts = [
         categoryName: "받침 (3중 병서)",
         tag: 'with-trailing',
         substOrder: 10,
+        focus: 'triple-trailing',
         layouts: [
             {
                 name: '받침 (3중 병서) 가로모임',

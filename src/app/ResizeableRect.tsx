@@ -28,7 +28,7 @@ export function ResizeableRect(
     const groupRef = React.useRef<Konva.Group>(null);
 
     const updateNext = React.useRef(() => {});
-    React.useEffect(() => {
+    React.useLayoutEffect(() => {
         if (updateNext.current) {
             updateNext.current();
             updateNext.current = () => {};

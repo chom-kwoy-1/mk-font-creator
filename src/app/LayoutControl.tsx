@@ -44,6 +44,14 @@ export function LayoutControl(
 
     const [isDragging, setIsDragging] = React.useState<boolean>(false);
 
+    const updateNext = React.useRef(() => {});
+    React.useLayoutEffect(() => {
+        if (updateNext.current) {
+            updateNext.current();
+            updateNext.current = () => {};
+        }
+    });
+
     const handleSize = 7;
     const dividerColor = grey[500];
     const handleColor = grey[500];
@@ -162,7 +170,9 @@ export function LayoutControl(
                                 ...divider,
                                 x: divider.x + offsetX,
                             });
-                            e.target.setPosition({x: 0, y: 0});
+                            updateNext.current = () => {
+                                e.target.setPosition({x: 0, y: 0});
+                            };
                         }}
                         onMouseEnter={(e) => {
                             const container = e.target.getStage()?.container();
@@ -237,7 +247,9 @@ export function LayoutControl(
                                 ...divider,
                                 y: divider.y + offsetY,
                             });
-                            e.target.setPosition({x: 0, y: 0});
+                            updateNext.current = () => {
+                                e.target.setPosition({x: 0, y: 0});
+                            };
                         }}
                         onMouseEnter={(e) => {
                             const container = e.target.getStage()?.container();

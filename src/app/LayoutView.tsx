@@ -144,26 +144,21 @@ export function LayoutView(
             </Stack>
             <Stack direction="row" spacing={0.5} justifyContent="space-evenly">
                 {curJamos.map((jamo, i) =>
-                    // <FormControl
-                    //     key={i}
-                    //     variant="standard"
-                    //     size="small">
-                        <Select
-                            key={i}
-                            variant={i === 0? "outlined" : "outlined"}
-                            size={"small"}
-                            value={jamo}
-                            onChange={(e) => {
-                                const newCurJamos = [...curJamos];
-                                newCurJamos[i] = e.target.value as string;
-                                setCurJamos(newCurJamos);
-                            }}
-                        >
-                            {jamoLists[i].map((jamo, j) => (
-                                <MenuItem key={j} value={jamo}>{jamo}</MenuItem>
-                            ))}
-                        </Select>
-                    // </FormControl>
+                    <Select
+                        key={i}
+                        variant={i === 0? "outlined" : "outlined"}
+                        size={"small"}
+                        value={jamo}
+                        onChange={(e) => {
+                            const newCurJamos = [...curJamos];
+                            newCurJamos[i] = e.target.value as string;
+                            setCurJamos(newCurJamos);
+                        }}
+                    >
+                        {jamoLists[i].map((jamo, j) => (
+                            <MenuItem key={j} value={jamo}>{jamo}</MenuItem>
+                        ))}
+                    </Select>
                 )}
             </Stack>
         </Stack>
