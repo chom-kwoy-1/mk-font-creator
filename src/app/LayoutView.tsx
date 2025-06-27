@@ -17,7 +17,6 @@ export function LayoutView(
         layout,
         setLayout,
         curFocusJamo,
-        layoutTag,
         allLayouts,
         ttx,
         showPoints,
@@ -25,7 +24,6 @@ export function LayoutView(
         layout: Layout;
         setLayout: (layout: Layout) => void;
         curFocusJamo: string;
-        layoutTag: string;
         allLayouts: Layouts;
         ttx: TTXWrapper;
         showPoints: boolean;
@@ -96,7 +94,6 @@ export function LayoutView(
                                 xyScales={{x: scale, y: -scale}}
                                 layout={layout}
                                 setLayout={setLayout}
-                                layoutTag={layoutTag}
                                 allLayouts={allLayouts}
                                 curJamos={curAllJamos}
                                 topLevel={true}

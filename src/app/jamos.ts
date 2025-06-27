@@ -428,15 +428,9 @@ export function selectLayout(
     tag?: string
 ): Layout {
     let filteredLayouts = layouts
-        .flatMap(
-            (category) => category.layouts.map(
-                (layout) => {
-                    return {...layout, tag: category.tag};
-                }
-            )
-        ).filter(
-            (layout) => getJamos(layout.focus).includes(focusJamo)
-        );
+        .flatMap((category) => category.layouts)
+        .filter((layout) => getJamos(layout.focus).includes(focusJamo));
+
     for (const jamo of [focusJamo, ...jamos]) {
         filteredLayouts = filteredLayouts.filter(
             (layout) => layout.elems.values().some(

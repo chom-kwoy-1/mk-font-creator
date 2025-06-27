@@ -25,7 +25,6 @@ export function LayoutControl(
         xyScales: { x: number, y: number },
         layout: Layout,
         setLayout: ((layout: Layout) => void) | null,
-        layoutTag: string,
         allLayouts: Layouts,
         curJamos: string[],
         topLevel: boolean,
@@ -37,7 +36,6 @@ export function LayoutControl(
         rescale,
         xyScales,
         allLayouts,
-        layoutTag,
         drawBackground,
         showPoints,
     } = props;
@@ -73,15 +71,15 @@ export function LayoutControl(
                 throw new Error(`No jamo found for ${jamoElem.kind}`);
             }
 
-            let layout = selectLayout(
+            let selectedLayout = selectLayout(
                 allLayouts,
                 jamo,
                 curJamos.filter((otherJamo) => otherJamo !== jamo),
-                layoutTag,
+                layout.tag,
             );
 
             const isFocus = curFocus === jamoElem.kind;
-            const resizedGlyph = layout.glyphs.get(jamo);
+            const resizedGlyph = selectedLayout.glyphs.get(jamo);
 
             if (!resizedGlyph) {
                 throw new Error(`No resized glyph found for ${jamo}`);
@@ -90,9 +88,9 @@ export function LayoutControl(
             const setResizedGlyph = (
                 isFocus && setLayout ?
                     (newResizedGlyph: ResizedGlyph) => {
-                        const newGlyphs = new Map(layout.glyphs);
+                        const newGlyphs = new Map(selectedLayout.glyphs);
                         newGlyphs.set(jamo, newResizedGlyph);
-                        setLayout({...layout, glyphs: newGlyphs});
+                        setLayout({...selectedLayout, glyphs: newGlyphs});
                     } : null
             );
 

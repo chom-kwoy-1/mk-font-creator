@@ -227,7 +227,6 @@ function LayoutCategory(
                                             setCurLayouts(newLayouts);
                                         }}
                                         curFocusJamo={curJamo}
-                                        layoutTag={category.tag}
                                         allLayouts={curLayouts}
                                         ttx={ttx}
                                         showPoints={false}

@@ -60,6 +60,7 @@ export type ResizedGlyph = {
 
 export type Layout = {
     name: string,
+    tag: string,
     focus: JamoKind,
     elems: Array<JamoKind | JamoSubkind>;
     dividers: Divider,
@@ -68,7 +69,6 @@ export type Layout = {
 
 export type Category = {
     categoryName: string,
-    tag: string,
     substOrder: number,  // lower is earlier
     focus: JamoSubkind,
     layouts: Layout[];
@@ -78,6 +78,7 @@ export type Layouts = Category[];
 
 export type InitialLayout = {
     name: string,
+    tag: string,
     focus: JamoKind,
     elems: Array<JamoKind | JamoSubkind>;
     dividers: Divider,
@@ -85,7 +86,6 @@ export type InitialLayout = {
 
 export type InitialCategory = {
     categoryName: string,
-    tag: string,
     substOrder: number,  // lower is earlier
     focus: JamoSubkind,
     layouts: InitialLayout[];
@@ -97,12 +97,12 @@ export const jamoLayouts: InitialLayouts = [
     // Leading
     {
         categoryName: "초성 (기본자)",
-        tag: 'no-trailing',
         substOrder: 10,
         focus: 'single-leading',
         layouts: [
             {
                 name: '초성 (기본자) 가로모임',
+                tag: 'no-trailing',
                 focus: 'leading',
                 elems: ['single-leading', 'right-vowel'],
                 dividers: {
@@ -114,6 +114,7 @@ export const jamoLayouts: InitialLayouts = [
             },
             {
                 name: '초성 (기본자) 세로모임1',
+                tag: 'no-trailing',
                 focus: 'leading',
                 elems: ['single-leading', 'bottom-vowel-1'],
                 dividers: {
@@ -125,6 +126,7 @@ export const jamoLayouts: InitialLayouts = [
             },
             {
                 name: '초성 (기본자) 세로모임2',
+                tag: 'no-trailing',
                 focus: 'leading',
                 elems: ['single-leading', 'bottom-vowel-2'],
                 dividers: {
@@ -136,6 +138,7 @@ export const jamoLayouts: InitialLayouts = [
             },
             {
                 name: '초성 (기본자) 섞임모임1',
+                tag: 'no-trailing',
                 focus: 'leading',
                 elems: ['single-leading', 'mixed-vowel-1'],
                 dividers: {
@@ -148,6 +151,7 @@ export const jamoLayouts: InitialLayouts = [
             },
             {
                 name: '초성 (기본자) 섞임모임2',
+                tag: 'no-trailing',
                 focus: 'leading',
                 elems: ['single-leading', 'mixed-vowel-2'],
                 dividers: {
@@ -162,12 +166,12 @@ export const jamoLayouts: InitialLayouts = [
     },
     {
         categoryName: "초성 (연서자)",
-        tag: 'no-trailing',
         substOrder: 10,
         focus: 'stacked-leading',
         layouts: [
             {
                 name: '초성 (연서자) 가로모임',
+                tag: 'no-trailing',
                 focus: 'leading',
                 elems: ['stacked-leading', 'right-vowel'],
                 dividers: {
@@ -179,6 +183,7 @@ export const jamoLayouts: InitialLayouts = [
             },
             {
                 name: '초성 (연서자) 세로모임',
+                tag: 'no-trailing',
                 focus: 'leading',
                 elems: ['stacked-leading', 'bottom-vowel'],
                 dividers: {
@@ -190,6 +195,7 @@ export const jamoLayouts: InitialLayouts = [
             },
             {
                 name: '초성 (연서자) 섞임모임',
+                tag: 'no-trailing',
                 focus: 'leading',
                 elems: ['stacked-leading', 'mixed-vowel'],
                 dividers: {
@@ -204,12 +210,12 @@ export const jamoLayouts: InitialLayouts = [
     },
     {
         categoryName: "초성 (2중 병서)",
-        tag: 'no-trailing',
         substOrder: 10,
         focus: 'double-leading',
         layouts: [
             {
                 name: '초성 (2중) 가로모임',
+                tag: 'no-trailing',
                 focus: 'leading',
                 elems: ['double-leading', 'right-vowel'],
                 dividers: {
@@ -221,6 +227,7 @@ export const jamoLayouts: InitialLayouts = [
             },
             {
                 name: '초성 (2중) 세로모임',
+                tag: 'no-trailing',
                 focus: 'leading',
                 elems: ['double-leading', 'bottom-vowel'],
                 dividers: {
@@ -232,6 +239,7 @@ export const jamoLayouts: InitialLayouts = [
             },
             {
                 name: '초성 (2중) 섞임모임',
+                tag: 'no-trailing',
                 focus: 'leading',
                 elems: ['double-leading', 'mixed-vowel'],
                 dividers: {
@@ -246,12 +254,12 @@ export const jamoLayouts: InitialLayouts = [
     },
     {
         categoryName: "초성 (3중 병서)",
-        tag: 'no-trailing',
         substOrder: 10,
         focus: 'triple-leading',
         layouts: [
             {
                 name: '초성 (3중) 가로모임',
+                tag: 'no-trailing',
                 focus: 'leading',
                 elems: ['triple-leading', 'right-vowel'],
                 dividers: {
@@ -263,6 +271,7 @@ export const jamoLayouts: InitialLayouts = [
             },
             {
                 name: '초성 (3중) 세로모임',
+                tag: 'no-trailing',
                 focus: 'leading',
                 elems: ['triple-leading', 'bottom-vowel'],
                 dividers: {
@@ -274,6 +283,7 @@ export const jamoLayouts: InitialLayouts = [
             },
             {
                 name: '초성 (3중) 섞임모임',
+                tag: 'no-trailing',
                 focus: 'leading',
                 elems: ['triple-leading', 'mixed-vowel'],
                 dividers: {
@@ -289,12 +299,12 @@ export const jamoLayouts: InitialLayouts = [
     // Vowels
     {
         categoryName: "중성 (기본자) 가로모임",
-        tag: 'no-trailing',
         substOrder: 10,
         focus: 'single-right-vowel',
         layouts: [
             {
                 name: '중성 (기본자) 가로모임',
+                tag: 'no-trailing',
                 focus: 'right-vowel',
                 elems: ['leading', 'single-right-vowel'],
                 dividers: {
@@ -308,12 +318,12 @@ export const jamoLayouts: InitialLayouts = [
     },
     {
         categoryName: "중성 (기본자) 세로모임",
-        tag: 'no-trailing',
         substOrder: 10,
         focus: 'single-bottom-vowel',
         layouts: [
             {
                 name: '중성 (기본자) 세로모임1',
+                tag: 'no-trailing',
                 focus: 'bottom-vowel',
                 elems: ['leading-1', 'single-bottom-vowel'],
                 dividers: {
@@ -325,6 +335,7 @@ export const jamoLayouts: InitialLayouts = [
             },
             {
                 name: '중성 (기본자) 세로모임2',
+                tag: 'no-trailing',
                 focus: 'bottom-vowel',
                 elems: ['leading-2', 'single-bottom-vowel'],
                 dividers: {
@@ -338,12 +349,12 @@ export const jamoLayouts: InitialLayouts = [
     },
     {
         categoryName: "중성 (기본자) 섞임모임",
-        tag: 'no-trailing',
         substOrder: 10,
         focus: 'single-mixed-vowel',
         layouts: [
             {
                 name: '중성 (기본자) 섞임모임1',
+                tag: 'no-trailing',
                 focus: 'mixed-vowel',
                 elems: ['leading-1', 'single-mixed-vowel'],
                 dividers: {
@@ -356,6 +367,7 @@ export const jamoLayouts: InitialLayouts = [
             },
             {
                 name: '중성 (기본자) 섞임모임2',
+                tag: 'no-trailing',
                 focus: 'mixed-vowel',
                 elems: ['leading-2', 'single-mixed-vowel'],
                 dividers: {
@@ -370,12 +382,12 @@ export const jamoLayouts: InitialLayouts = [
     },
     {
         categoryName: "중성 (중첩자) 가로모임",
-        tag: 'no-trailing',
         substOrder: 10,
         focus: 'double-right-vowel',
         layouts: [
             {
                 name: '중성 (중첩자) 가로모임',
+                tag: 'no-trailing',
                 focus: 'right-vowel',
                 elems: ['leading', 'double-right-vowel'],
                 dividers: {
@@ -389,12 +401,12 @@ export const jamoLayouts: InitialLayouts = [
     },
     {
         categoryName: "중성 (중첩자) 세로모임",
-        tag: 'no-trailing',
         substOrder: 10,
         focus: 'double-bottom-vowel',
         layouts: [
             {
                 name: '중성 (중첩자) 세로모임1',
+                tag: 'no-trailing',
                 focus: 'bottom-vowel',
                 elems: ['leading-1', 'double-bottom-vowel'],
                 dividers: {
@@ -406,6 +418,7 @@ export const jamoLayouts: InitialLayouts = [
             },
             {
                 name: '중성 (중첩자) 세로모임2',
+                tag: 'no-trailing',
                 focus: 'bottom-vowel',
                 elems: ['leading-2', 'double-bottom-vowel'],
                 dividers: {
@@ -419,12 +432,12 @@ export const jamoLayouts: InitialLayouts = [
     },
     {
         categoryName: "중성 (중첩자) 섞임모임",
-        tag: 'no-trailing',
         substOrder: 10,
         focus: 'double-mixed-vowel',
         layouts: [
             {
                 name: '중성 (중첩자) 섞임모임1',
+                tag: 'no-trailing',
                 focus: 'mixed-vowel',
                 elems: ['leading-1', 'double-mixed-vowel'],
                 dividers: {
@@ -437,6 +450,7 @@ export const jamoLayouts: InitialLayouts = [
             },
             {
                 name: '중성 (중첩자) 섞임모임2',
+                tag: 'no-trailing',
                 focus: 'mixed-vowel',
                 elems: ['leading-2', 'double-mixed-vowel'],
                 dividers: {
@@ -452,12 +466,12 @@ export const jamoLayouts: InitialLayouts = [
     // Leading (with trailing)
     {
         categoryName: "받침있는 초성 (기본자)",
-        tag: 'with-trailing',
         substOrder: 5,
         focus: 'single-leading',
         layouts: [
             {
                 name: '초성 (기본자) 가로모임',
+                tag: 'with-trailing',
                 focus: 'leading',
                 elems: ['single-leading', 'right-vowel', 'trailing'],
                 dividers: {
@@ -474,6 +488,7 @@ export const jamoLayouts: InitialLayouts = [
             },
             {
                 name: '초성 (기본자) 세로모임',
+                tag: 'with-trailing',
                 focus: 'leading',
                 elems: ['single-leading', 'bottom-vowel', 'trailing'],
                 dividers: {
@@ -490,6 +505,7 @@ export const jamoLayouts: InitialLayouts = [
             },
             {
                 name: '초성 (기본자) 섞임모임',
+                tag: 'with-trailing',
                 focus: 'leading',
                 elems: ['single-leading', 'mixed-vowel', 'trailing'],
                 dividers: {
@@ -509,12 +525,12 @@ export const jamoLayouts: InitialLayouts = [
     },
     {
         categoryName: "받침있는 초성 (연서자)",
-        tag: 'with-trailing',
         substOrder: 5,
         focus: 'stacked-leading',
         layouts: [
             {
                 name: '초성 (연서자) 가로모임',
+                tag: 'with-trailing',
                 focus: 'leading',
                 elems: ['stacked-leading', 'right-vowel', 'trailing'],
                 dividers: {
@@ -531,6 +547,7 @@ export const jamoLayouts: InitialLayouts = [
             },
             {
                 name: '초성 (연서자) 세로모임',
+                tag: 'with-trailing',
                 focus: 'leading',
                 elems: ['stacked-leading', 'bottom-vowel', 'trailing'],
                 dividers: {
@@ -547,6 +564,7 @@ export const jamoLayouts: InitialLayouts = [
             },
             {
                 name: '초성 (연서자) 섞임모임',
+                tag: 'with-trailing',
                 focus: 'leading',
                 elems: ['stacked-leading', 'mixed-vowel', 'trailing'],
                 dividers: {
@@ -566,12 +584,12 @@ export const jamoLayouts: InitialLayouts = [
     },
     {
         categoryName: "받침있는 초성 (2중 병서)",
-        tag: 'with-trailing',
         substOrder: 5,
         focus: 'double-leading',
         layouts: [
             {
                 name: '초성 (2중) 가로모임',
+                tag: 'with-trailing',
                 focus: 'leading',
                 elems: ['double-leading', 'right-vowel', 'trailing'],
                 dividers: {
@@ -588,6 +606,7 @@ export const jamoLayouts: InitialLayouts = [
             },
             {
                 name: '초성 (2중) 세로모임',
+                tag: 'with-trailing',
                 focus: 'leading',
                 elems: ['double-leading', 'bottom-vowel', 'trailing'],
                 dividers: {
@@ -604,6 +623,7 @@ export const jamoLayouts: InitialLayouts = [
             },
             {
                 name: '초성 (2중) 섞임모임',
+                tag: 'with-trailing',
                 focus: 'leading',
                 elems: ['double-leading', 'mixed-vowel', 'trailing'],
                 dividers: {
@@ -623,12 +643,12 @@ export const jamoLayouts: InitialLayouts = [
     },
     {
         categoryName: "받침있는 초성 (3중 병서)",
-        tag: 'with-trailing',
         substOrder: 5,
         focus: 'triple-leading',
         layouts: [
             {
                 name: '초성 (3중) 가로모임',
+                tag: 'with-trailing',
                 focus: 'leading',
                 elems: ['triple-leading', 'right-vowel', 'trailing'],
                 dividers: {
@@ -645,6 +665,7 @@ export const jamoLayouts: InitialLayouts = [
             },
             {
                 name: '초성 (3중) 세로모임',
+                tag: 'with-trailing',
                 focus: 'leading',
                 elems: ['triple-leading', 'bottom-vowel', 'trailing'],
                 dividers: {
@@ -661,6 +682,7 @@ export const jamoLayouts: InitialLayouts = [
             },
             {
                 name: '초성 (3중) 섞임모임',
+                tag: 'with-trailing',
                 focus: 'leading',
                 elems: ['triple-leading', 'mixed-vowel', 'trailing'],
                 dividers: {
@@ -681,12 +703,12 @@ export const jamoLayouts: InitialLayouts = [
     // Vowels (with trailing)
     {
         categoryName: "받침있는 중성 (기본자) 가로모임",
-        tag: 'with-trailing',
         substOrder: 5,
         focus: 'single-right-vowel',
         layouts: [
             {
                 name: '중성 (기본자) 가로모임',
+                tag: 'with-trailing',
                 focus: 'right-vowel',
                 elems: ['leading', 'single-right-vowel', 'trailing'],
                 dividers: {
@@ -705,12 +727,12 @@ export const jamoLayouts: InitialLayouts = [
     },
     {
         categoryName: "받침있는 중성 (기본자) 세로모임",
-        tag: 'with-trailing',
         substOrder: 5,
         focus: 'single-bottom-vowel',
         layouts: [
             {
                 name: '중성 (기본자) 세로모임1',
+                tag: 'with-trailing',
                 focus: 'bottom-vowel',
                 elems: ['leading-1', 'single-bottom-vowel', 'trailing'],
                 dividers: {
@@ -727,6 +749,7 @@ export const jamoLayouts: InitialLayouts = [
             },
             {
                 name: '중성 (기본자) 세로모임2',
+                tag: 'with-trailing',
                 focus: 'bottom-vowel',
                 elems: ['leading-2', 'single-bottom-vowel', 'trailing'],
                 dividers: {
@@ -745,12 +768,12 @@ export const jamoLayouts: InitialLayouts = [
     },
     {
         categoryName: "받침있는 중성 (기본자) 섞임모임",
-        tag: 'with-trailing',
         substOrder: 5,
         focus: 'single-mixed-vowel',
         layouts: [
             {
                 name: '중성 (기본자) 섞임모임1',
+                tag: 'with-trailing',
                 focus: 'mixed-vowel',
                 elems: ['leading-1', 'single-mixed-vowel', 'trailing'],
                 dividers: {
@@ -768,6 +791,7 @@ export const jamoLayouts: InitialLayouts = [
             },
             {
                 name: '중성 (기본자) 섞임모임2',
+                tag: 'with-trailing',
                 focus: 'mixed-vowel',
                 elems: ['leading-2', 'single-mixed-vowel', 'trailing'],
                 dividers: {
@@ -787,12 +811,12 @@ export const jamoLayouts: InitialLayouts = [
     },
     {
         categoryName: "받침있는 중성 (중첩자) 가로모임",
-        tag: 'with-trailing',
         substOrder: 5,
         focus: 'double-right-vowel',
         layouts: [
             {
                 name: '중성 (중첩자) 가로모임',
+                tag: 'with-trailing',
                 focus: 'right-vowel',
                 elems: ['leading', 'double-right-vowel', 'trailing'],
                 dividers: {
@@ -811,12 +835,12 @@ export const jamoLayouts: InitialLayouts = [
     },
     {
         categoryName: "받침있는 중성 (중첩자) 세로모임",
-        tag: 'with-trailing',
         substOrder: 5,
         focus: 'double-bottom-vowel',
         layouts: [
             {
                 name: '중성 (중첩자) 세로모임1',
+                tag: 'with-trailing',
                 focus: 'bottom-vowel',
                 elems: ['leading-1', 'double-bottom-vowel', 'trailing'],
                 dividers: {
@@ -833,6 +857,7 @@ export const jamoLayouts: InitialLayouts = [
             },
             {
                 name: '중성 (중첩자) 세로모임2',
+                tag: 'with-trailing',
                 focus: 'bottom-vowel',
                 elems: ['leading-2', 'double-bottom-vowel', 'trailing'],
                 dividers: {
@@ -851,12 +876,12 @@ export const jamoLayouts: InitialLayouts = [
     },
     {
         categoryName: "받침있는 중성 (중첩자) 섞임모임",
-        tag: 'with-trailing',
         substOrder: 5,
         focus: 'double-mixed-vowel',
         layouts: [
             {
                 name: '중성 (중첩자) 섞임모임1',
+                tag: 'with-trailing',
                 focus: 'mixed-vowel',
                 elems: ['leading-1', 'double-mixed-vowel', 'trailing'],
                 dividers: {
@@ -874,6 +899,7 @@ export const jamoLayouts: InitialLayouts = [
             },
             {
                 name: '중성 (중첩자) 섞임모임2',
+                tag: 'with-trailing',
                 focus: 'mixed-vowel',
                 elems: ['leading-2', 'double-mixed-vowel', 'trailing'],
                 dividers: {
@@ -894,12 +920,12 @@ export const jamoLayouts: InitialLayouts = [
     // Tail
     {
         categoryName: "받침 (기본자)",
-        tag: 'with-trailing',
         substOrder: 10,
         focus: 'single-trailing',
         layouts: [
             {
                 name: '받침 (기본자) 가로모임',
+                tag: 'with-trailing',
                 focus: 'trailing',
                 elems: ['leading', 'right-vowel', 'single-trailing'],
                 dividers: {
@@ -916,6 +942,7 @@ export const jamoLayouts: InitialLayouts = [
             },
             {
                 name: '받침 (기본자) 세로모임',
+                tag: 'with-trailing',
                 focus: 'trailing',
                 elems: ['leading', 'bottom-vowel', 'single-trailing'],
                 dividers: {
@@ -932,6 +959,7 @@ export const jamoLayouts: InitialLayouts = [
             },
             {
                 name: '받침 (기본자) 섞임모임',
+                tag: 'with-trailing',
                 focus: 'trailing',
                 elems: ['leading', 'mixed-vowel', 'single-trailing'],
                 dividers: {
@@ -951,12 +979,12 @@ export const jamoLayouts: InitialLayouts = [
     },
     {
         categoryName: "받침 (연서자)",
-        tag: 'with-trailing',
         substOrder: 10,
         focus: 'stacked-trailing',
         layouts: [
             {
                 name: '받침 (연서자) 가로모임',
+                tag: 'with-trailing',
                 focus: 'trailing',
                 elems: ['leading', 'right-vowel', 'stacked-trailing'],
                 dividers: {
@@ -973,6 +1001,7 @@ export const jamoLayouts: InitialLayouts = [
             },
             {
                 name: '받침 (연서자) 세로모임',
+                tag: 'with-trailing',
                 focus: 'trailing',
                 elems: ['leading', 'bottom-vowel', 'stacked-trailing'],
                 dividers: {
@@ -989,6 +1018,7 @@ export const jamoLayouts: InitialLayouts = [
             },
             {
                 name: '받침 (연서자) 섞임모임',
+                tag: 'with-trailing',
                 focus: 'trailing',
                 elems: ['leading', 'mixed-vowel', 'stacked-trailing'],
                 dividers: {
@@ -1008,12 +1038,12 @@ export const jamoLayouts: InitialLayouts = [
     },
     {
         categoryName: "받침 (2중 병서)",
-        tag: 'with-trailing',
         substOrder: 10,
         focus: 'double-trailing',
         layouts: [
             {
                 name: '받침 (2중 병서) 가로모임',
+                tag: 'with-trailing',
                 focus: 'trailing',
                 elems: ['leading', 'right-vowel', 'double-trailing'],
                 dividers: {
@@ -1030,6 +1060,7 @@ export const jamoLayouts: InitialLayouts = [
             },
             {
                 name: '받침 (2중 병서) 세로모임',
+                tag: 'with-trailing',
                 focus: 'trailing',
                 elems: ['leading', 'bottom-vowel', 'double-trailing'],
                 dividers: {
@@ -1046,6 +1077,7 @@ export const jamoLayouts: InitialLayouts = [
             },
             {
                 name: '받침 (2중 병서) 섞임모임',
+                tag: 'with-trailing',
                 focus: 'trailing',
                 elems: ['leading', 'mixed-vowel', 'double-trailing'],
                 dividers: {
@@ -1065,12 +1097,12 @@ export const jamoLayouts: InitialLayouts = [
     },
     {
         categoryName: "받침 (3중 병서)",
-        tag: 'with-trailing',
         substOrder: 10,
         focus: 'triple-trailing',
         layouts: [
             {
                 name: '받침 (3중 병서) 가로모임',
+                tag: 'with-trailing',
                 focus: 'trailing',
                 elems: ['leading', 'right-vowel', 'triple-trailing'],
                 dividers: {
@@ -1087,6 +1119,7 @@ export const jamoLayouts: InitialLayouts = [
             },
             {
                 name: '받침 (3중 병서) 세로모임',
+                tag: 'with-trailing',
                 focus: 'trailing',
                 elems: ['leading', 'bottom-vowel', 'triple-trailing'],
                 dividers: {
@@ -1103,6 +1136,7 @@ export const jamoLayouts: InitialLayouts = [
             },
             {
                 name: '받침 (3중 병서) 섞임모임',
+                tag: 'with-trailing',
                 focus: 'trailing',
                 elems: ['leading', 'mixed-vowel', 'triple-trailing'],
                 dividers: {
