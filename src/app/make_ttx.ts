@@ -300,175 +300,178 @@ export function generateTtx(
     });
 
     // Add contextual jamo glyph variants
-    const sortedLayouts = curLayouts.toSorted((a, b) => a.substOrder - b.substOrder);
-    for (const category of sortedLayouts) {
-        for (const layout of category.layouts) {
-            const focusIdx = layout.elems.findIndex(
-                (kind) => kind.endsWith(layout.focus)
-            );
-            const prevGlyphs = layout.elems.slice(0, focusIdx)
-                .map((kind) => getJamos(kind))
-                .reverse();
-            // FIXME: add precomposed glyphs for substitution context
-            // e.g. 가 (U+AC00) + _ㆁㆁ_
-            const nextGlyphs = layout.elems.slice(focusIdx + 1)
-                .map((kind) => getJamos(kind));
+    function substOrder(layout: Layout) {
+        return layout.tag === 'with-trailing'? 5 : 10;
+    }
+    const sortedLayouts = curLayouts
+        .flatMap((category) => category.layouts)
+        .toSorted((a, b) => substOrder(a) - substOrder(b));
+    for (const layout of sortedLayouts) {
+        const focusIdx = layout.elems.findIndex(
+            (kind) => kind.endsWith(layout.focus)
+        );
+        const prevGlyphs = layout.elems.slice(0, focusIdx)
+            .map((kind) => getJamos(kind))
+            .reverse();
+        // FIXME: add precomposed glyphs for substitution context
+        // e.g. 가 (U+AC00) + _ㆁㆁ_
+        const nextGlyphs = layout.elems.slice(focusIdx + 1)
+            .map((kind) => getJamos(kind));
 
-            const inputCoverage = [];
-            for (const ch of layout.glyphs.keys()) {
-                const glyphName = ttx.findGlyphName(ch);
+        const inputCoverage = [];
+        for (const ch of layout.glyphs.keys()) {
+            const glyphName = ttx.findGlyphName(ch);
+            if (glyphName !== undefined) {
+                inputCoverage.push({"@_value": glyphName});
+            }
+        }
+
+        const backtrackCoverage: {
+            '@_index': string,
+            Glyph: { '@_value': string }[],
+        }[] = [];
+        prevGlyphs.forEach((glyphs, idx) => {
+            const glyphNames: { '@_value': string }[] = [];
+            for (const g of glyphs) {
+                const glyphName = ttx.findGlyphName(g);
                 if (glyphName !== undefined) {
-                    inputCoverage.push({"@_value": glyphName});
+                    glyphNames.push({"@_value": glyphName});
+                    for (const sub of substitutions.get(glyphName) ?? []) {
+                        glyphNames.push({"@_value": sub});
+                    }
                 }
             }
-
-            const backtrackCoverage: {
-                '@_index': string,
-                Glyph: { '@_value': string }[],
-            }[] = [];
-            prevGlyphs.forEach((glyphs, idx) => {
-                const glyphNames: { '@_value': string }[] = [];
-                for (const g of glyphs) {
-                    const glyphName = ttx.findGlyphName(g);
-                    if (glyphName !== undefined) {
-                        glyphNames.push({"@_value": glyphName});
-                        for (const sub of substitutions.get(glyphName) ?? []) {
-                            glyphNames.push({"@_value": sub});
-                        }
-                    }
-                }
-                backtrackCoverage.push({
-                    "@_index": idx.toFixed(0),
-                    Glyph: glyphNames,
-                });
+            backtrackCoverage.push({
+                "@_index": idx.toFixed(0),
+                Glyph: glyphNames,
             });
+        });
 
-            const lookAheadCoverage: {
-                '@_index': string,
-                Glyph: { '@_value': string }[],
-            }[] = [];
-            nextGlyphs.forEach((glyphs, idx) => {
-                const glyphNames: { '@_value': string }[] = [];
-                for (const g of glyphs) {
-                    const glyphName = ttx.findGlyphName(g);
-                    if (glyphName !== undefined) {
-                        glyphNames.push({"@_value": glyphName});
-                    }
+        const lookAheadCoverage: {
+            '@_index': string,
+            Glyph: { '@_value': string }[],
+        }[] = [];
+        nextGlyphs.forEach((glyphs, idx) => {
+            const glyphNames: { '@_value': string }[] = [];
+            for (const g of glyphs) {
+                const glyphName = ttx.findGlyphName(g);
+                if (glyphName !== undefined) {
+                    glyphNames.push({"@_value": glyphName});
                 }
-                lookAheadCoverage.push({
-                    "@_index": idx.toFixed(0),
-                    Glyph: glyphNames,
-                });
+            }
+            lookAheadCoverage.push({
+                "@_index": idx.toFixed(0),
+                Glyph: glyphNames,
             });
+        });
 
-            // Add lookups
-            const singleSubstLookup = {
-                "@_index": gsub.LookupList[0].Lookup.length.toFixed(0),
-                LookupType: [{"@_value": "1"}],
-                LookupFlag: [{"@_value": "0"}],
-                SingleSubst: [{
-                    Substitution: [] as {
-                        '@_in': string,
-                        '@_out': string,
-                    }[],
-                }],
-            };
-            gsub.LookupList[0].Lookup.push(singleSubstLookup);
+        // Add lookups
+        const singleSubstLookup = {
+            "@_index": gsub.LookupList[0].Lookup.length.toFixed(0),
+            LookupType: [{"@_value": "1"}],
+            LookupFlag: [{"@_value": "0"}],
+            SingleSubst: [{
+                Substitution: [] as {
+                    '@_in': string,
+                    '@_out': string,
+                }[],
+            }],
+        };
+        gsub.LookupList[0].Lookup.push(singleSubstLookup);
 
-            const chainSubstLookup = {
-                "@_index": gsub.LookupList[0].Lookup.length.toFixed(0),
-                LookupType: [{"@_value": "6"}],
-                LookupFlag: [{"@_value": "0"}],
-                ChainContextSubst: [{
+        const chainSubstLookup = {
+            "@_index": gsub.LookupList[0].Lookup.length.toFixed(0),
+            LookupType: [{"@_value": "6"}],
+            LookupFlag: [{"@_value": "0"}],
+            ChainContextSubst: [{
+                "@_index": "0",
+                "@_Format": "3",  // use coverage tables
+                InputCoverage: [{
                     "@_index": "0",
-                    "@_Format": "3",  // use coverage tables
-                    InputCoverage: [{
-                        "@_index": "0",
-                        Glyph: inputCoverage,
-                    }],
-                    BacktrackCoverage: backtrackCoverage,
-                    LookAheadCoverage: lookAheadCoverage,
-                    SubstLookupRecord: [{
-                        "@_index": "0",
-                        SequenceIndex: [{"@_value": "0"}],
-                        LookupListIndex: [{
-                            "@_value": singleSubstLookup["@_index"],
-                        }],
+                    Glyph: inputCoverage,
+                }],
+                BacktrackCoverage: backtrackCoverage,
+                LookAheadCoverage: lookAheadCoverage,
+                SubstLookupRecord: [{
+                    "@_index": "0",
+                    SequenceIndex: [{"@_value": "0"}],
+                    LookupListIndex: [{
+                        "@_value": singleSubstLookup["@_index"],
                     }],
                 }],
-            };
-            gsub.LookupList[0].Lookup.push(chainSubstLookup);
+            }],
+        };
+        gsub.LookupList[0].Lookup.push(chainSubstLookup);
 
-            if (layout.focus.endsWith('leading')) {
-                ljmoFeature.Feature[0].LookupListIndex.push({
-                    "@_index": ljmoFeature.Feature[0].LookupListIndex.length.toFixed(0),
-                    "@_value": chainSubstLookup["@_index"],
-                });
-            } else if (layout.focus.endsWith('vowel')) {
-                vjmoFeature.Feature[0].LookupListIndex.push({
-                    "@_index": vjmoFeature.Feature[0].LookupListIndex.length.toFixed(0),
-                    "@_value": chainSubstLookup["@_index"],
-                });
-            } else if (layout.focus.endsWith('trailing')) {
-                tjmoFeature.Feature[0].LookupListIndex.push({
-                    "@_index": tjmoFeature.Feature[0].LookupListIndex.length.toFixed(0),
-                    "@_value": chainSubstLookup["@_index"],
-                });
+        if (layout.focus.endsWith('leading')) {
+            ljmoFeature.Feature[0].LookupListIndex.push({
+                "@_index": ljmoFeature.Feature[0].LookupListIndex.length.toFixed(0),
+                "@_value": chainSubstLookup["@_index"],
+            });
+        } else if (layout.focus.endsWith('vowel')) {
+            vjmoFeature.Feature[0].LookupListIndex.push({
+                "@_index": vjmoFeature.Feature[0].LookupListIndex.length.toFixed(0),
+                "@_value": chainSubstLookup["@_index"],
+            });
+        } else if (layout.focus.endsWith('trailing')) {
+            tjmoFeature.Feature[0].LookupListIndex.push({
+                "@_index": tjmoFeature.Feature[0].LookupListIndex.length.toFixed(0),
+                "@_value": chainSubstLookup["@_index"],
+            });
+        }
+
+        const bounds = getFocusGlyphBounds(layout, result);
+        for (const [ch, glyph] of layout.glyphs.entries()) {
+            if (glyph == null) {
+                continue;
             }
+            const orientation = orientationMode === 'horz-and-vert' ? 'horz' : 'vert';
+            const newGlyphId = "cid" + (++lastGlyphId).toFixed(0).padStart(5, '0');
+            const isLeading = subkindOf(ch).values().some((subkind) => subkind.endsWith('leading'));
+            const width = (isLeading || orientation === 'vert') ? 1000 : 0;
+            const height = isLeading ? 1000 : 0;
+            const offset = isLeading ? 0 : -1000;
+            const xOffset = orientation === 'horz' ? offset : 0;
+            const yOffset = orientation === 'vert' ? -offset : 0;
 
-            const bounds = getFocusGlyphBounds(layout, result);
-            for (const [ch, glyph] of layout.glyphs.entries()) {
-                if (glyph == null) {
-                    continue;
-                }
-                const orientation = orientationMode === 'horz-and-vert' ? 'horz' : 'vert';
-                const newGlyphId = "cid" + (++lastGlyphId).toFixed(0).padStart(5, '0');
-                const isLeading = subkindOf(ch).values().some((subkind) => subkind.endsWith('leading'));
-                const width = (isLeading || orientation === 'vert') ? 1000 : 0;
-                const height = isLeading ? 1000 : 0;
-                const offset = isLeading ? 0 : -1000;
-                const xOffset = orientation === 'horz' ? offset : 0;
-                const yOffset = orientation === 'vert' ? -offset : 0;
+            const charstring = makeCharstring(glyph, bounds, nominalWidth, width, xOffset, yOffset);
 
-                const charstring = makeCharstring(glyph, bounds, nominalWidth, width, xOffset, yOffset);
+            glyphOrder.push({
+                "@_id": "0",  // this is ignored by the parser
+                "@_name": newGlyphId,
+            });
 
-                glyphOrder.push({
-                    "@_id": "0",  // this is ignored by the parser
-                    "@_name": newGlyphId,
-                });
+            charstrings.push({
+                '@_name': newGlyphId,
+                '@_fdSelectIndex': fdSelectIndex.toFixed(0),
+                '#text': charstring,
+            });
 
-                charstrings.push({
-                    '@_name': newGlyphId,
-                    '@_fdSelectIndex': fdSelectIndex.toFixed(0),
-                    '#text': charstring,
-                });
+            hmtx.push({
+                '@_name': newGlyphId,
+                '@_width': width.toFixed(0),
+                '@_lsb': "0",
+            });
 
-                hmtx.push({
-                    '@_name': newGlyphId,
-                    '@_width': width.toFixed(0),
-                    '@_lsb': "0",
-                });
+            vmtx.push({
+                '@_name': newGlyphId,
+                '@_height': height.toFixed(0),
+                '@_tsb': "0",
+            });
 
-                vmtx.push({
-                    '@_name': newGlyphId,
-                    '@_height': height.toFixed(0),
-                    '@_tsb': "0",
-                });
-
-                const origGlyphId = ttx.findGlyphName(ch);
-                if (!origGlyphId) {
-                    throw new Error(`Glyph for codepoint ${ch} not found`);
-                }
-                singleSubstLookup.SingleSubst[0].Substitution.push({
-                    '@_in': origGlyphId,
-                    '@_out': newGlyphId,
-                });
-                substitutions.set(
-                    origGlyphId,
-                    substitutions.get(origGlyphId) ?? [],
-                );
-                substitutions.get(origGlyphId)?.push(newGlyphId);
+            const origGlyphId = ttx.findGlyphName(ch);
+            if (!origGlyphId) {
+                throw new Error(`Glyph for codepoint ${ch} not found`);
             }
+            singleSubstLookup.SingleSubst[0].Substitution.push({
+                '@_in': origGlyphId,
+                '@_out': newGlyphId,
+            });
+            substitutions.set(
+                origGlyphId,
+                substitutions.get(origGlyphId) ?? [],
+            );
+            substitutions.get(origGlyphId)?.push(newGlyphId);
         }
     }
 

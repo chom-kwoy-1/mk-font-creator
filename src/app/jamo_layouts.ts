@@ -69,7 +69,6 @@ export type Layout = {
 
 export type Category = {
     categoryName: string,
-    substOrder: number,  // lower is earlier
     focus: JamoSubkind,
     layouts: Layout[];
 };
@@ -86,7 +85,6 @@ export type InitialLayout = {
 
 export type InitialCategory = {
     categoryName: string,
-    substOrder: number,  // lower is earlier
     focus: JamoSubkind,
     layouts: InitialLayout[];
 };
@@ -97,7 +95,6 @@ export const jamoLayouts: InitialLayouts = [
     // Leading
     {
         categoryName: "초성 (기본자)",
-        substOrder: 10,
         focus: 'single-leading',
         layouts: [
             {
@@ -166,7 +163,6 @@ export const jamoLayouts: InitialLayouts = [
     },
     {
         categoryName: "초성 (연서자)",
-        substOrder: 10,
         focus: 'stacked-leading',
         layouts: [
             {
@@ -210,7 +206,6 @@ export const jamoLayouts: InitialLayouts = [
     },
     {
         categoryName: "초성 (2중 병서)",
-        substOrder: 10,
         focus: 'double-leading',
         layouts: [
             {
@@ -254,7 +249,6 @@ export const jamoLayouts: InitialLayouts = [
     },
     {
         categoryName: "초성 (3중 병서)",
-        substOrder: 10,
         focus: 'triple-leading',
         layouts: [
             {
@@ -299,7 +293,6 @@ export const jamoLayouts: InitialLayouts = [
     // Vowels
     {
         categoryName: "중성 (기본자) 가로모임",
-        substOrder: 10,
         focus: 'single-right-vowel',
         layouts: [
             {
@@ -318,7 +311,6 @@ export const jamoLayouts: InitialLayouts = [
     },
     {
         categoryName: "중성 (기본자) 세로모임",
-        substOrder: 10,
         focus: 'single-bottom-vowel',
         layouts: [
             {
@@ -349,7 +341,6 @@ export const jamoLayouts: InitialLayouts = [
     },
     {
         categoryName: "중성 (기본자) 섞임모임",
-        substOrder: 10,
         focus: 'single-mixed-vowel',
         layouts: [
             {
@@ -382,7 +373,6 @@ export const jamoLayouts: InitialLayouts = [
     },
     {
         categoryName: "중성 (중첩자) 가로모임",
-        substOrder: 10,
         focus: 'double-right-vowel',
         layouts: [
             {
@@ -401,7 +391,6 @@ export const jamoLayouts: InitialLayouts = [
     },
     {
         categoryName: "중성 (중첩자) 세로모임",
-        substOrder: 10,
         focus: 'double-bottom-vowel',
         layouts: [
             {
@@ -432,7 +421,6 @@ export const jamoLayouts: InitialLayouts = [
     },
     {
         categoryName: "중성 (중첩자) 섞임모임",
-        substOrder: 10,
         focus: 'double-mixed-vowel',
         layouts: [
             {
@@ -466,7 +454,6 @@ export const jamoLayouts: InitialLayouts = [
     // Leading (with trailing)
     {
         categoryName: "받침있는 초성 (기본자)",
-        substOrder: 5,
         focus: 'single-leading',
         layouts: [
             {
@@ -525,7 +512,6 @@ export const jamoLayouts: InitialLayouts = [
     },
     {
         categoryName: "받침있는 초성 (연서자)",
-        substOrder: 5,
         focus: 'stacked-leading',
         layouts: [
             {
@@ -584,7 +570,6 @@ export const jamoLayouts: InitialLayouts = [
     },
     {
         categoryName: "받침있는 초성 (2중 병서)",
-        substOrder: 5,
         focus: 'double-leading',
         layouts: [
             {
@@ -643,7 +628,6 @@ export const jamoLayouts: InitialLayouts = [
     },
     {
         categoryName: "받침있는 초성 (3중 병서)",
-        substOrder: 5,
         focus: 'triple-leading',
         layouts: [
             {
@@ -703,7 +687,6 @@ export const jamoLayouts: InitialLayouts = [
     // Vowels (with trailing)
     {
         categoryName: "받침있는 중성 (기본자) 가로모임",
-        substOrder: 5,
         focus: 'single-right-vowel',
         layouts: [
             {
@@ -727,7 +710,6 @@ export const jamoLayouts: InitialLayouts = [
     },
     {
         categoryName: "받침있는 중성 (기본자) 세로모임",
-        substOrder: 5,
         focus: 'single-bottom-vowel',
         layouts: [
             {
@@ -768,7 +750,6 @@ export const jamoLayouts: InitialLayouts = [
     },
     {
         categoryName: "받침있는 중성 (기본자) 섞임모임",
-        substOrder: 5,
         focus: 'single-mixed-vowel',
         layouts: [
             {
@@ -811,7 +792,6 @@ export const jamoLayouts: InitialLayouts = [
     },
     {
         categoryName: "받침있는 중성 (중첩자) 가로모임",
-        substOrder: 5,
         focus: 'double-right-vowel',
         layouts: [
             {
@@ -835,7 +815,6 @@ export const jamoLayouts: InitialLayouts = [
     },
     {
         categoryName: "받침있는 중성 (중첩자) 세로모임",
-        substOrder: 5,
         focus: 'double-bottom-vowel',
         layouts: [
             {
@@ -876,7 +855,6 @@ export const jamoLayouts: InitialLayouts = [
     },
     {
         categoryName: "받침있는 중성 (중첩자) 섞임모임",
-        substOrder: 5,
         focus: 'double-mixed-vowel',
         layouts: [
             {
@@ -920,7 +898,6 @@ export const jamoLayouts: InitialLayouts = [
     // Tail
     {
         categoryName: "받침 (기본자)",
-        substOrder: 10,
         focus: 'single-trailing',
         layouts: [
             {
@@ -979,7 +956,6 @@ export const jamoLayouts: InitialLayouts = [
     },
     {
         categoryName: "받침 (연서자)",
-        substOrder: 10,
         focus: 'stacked-trailing',
         layouts: [
             {
@@ -1038,7 +1014,6 @@ export const jamoLayouts: InitialLayouts = [
     },
     {
         categoryName: "받침 (2중 병서)",
-        substOrder: 10,
         focus: 'double-trailing',
         layouts: [
             {
@@ -1097,7 +1072,6 @@ export const jamoLayouts: InitialLayouts = [
     },
     {
         categoryName: "받침 (3중 병서)",
-        substOrder: 10,
         focus: 'triple-trailing',
         layouts: [
             {
