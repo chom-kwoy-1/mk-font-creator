@@ -1,5 +1,5 @@
 import React from "react";
-import {Box, FormControl, MenuItem, Select, Stack} from "@mui/material";
+import {Box, FormControl, IconButton, Menu, MenuItem, Select, Stack} from "@mui/material";
 import {Layer, Line, Stage} from 'react-konva';
 import Grid from '@mui/material/Grid2';
 import {brown, teal} from "@mui/material/colors";
@@ -10,6 +10,7 @@ import {Point} from "@/app/parse_glyph";
 import {OS2, TTXWrapper} from "@/app/TTXObject";
 import {getJamos} from "@/app/jamos";
 import {LayoutControl} from "@/app/LayoutControl";
+import {Fullscreen, MoreVert} from "@mui/icons-material";
 
 
 export function LayoutView(
@@ -71,9 +72,17 @@ export function LayoutView(
 
     const outlineColor = teal[500];
 
+    const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null);
+    const open = Boolean(anchorEl);
+
     return (
         <Stack>
-            <Box>{layout.name}</Box>
+            <Stack direction={"row"} alignItems="center" justifyContent="space-between">
+                <Box>{layout.name}</Box>
+                <IconButton>
+                    <Fullscreen />
+                </IconButton>
+            </Stack>
             <Stack ref={ref}>
                 <Stage width={width} height={width} >
                     <Layer>
@@ -148,7 +157,7 @@ export function LayoutView(
                     </Layer>
                 </Stage>
             </Stack>
-            <Stack direction="row" spacing={0.5} justifyContent="space-evenly">
+            <Stack direction="row" spacing={2} alignItems={"center"} justifyContent="space-between">
                 {curJamos.map((jamo, i) =>
                     <Select
                         key={i}
@@ -166,6 +175,14 @@ export function LayoutView(
                         ))}
                     </Select>
                 )}
+                <div>
+                    <IconButton onClick={(e) => { setAnchorEl(e.currentTarget); }}>
+                        <MoreVert />
+                    </IconButton>
+                    <Menu anchorEl={anchorEl} open={open} onClose={() => { setAnchorEl(null); }}>
+                        <MenuItem>abc</MenuItem>
+                    </Menu>
+                </div>
             </Stack>
         </Stack>
     );
