@@ -87,7 +87,7 @@ export function DownloadFontButton(
     return (
         <Stack spacing={1}>
             <Box display={"flex"}>
-                <Stack direction="row" spacing={1} alignItems={"center"}>
+                <Stack direction="row" spacing={3} alignItems={"center"}>
                     <Stack spacing={0}>
                         <Button
                             variant="contained"

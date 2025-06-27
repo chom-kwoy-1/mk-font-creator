@@ -20,9 +20,6 @@ export function CompositionLayouts(
         setCurLayouts: (layouts: Layouts) => void,
     }>
 ) {
-    const fdarray = ttx.getFDArray();
-    const os2 = ttx.getOS2();
-
     const [left, setLeft] = React.useState<number>(0);
     const [bottom, setBottom] = React.useState<number>(-200);
     const [viewWidth, setViewWidth] = React.useState<number>(1000);
@@ -31,6 +28,8 @@ export function CompositionLayouts(
 
     const debug = false;
     if (debug) {
+        const fdarray = ttx.getFDArray();
+
         const aspectRatio = 1.;
         const canvasWidth = 1400;
         const canvasHeight = aspectRatio * canvasWidth;
@@ -154,7 +153,7 @@ export function CompositionLayouts(
                     cidx={cidx}
                     curLayouts={curLayouts}
                     setCurLayouts={setCurLayouts}
-                    os2={os2}
+                    ttx={ttx}
                 />
             )}
         </Paper>
@@ -162,12 +161,12 @@ export function CompositionLayouts(
 }
 
 function LayoutCategory(
-    {category, cidx, curLayouts, setCurLayouts, os2}: Readonly<{
+    {category, cidx, curLayouts, setCurLayouts, ttx}: Readonly<{
         category: Category;
         cidx: number;
         curLayouts: Layouts;
         setCurLayouts: (layouts: Layouts) => void;
-        os2: OS2;
+        ttx: TTXWrapper;
     }>
 ) {
     const [isExpanded, setIsExpanded] = React.useState(false);
@@ -227,9 +226,10 @@ function LayoutCategory(
                                             );
                                             setCurLayouts(newLayouts);
                                         }}
+                                        curFocusJamo={curJamo}
                                         layoutTag={category.tag}
                                         allLayouts={curLayouts}
-                                        os2={os2}
+                                        ttx={ttx}
                                         showPoints={false}
                                     />
                                 </Paper>

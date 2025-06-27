@@ -7,7 +7,7 @@ import {brown, teal} from "@mui/material/colors";
 import {Layout, Layouts} from "@/app/jamo_layouts";
 import UseDimensions from "@/app/useDimensions";
 import {Point} from "@/app/parse_glyph";
-import {OS2} from "@/app/TTXObject";
+import {OS2, TTXWrapper} from "@/app/TTXObject";
 import {getJamos} from "@/app/jamos";
 import {LayoutControl} from "@/app/LayoutControl";
 
@@ -16,19 +16,22 @@ export function LayoutView(
     {
         layout,
         setLayout,
+        curFocusJamo,
         layoutTag,
         allLayouts,
-        os2,
+        ttx,
         showPoints,
     }: Readonly<{
         layout: Layout;
         setLayout: (layout: Layout) => void;
+        curFocusJamo: string;
         layoutTag: string;
         allLayouts: Layouts;
-        os2: OS2;
+        ttx: TTXWrapper;
         showPoints: boolean;
     }>
 ) {
+    const os2 = ttx.getOS2();
     const ascender = parseInt(os2.sTypoAscender[0]['@_value']);
     const descender = parseInt(os2.sTypoDescender[0]['@_value']);
 
@@ -55,12 +58,18 @@ export function LayoutView(
     }
 
     const jamoLists = layout.elems.values()
+        .filter((kind) => !kind.endsWith(layout.focus))
         .map((kind) => getJamos(kind))
         .toArray();
 
     const [curJamos, setCurJamos] = React.useState(
         jamoLists.map((jamos) => jamos[0])
     );
+
+    const curAllJamos = [...curJamos];
+    const focusPos = layout.elems.values().toArray()
+        .findIndex((kind) => kind.endsWith(layout.focus));
+    curAllJamos.splice(focusPos, 0, curFocusJamo);
 
     const outlineColor = teal[500];
 
@@ -89,7 +98,7 @@ export function LayoutView(
                                 setLayout={setLayout}
                                 layoutTag={layoutTag}
                                 allLayouts={allLayouts}
-                                curJamos={curJamos}
+                                curJamos={curAllJamos}
                                 topLevel={true}
                                 drawBackground={drawBackground}
                                 showPoints={showPoints}
