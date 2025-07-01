@@ -395,6 +395,20 @@ export function subkindOf(jamo: string): Set<JamoSubkind> {
     return new Set(jamoSpecTable.get(jamo)?.subkinds ?? []);
 }
 
+export function getLVT(jamo: string): string | null {
+    const subkinds = subkindOf(jamo).values().toArray();
+    if (subkinds.some(subkind => subkind.endsWith('leading'))) {
+        return 'L';
+    }
+    if (subkinds.some(subkind => subkind.endsWith('vowel'))) {
+        return 'V';
+    }
+    if (subkinds.some(subkind => subkind.endsWith('trailing'))) {
+        return 'T';
+    }
+    return null;
+}
+
 export function trailingJamos(): Set<string> {
     return new Set(
         jamoSpecTable.entries()
