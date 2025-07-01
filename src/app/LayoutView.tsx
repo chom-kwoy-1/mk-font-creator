@@ -175,7 +175,6 @@ function EditGlyph(
     React.useLayoutEffect(() => {
         if (ref.current !== null) {
             const { width, height } = ref.current.getBoundingClientRect();
-            console.log(width, height);
             setCanvasWidth(width);
         }
     }, []);
@@ -218,31 +217,29 @@ function EditGlyph(
     return (
         <Stack ref={ref}>
             <Stage width={canvasWidth} height={canvasHeight} >
+                <Layer name='background-layer'/>
+                <Layer name='nonclick-layer'/>
                 <Layer>
-                    {[true, false].map((drawBackground, key) => (
-                        <LayoutControl
-                            key={key}
-                            divider={layout.dividers}
-                            setDivider={(newDivider) => {
-                                if (newDivider.type !== 'jamo') {
-                                    setLayout({...layout, dividers: newDivider});
-                                }
-                            }}
-                            left={0}
-                            right={1000}
-                            top={ascender}
-                            bottom={descender}
-                            rescale={rescale}
-                            xyScales={{x: scale, y: -scale}}
-                            layout={layout}
-                            setLayout={setLayout}
-                            allLayouts={allLayouts}
-                            curJamos={curAllJamos}
-                            topLevel={true}
-                            drawBackground={drawBackground}
-                            showPoints={showPoints}
-                        />
-                    ))}
+                    <LayoutControl
+                        divider={layout.dividers}
+                        setDivider={(newDivider) => {
+                            if (newDivider.type !== 'jamo') {
+                                setLayout({...layout, dividers: newDivider});
+                            }
+                        }}
+                        left={0}
+                        right={1000}
+                        top={ascender}
+                        bottom={descender}
+                        rescale={rescale}
+                        xyScales={{x: scale, y: -scale}}
+                        layout={layout}
+                        setLayout={setLayout}
+                        allLayouts={allLayouts}
+                        curJamos={curAllJamos}
+                        topLevel={true}
+                        showPoints={showPoints}
+                    />
                 </Layer>
 
                 {/* Draw guides */}

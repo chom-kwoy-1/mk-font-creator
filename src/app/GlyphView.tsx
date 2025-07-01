@@ -5,15 +5,14 @@ import Konva from "konva";
 import {Bezier} from "bezier-js";
 
 export function GlyphView(
-    {stageRef, glyph, rescale, ...props}: Readonly<{
-        stageRef?: React.RefObject<Konva.Group | null>,
+    {glyph, rescale, ...props}: Readonly<{
         glyph: Glyph,
         rescale: (p: Point) => number[],
         showPoints?: boolean,
     } & Konva.LineConfig>
 ) {
     return (
-        <Group ref={stageRef}>
+        <Group>
             {glyph.paths.map((path, pathIdx) => {
                 return (
                     <Line

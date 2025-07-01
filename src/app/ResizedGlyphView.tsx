@@ -15,7 +15,6 @@ import {Bezier} from "bezier-js";
 import {Circle, Line} from "react-konva";
 
 type PropType = Readonly<{
-    stageRef?: React.RefObject<Konva.Group | null>,
     resizedGlyph: ResizedGlyph,
     rescale: (p: Point) => number[],
     bounds: Bounds,

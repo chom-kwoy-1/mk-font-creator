@@ -12,20 +12,6 @@ import {initLayouts} from "@/app/init_layouts";
 import {DownloadFontButton} from "@/app/DownloadFontButton";
 import {CompositionLayouts} from "@/app/CompositionLayouts";
 
-
-const VisuallyHiddenInput = styled('input')({
-    clip: 'rect(0 0 0 0)',
-    clipPath: 'inset(50%)',
-    height: 1,
-    overflow: 'hidden',
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    whiteSpace: 'nowrap',
-    width: 1,
-});
-
-
 export default function Home() {
     const [file, setFile] = React.useState<File | null>(null);
     const [loadingState, setLoadingState] = React.useState<string | null>(null);
@@ -173,3 +159,15 @@ function ShowFontSummary(
         </Stack>
     );
 }
+
+const VisuallyHiddenInput = styled('input')({
+    clip: 'rect(0 0 0 0)',
+    clipPath: 'inset(50%)',
+    height: 1,
+    overflow: 'hidden',
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    whiteSpace: 'nowrap',
+    width: 1,
+});

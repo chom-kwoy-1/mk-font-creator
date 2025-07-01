@@ -6,12 +6,18 @@ import {Group, Line, Rect} from "react-konva";
 import {blue, amber} from "@mui/material/colors";
 
 export function ResizeableRect(
-    {bounds, setBounds, rescale, xyScales, resizedRefs, ...props}: Readonly<{
+    {
+        bounds, setBounds,
+        rescale,
+        xyScales,
+        children,
+        ...props
+    }: Readonly<{
         bounds: Bounds,
         setBounds: (bounds: Bounds) => void,
         rescale: (p: Point) => number[],
         xyScales: { x: number, y: number },
-        resizedRefs: Konva.Group[],
+        children?: React.ReactNode,
     } & Konva.LineConfig>) {
     const [isDragging, setIsDragging] = React.useState({
         bottom: false,
@@ -26,6 +32,7 @@ export function ResizeableRect(
     const topRef = React.useRef<Konva.Line>(null);
     const leftRef = React.useRef<Konva.Line>(null);
     const groupRef = React.useRef<Konva.Group>(null);
+    const childRef = React.useRef<Konva.Group>(null);
 
     const updateNext = React.useRef(() => {});
     React.useLayoutEffect(() => {
@@ -80,6 +87,10 @@ export function ResizeableRect(
 
     return (
         <Group>
+            <Group ref={childRef}>
+                {children}
+            </Group>
+
             <Rect
                 x={0}
                 y={0}
@@ -99,11 +110,9 @@ export function ResizeableRect(
                     // rightRef.current?.points([x2 + rx, y1 + ry, x2 + rx, y2 + ry]);
                     // topRef.current?.points([x2 + rx, y2 + ry, x1 + rx, y2 + ry]);
                     // leftRef.current?.points([x1 + rx, y2 + ry, x1 + rx, y1 + ry]);
-                    for (const ref of resizedRefs) {
-                        if (ref !== null) {
-                            ref.x(rx);
-                            ref.y(ry);
-                        }
+                    if (childRef.current !== null) {
+                        childRef.current.x(rx);
+                        childRef.current.y(ry);
                     }
                 }}
                 onDragEnd={(e) => {
@@ -119,11 +128,9 @@ export function ResizeableRect(
                     updateNext.current = () => {
                         groupRef.current?.offset({x: 0, y: 0});
                         e.target.setPosition({x: 0, y: 0});
-                        for (const ref of resizedRefs) {
-                            if (ref !== null) {
-                                ref.x(0);
-                                ref.y(0);
-                            }
+                        if (childRef.current !== null) {
+                            childRef.current.x(0);
+                            childRef.current.y(0);
                         }
                     };
                 }}

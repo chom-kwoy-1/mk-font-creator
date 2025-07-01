@@ -6,6 +6,7 @@ import {grey} from "@mui/material/colors";
 import {selectLayout, subkindOf} from "@/app/jamos";
 import {ResizeableJamo} from "@/app/ResizeableJamo";
 import {Bounds} from "@/app/font_utils";
+import {Portal} from "react-konva-utils";
 
 export function LayoutControl(
     {
@@ -28,7 +29,6 @@ export function LayoutControl(
         allLayouts: Layouts,
         curJamos: string[],
         topLevel: boolean,
-        drawBackground: boolean,
         showPoints?: boolean,
     }>
 ) {
@@ -36,7 +36,6 @@ export function LayoutControl(
         rescale,
         xyScales,
         allLayouts,
-        drawBackground,
         showPoints,
     } = props;
 
@@ -95,19 +94,20 @@ export function LayoutControl(
             );
 
             return (
-                <ResizeableJamo
-                    left={bounds.left}
-                    right={bounds.right}
-                    top={bounds.top}
-                    bottom={bounds.bottom}
-                    rescale={rescale}
-                    xyScales={xyScales}
-                    isFocus={isFocus}
-                    resizedGlyph={resizedGlyph}
-                    setResizedGlyph={setResizedGlyph}
-                    drawBackground={drawBackground}
-                    showPoints={showPoints}
-                />
+                <Portal selector={".nonclick-layer"} enabled={!isFocus}>
+                    <ResizeableJamo
+                        left={bounds.left}
+                        right={bounds.right}
+                        top={bounds.top}
+                        bottom={bounds.bottom}
+                        rescale={rescale}
+                        xyScales={xyScales}
+                        isFocus={isFocus}
+                        resizedGlyph={resizedGlyph}
+                        setResizedGlyph={setResizedGlyph}
+                        showPoints={showPoints}
+                    />
+                </Portal>
             );
         }
         else {
@@ -152,57 +152,59 @@ export function LayoutControl(
             <React.Fragment>
                 {leftGlyph}
                 {rightGlyph}
-                {!drawBackground && isFocus &&
-                    <Group
-                        draggable={true}
-                        onDragStart={(e) => {
-                            setIsDragging(true);
-                        }}
-                        onDragMove={(e) => {
-                            e.target.setPosition({x: e.target.x(), y: 0});
-                        }}
-                        onDragEnd={(e) => {
-                            setIsDragging(false);
-                            const offsetX = (e.target.x() / xyScales.x) / (right - left);
-                            setDivider({
-                                ...divider,
-                                x: divider.x + offsetX,
-                            });
-                            updateNext.current = () => {
-                                e.target.setPosition({x: 0, y: 0});
-                            };
-                        }}
-                        onMouseEnter={(e) => {
-                            const container = e.target.getStage()?.container();
-                            if (container) {
-                                container.style.cursor = "ew-resize";
-                            }
-                        }}
-                        onMouseLeave={(e) => {
-                            const container = e.target.getStage()?.container();
-                            if (container) {
-                                container.style.cursor = "default";
-                            }
-                        }}>
-                        <Rect
-                            x={0}
-                            y={0}
-                            offsetX={-rescale({x: x, y: top})[0] + handleSize / 2}
-                            offsetY={-rescale({x: x, y: top})[1] + handleSize}
-                            width={handleSize}
-                            height={handleSize}
-                            stroke={handleColor}
-                        />
-                        <Line
-                            points={[
-                                ...rescale({x: x, y: top}),
-                                ...rescale({x: x, y: bottom}),
-                            ]}
-                            stroke={dividerColor}
-                            strokeWidth={isDragging ? 5 : 2}
-                            hitStrokeWidth={0}
-                        />
-                    </Group>}
+                {isFocus &&
+                    <Portal selector={".background-layer"}>
+                        <Group
+                            draggable={true}
+                            onDragStart={(e) => {
+                                setIsDragging(true);
+                            }}
+                            onDragMove={(e) => {
+                                e.target.setPosition({x: e.target.x(), y: 0});
+                            }}
+                            onDragEnd={(e) => {
+                                setIsDragging(false);
+                                const offsetX = (e.target.x() / xyScales.x) / (right - left);
+                                setDivider({
+                                    ...divider,
+                                    x: divider.x + offsetX,
+                                });
+                                updateNext.current = () => {
+                                    e.target.setPosition({x: 0, y: 0});
+                                };
+                            }}
+                            onMouseEnter={(e) => {
+                                const container = e.target.getStage()?.container();
+                                if (container) {
+                                    container.style.cursor = "ew-resize";
+                                }
+                            }}
+                            onMouseLeave={(e) => {
+                                const container = e.target.getStage()?.container();
+                                if (container) {
+                                    container.style.cursor = "default";
+                                }
+                            }}>
+                            <Rect
+                                x={0}
+                                y={0}
+                                offsetX={-rescale({x: x, y: top})[0] + handleSize / 2}
+                                offsetY={-rescale({x: x, y: top})[1] + handleSize}
+                                width={handleSize}
+                                height={handleSize}
+                                stroke={handleColor}
+                            />
+                            <Line
+                                points={[
+                                    ...rescale({x: x, y: top}),
+                                    ...rescale({x: x, y: bottom}),
+                                ]}
+                                stroke={dividerColor}
+                                strokeWidth={isDragging ? 5 : 2}
+                                hitStrokeWidth={0}
+                            />
+                        </Group>
+                    </Portal>}
             </React.Fragment>
         );
     }
@@ -229,57 +231,59 @@ export function LayoutControl(
             <React.Fragment>
                 {topGlyph}
                 {bottomGlyph}
-                {!drawBackground && isFocus &&
-                    <Group
-                        draggable={true}
-                        onDragStart={(e) => {
-                            setIsDragging(true);
-                        }}
-                        onDragMove={(e) => {
-                            e.target.setPosition({x: 0, y: e.target.y()});
-                        }}
-                        onDragEnd={(e) => {
-                            setIsDragging(false);
-                            const offsetY = (e.target.y() / xyScales.y) / (top - bottom);
-                            setDivider({
-                                ...divider,
-                                y: divider.y + offsetY,
-                            });
-                            updateNext.current = () => {
-                                e.target.setPosition({x: 0, y: 0});
-                            };
-                        }}
-                        onMouseEnter={(e) => {
-                            const container = e.target.getStage()?.container();
-                            if (container) {
-                                container.style.cursor = "ns-resize";
-                            }
-                        }}
-                        onMouseLeave={(e) => {
-                            const container = e.target.getStage()?.container();
-                            if (container) {
-                                container.style.cursor = "default";
-                            }
-                        }}>
-                        <Rect
-                            x={0}
-                            y={0}
-                            offsetX={-rescale({x: left, y: y})[0] + handleSize}
-                            offsetY={-rescale({x: left, y: y})[1] + handleSize / 2}
-                            width={handleSize}
-                            height={handleSize}
-                            stroke={handleColor}
-                        />
-                        <Line
-                            points={[
-                                ...rescale({x: left, y: y}),
-                                ...rescale({x: right, y: y}),
-                            ]}
-                            stroke={dividerColor}
-                            strokeWidth={isDragging ? 5 : 2}
-                            hitStrokeWidth={0}
-                        />
-                    </Group>}
+                {isFocus &&
+                    <Portal selector={".background-layer"}>
+                        <Group
+                            draggable={true}
+                            onDragStart={(e) => {
+                                setIsDragging(true);
+                            }}
+                            onDragMove={(e) => {
+                                e.target.setPosition({x: 0, y: e.target.y()});
+                            }}
+                            onDragEnd={(e) => {
+                                setIsDragging(false);
+                                const offsetY = (e.target.y() / xyScales.y) / (top - bottom);
+                                setDivider({
+                                    ...divider,
+                                    y: divider.y + offsetY,
+                                });
+                                updateNext.current = () => {
+                                    e.target.setPosition({x: 0, y: 0});
+                                };
+                            }}
+                            onMouseEnter={(e) => {
+                                const container = e.target.getStage()?.container();
+                                if (container) {
+                                    container.style.cursor = "ns-resize";
+                                }
+                            }}
+                            onMouseLeave={(e) => {
+                                const container = e.target.getStage()?.container();
+                                if (container) {
+                                    container.style.cursor = "default";
+                                }
+                            }}>
+                            <Rect
+                                x={0}
+                                y={0}
+                                offsetX={-rescale({x: left, y: y})[0] + handleSize}
+                                offsetY={-rescale({x: left, y: y})[1] + handleSize / 2}
+                                width={handleSize}
+                                height={handleSize}
+                                stroke={handleColor}
+                            />
+                            <Line
+                                points={[
+                                    ...rescale({x: left, y: y}),
+                                    ...rescale({x: right, y: y}),
+                                ]}
+                                stroke={dividerColor}
+                                strokeWidth={isDragging ? 5 : 2}
+                                hitStrokeWidth={0}
+                            />
+                        </Group>
+                    </Portal>}
             </React.Fragment>
         );
     } else if (divider.type === 'mixed') {
@@ -307,11 +311,13 @@ export function LayoutControl(
                 {topLeftGlyph}
                 {restGlyph}
                 {isFocus &&
-                    <Line points={[
-                        ...rescale({x: left, y: y}),
-                        ...rescale({x: x, y: y}),
-                        ...rescale({x: x, y: top}),
-                    ]} stroke={dividerColor}/>}
+                    <Portal selector={".background-layer"}>
+                        <Line points={[
+                            ...rescale({x: left, y: y}),
+                            ...rescale({x: x, y: y}),
+                            ...rescale({x: x, y: top}),
+                        ]} stroke={dividerColor}/>
+                    </Portal>}
             </React.Fragment>
         );
     } else {
