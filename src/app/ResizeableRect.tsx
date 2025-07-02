@@ -25,6 +25,7 @@ export function ResizeableRect(
         right: false,
         top: false,
         left: false,
+        bottomLeft: false,
         whole: false,
     });
     const [isHovering, setIsHovering] = React.useState(false);
@@ -72,6 +73,13 @@ export function ResizeableRect(
         childRef.current?.y(-y1 * scaleY + newY1);
         childRef.current?.scaleX(scaleX);
         childRef.current?.scaleY(scaleY);
+    }
+
+    function resetRect() {
+        childRef.current?.x(0);
+        childRef.current?.y(0);
+        childRef.current?.scaleX(1);
+        childRef.current?.scaleY(1);
     }
 
     return (
@@ -145,6 +153,53 @@ export function ResizeableRect(
                     stroke={isDragging.bottom ? dragColor : props.stroke}
                     strokeWidth={isDragging.bottom ? 5 : (props.strokeWidth ?? 2)}
                 />
+                <Line
+                    ref={rightRef}
+                    points={[x2, y1, x2, y2]}
+                    {...props}
+                    stroke={isDragging.right ? dragColor : props.stroke}
+                    strokeWidth={isDragging.right ? 5 : (props.strokeWidth ?? 2)}
+                />
+                <Line
+                    ref={topRef}
+                    points={[x2, y2, x1, y2]}
+                    {...props}
+                    stroke={isDragging.top ? dragColor : props.stroke}
+                    strokeWidth={isDragging.top ? 5 : (props.strokeWidth ?? 2)}
+                />
+                <Line
+                    ref={leftRef}
+                    points={[x1, y2, x1, y1]}
+                    {...props}
+                    stroke={isDragging.left ? dragColor : props.stroke}
+                    strokeWidth={isDragging.left ? 5 : (props.strokeWidth ?? 2)}
+                />
+                <ResizeHandle
+                    x={x1}
+                    y={y1}
+                    handleSize={handleSize}
+                    handleColor={handleColor}
+                    resizeCursor={"nesw-resize"}
+                    isDragging={isDragging.bottomLeft}
+                    setIsDragging={(dragging) => setIsDragging({...isDragging, bottomLeft: dragging})}
+                    onDragMove={(x, y) => {
+                        updateRect({x1: x1 + x, y1: y1 + y});
+                        return {x: x, y: y};
+                    }}
+                    onDragEnd={(x, y, reset) => {
+                        const offsetX = x / xyScales.x;
+                        const offsetY = y / xyScales.y;
+                        setBounds({
+                            ...bounds,
+                            bottom: bounds.bottom + offsetY,
+                            left: bounds.left + offsetX,
+                        });
+                        updateNext.current = () => {
+                            resetRect();
+                            reset();
+                        };
+                    }}
+                />
                 <ResizeHandle
                     x={(x1 + x2) / 2}
                     y={y1}
@@ -164,20 +219,10 @@ export function ResizeableRect(
                             bottom: bounds.bottom + offsetY,
                         });
                         updateNext.current = () => {
-                            childRef.current?.x(0);
-                            childRef.current?.y(0);
-                            childRef.current?.scaleX(1);
-                            childRef.current?.scaleY(1);
+                            resetRect();
                             reset();
                         };
                     }}
-                />
-                <Line
-                    ref={rightRef}
-                    points={[x2, y1, x2, y2]}
-                    {...props}
-                    stroke={isDragging.right ? dragColor : props.stroke}
-                    strokeWidth={isDragging.right ? 5 : (props.strokeWidth ?? 2)}
                 />
                 <ResizeHandle
                     x={x2}
@@ -198,20 +243,10 @@ export function ResizeableRect(
                             right: bounds.right + offsetX,
                         });
                         updateNext.current = () => {
-                            childRef.current?.x(0);
-                            childRef.current?.y(0);
-                            childRef.current?.scaleX(1);
-                            childRef.current?.scaleY(1);
+                            resetRect();
                             reset();
                         };
                     }}
-                />
-                <Line
-                    ref={topRef}
-                    points={[x2, y2, x1, y2]}
-                    {...props}
-                    stroke={isDragging.top ? dragColor : props.stroke}
-                    strokeWidth={isDragging.top ? 5 : (props.strokeWidth ?? 2)}
                 />
                 <ResizeHandle
                     x={(x1 + x2) / 2}
@@ -232,20 +267,10 @@ export function ResizeableRect(
                             top: bounds.top + offsetY,
                         });
                         updateNext.current = () => {
-                            childRef.current?.x(0);
-                            childRef.current?.y(0);
-                            childRef.current?.scaleX(1);
-                            childRef.current?.scaleY(1);
+                            resetRect();
                             reset();
                         };
                     }}
-                />
-                <Line
-                    ref={leftRef}
-                    points={[x1, y2, x1, y1]}
-                    {...props}
-                    stroke={isDragging.left ? dragColor : props.stroke}
-                    strokeWidth={isDragging.left ? 5 : (props.strokeWidth ?? 2)}
                 />
                 <ResizeHandle
                     x={x1}
@@ -266,10 +291,7 @@ export function ResizeableRect(
                             left: bounds.left + offsetX,
                         });
                         updateNext.current = () => {
-                            childRef.current?.x(0);
-                            childRef.current?.y(0);
-                            childRef.current?.scaleX(1);
-                            childRef.current?.scaleY(1);
+                            resetRect();
                             reset();
                         };
                     }}
@@ -315,6 +337,10 @@ function ResizeHandle(
             }}
             onDragMove={(e) => {
                 e.target.setPosition(onDragMove(e.target.x(), e.target.y()));
+                const container = e.target.getStage()?.container();
+                if (container) {
+                    container.style.cursor = resizeCursor;
+                }
             }}
             onDragEnd={(e) => {
                 setIsDragging(false);

@@ -21,6 +21,7 @@ import {getJamos, getLVT} from "@/app/jamos";
 import {LayoutControl} from "@/app/LayoutControl";
 import {Fullscreen, MoreVert} from "@mui/icons-material";
 import {CloseIcon} from "next/dist/client/components/react-dev-overlay/internal/icons/CloseIcon";
+import useDimensions from "@/app/useDimensions";
 
 
 export function LayoutView(
@@ -48,6 +49,11 @@ export function LayoutView(
     const [curJamos, setCurJamos] = React.useState(
         jamoLists.map((jamos) => jamos[0])
     );
+
+    const curAllJamos = [...curJamos];
+    const focusPos = layout.elems.values().toArray()
+        .findIndex((kind) => kind.endsWith(layout.focus));
+    curAllJamos.splice(focusPos, 0, curFocusJamo);
 
     const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null);
     const menuOpen = Boolean(anchorEl);
@@ -82,7 +88,7 @@ export function LayoutView(
                             <EditGlyph
                                 layout={layout}
                                 setLayout={setLayout}
-                                curFocusJamo={curFocusJamo}
+                                curAllJamos={curAllJamos}
                                 allLayouts={allLayouts}
                                 ttx={ttx}
                                 showPoints={showPoints}
@@ -99,7 +105,7 @@ export function LayoutView(
             <EditGlyph
                 layout={layout}
                 setLayout={setLayout}
-                curFocusJamo={curFocusJamo}
+                curAllJamos={curAllJamos}
                 allLayouts={allLayouts}
                 ttx={ttx}
                 showPoints={showPoints}
@@ -152,14 +158,14 @@ function EditGlyph(
     {
         layout,
         setLayout,
-        curFocusJamo,
+        curAllJamos,
         allLayouts,
         ttx,
         showPoints,
     }: Readonly<{
         layout: Layout;
         setLayout: (layout: Layout) => void;
-        curFocusJamo: string;
+        curAllJamos: string[];
         allLayouts: Layouts;
         ttx: TTXWrapper;
         showPoints: boolean;
@@ -170,16 +176,10 @@ function EditGlyph(
     const descender = parseInt(os2.sTypoDescender[0]['@_value']);
 
     const ref = React.useRef<HTMLDivElement | null>(null);
-    const [canvasWidth, setCanvasWidth] = React.useState<number>(100);
-
-    React.useLayoutEffect(() => {
-        if (ref.current !== null) {
-            const { width, height } = ref.current.getBoundingClientRect();
-            setCanvasWidth(width);
-        }
-    }, []);
+    const {width} = useDimensions(ref);
 
     const aspectRatio = 1.;
+    const canvasWidth = width;
     const canvasHeight = aspectRatio * canvasWidth;
 
     const [left, setLeft] = React.useState<number>(-250);
@@ -197,20 +197,6 @@ function EditGlyph(
 
         return [x, y];
     }
-
-    const jamoLists = layout.elems.values()
-        .filter((kind) => !kind.endsWith(layout.focus))
-        .map((kind) => getJamos(kind))
-        .toArray();
-
-    const [curJamos, setCurJamos] = React.useState(
-        jamoLists.map((jamos) => jamos[0])
-    );
-
-    const curAllJamos = [...curJamos];
-    const focusPos = layout.elems.values().toArray()
-        .findIndex((kind) => kind.endsWith(layout.focus));
-    curAllJamos.splice(focusPos, 0, curFocusJamo);
 
     const outlineColor = teal[500];
 
