@@ -1,4 +1,4 @@
-import {PUA_CONV_TAB} from "@/app/pua_uni_table";
+import {PUA_CONV_TAB} from "@/app/font_utils/pua_uni_table";
 
 let UNI_TO_PUA: Map<string, string> | null = null;
 let UNI_TO_PUA_3: Map<string, string> | null = null;

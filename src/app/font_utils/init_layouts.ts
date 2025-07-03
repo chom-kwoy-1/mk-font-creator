@@ -1,9 +1,9 @@
-import {Divider, JamoElement, JamoKind, jamoLayouts, Layouts, ResizedGlyph} from "@/app/jamo_layouts";
-import {Bounds, findCharstringByCodepoint, glyphActualBounds, intersectGlyph} from "@/app/font_utils";
-import {TTXWrapper} from "@/app/TTXObject";
-import {Glyph, parseGlyph} from "@/app/parse_glyph";
-import {getExampleJamos, getJamos} from "@/app/jamos";
-import {uniToPua} from "@/app/pua_uni_conv";
+import {Divider, JamoElement, JamoKind, jamoLayouts, Layouts, ResizedGlyph} from "@/app/font_utils/jamo_layouts";
+import {Bounds, findCharstringByCodepoint, glyphActualBounds, intersectGlyph} from "@/app/font_utils/font_utils";
+import {TTXWrapper} from "@/app/font_utils/TTXObject";
+import {Glyph, parseGlyph} from "@/app/font_utils/parse_glyph";
+import {getExampleJamos, getJamos} from "@/app/font_utils/jamos";
+import {uniToPua} from "@/app/font_utils/pua_uni_conv";
 
 
 export function initLayouts(ttx: TTXWrapper): Layouts {

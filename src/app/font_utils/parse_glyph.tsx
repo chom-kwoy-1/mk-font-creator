@@ -1,4 +1,4 @@
-import {Charstring, FontDict} from "@/app/TTXObject";
+import {Charstring, FontDict} from "@/app/font_utils/TTXObject";
 import {Bezier} from "bezier-js";
 
 export type Point = {

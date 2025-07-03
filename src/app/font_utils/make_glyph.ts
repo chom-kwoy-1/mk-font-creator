@@ -1,6 +1,6 @@
-import {ResizedGlyph} from "@/app/jamo_layouts";
-import {Bounds, glyphActualBounds} from "@/app/font_utils";
-import {Point} from "@/app/parse_glyph";
+import {ResizedGlyph} from "@/app/font_utils/jamo_layouts";
+import {Bounds, glyphActualBounds} from "@/app/font_utils/font_utils";
+import {Point} from "@/app/font_utils/parse_glyph";
 
 export function makeCharstring(
     resizedGlyph: ResizedGlyph,

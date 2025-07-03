@@ -14,14 +14,14 @@ import {
 import {Layer, Line, Stage} from 'react-konva';
 import {brown, teal} from "@mui/material/colors";
 
-import {Layout, Layouts} from "@/app/jamo_layouts";
-import {Point} from "@/app/parse_glyph";
-import {TTXWrapper} from "@/app/TTXObject";
-import {getJamos, getLVT} from "@/app/jamos";
-import {LayoutControl} from "@/app/LayoutControl";
+import {Layout, Layouts} from "@/app/font_utils/jamo_layouts";
+import {Point} from "@/app/font_utils/parse_glyph";
+import {TTXWrapper} from "@/app/font_utils/TTXObject";
+import {getJamos, getLVT} from "@/app/font_utils/jamos";
+import {LayoutControl} from "@/app/components/LayoutControl";
 import {Fullscreen, MoreVert} from "@mui/icons-material";
 import {CloseIcon} from "next/dist/client/components/react-dev-overlay/internal/icons/CloseIcon";
-import useDimensions from "@/app/useDimensions";
+import useDimensions from "@/app/utils/useDimensions";
 
 
 export function LayoutView(

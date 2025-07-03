@@ -1,5 +1,5 @@
-import {Bounds} from "@/app/font_utils";
-import {Point} from "@/app/parse_glyph";
+import {Bounds} from "@/app/font_utils/font_utils";
+import {Point} from "@/app/font_utils/parse_glyph";
 import Konva from "konva";
 import {Rect} from "react-konva";
 import React from "react";

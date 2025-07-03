@@ -1,9 +1,9 @@
-import {ChainContextSubst, TTXWrapper} from "@/app/TTXObject";
-import {Divider, JamoElement, Layout, Layouts} from "@/app/jamo_layouts";
-import {makeCharstring} from "@/app/make_glyph";
-import {Bounds} from "@/app/font_utils";
-import {getJamos, trailingJamos, subkindOf} from "@/app/jamos";
-import {PUA_CONV_TAB} from "@/app/pua_uni_table";
+import {ChainContextSubst, TTXWrapper} from "@/app/font_utils/TTXObject";
+import {Divider, JamoElement, Layout, Layouts} from "@/app/font_utils/jamo_layouts";
+import {makeCharstring} from "@/app/font_utils/make_glyph";
+import {Bounds} from "@/app/font_utils/font_utils";
+import {getJamos, trailingJamos, subkindOf} from "@/app/font_utils/jamos";
+import {PUA_CONV_TAB} from "@/app/font_utils/pua_uni_table";
 
 export type OrientationMode = 'horz-and-vert' | 'vert-only';
 export function generateTtx(

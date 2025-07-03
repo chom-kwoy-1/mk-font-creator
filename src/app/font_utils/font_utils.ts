@@ -1,5 +1,5 @@
-import {Charstring, TTXWrapper} from "@/app/TTXObject";
-import {Glyph, Path, Point, Segment} from "@/app/parse_glyph";
+import {Charstring, TTXWrapper} from "@/app/font_utils/TTXObject";
+import {Glyph, Path, Point, Segment} from "@/app/font_utils/parse_glyph";
 import {Bezier} from "bezier-js";
 
 export function findCharstringByCodepoint(

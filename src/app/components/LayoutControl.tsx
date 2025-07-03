@@ -1,11 +1,11 @@
-import {Divider, JamoElement, JamoSubkind, Layout, Layouts, ResizedGlyph} from "@/app/jamo_layouts";
-import {Point} from "@/app/parse_glyph";
+import {Divider, JamoElement, JamoSubkind, Layout, Layouts, ResizedGlyph} from "@/app/font_utils/jamo_layouts";
+import {Point} from "@/app/font_utils/parse_glyph";
 import React from "react";
 import {Group, Line, Rect} from "react-konva";
 import {grey} from "@mui/material/colors";
-import {selectLayout, subkindOf} from "@/app/jamos";
-import {ResizeableJamo} from "@/app/ResizeableJamo";
-import {Bounds} from "@/app/font_utils";
+import {selectLayout, subkindOf} from "@/app/font_utils/jamos";
+import {ResizeableJamo} from "@/app/components/ResizeableJamo";
+import {Bounds} from "@/app/font_utils/font_utils";
 import {Portal} from "react-konva-utils";
 
 export function LayoutControl(

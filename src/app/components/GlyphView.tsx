@@ -1,6 +1,6 @@
 import React from 'react';
 import {Circle, Group, Line, Rect, Text} from 'react-konva';
-import {Glyph, Point} from "@/app/parse_glyph";
+import {Glyph, Point} from "@/app/font_utils/parse_glyph";
 import Konva from "konva";
 import {Bezier} from "bezier-js";
 

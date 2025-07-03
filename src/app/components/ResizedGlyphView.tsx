@@ -1,5 +1,5 @@
-import {ResizedGlyph} from "@/app/jamo_layouts";
-import {Glyph, Point} from "@/app/parse_glyph";
+import {ResizedGlyph} from "@/app/font_utils/jamo_layouts";
+import {Glyph, Point} from "@/app/font_utils/parse_glyph";
 import {
     adjustGlyphThickness,
     Bounds,
@@ -7,8 +7,8 @@ import {
     offsetGlyphSegments,
     reduceGlyphPaths,
     synthesizeBoldGlyph
-} from "@/app/font_utils";
-import {GlyphView} from "@/app/GlyphView";
+} from "@/app/font_utils/font_utils";
+import {GlyphView} from "@/app/components/GlyphView";
 import React from "react";
 import Konva from "konva";
 import {Bezier} from "bezier-js";

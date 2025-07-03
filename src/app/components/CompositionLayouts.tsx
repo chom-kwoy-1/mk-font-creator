@@ -1,17 +1,17 @@
-import {Charstring, OS2, TTXWrapper} from "@/app/TTXObject";
-import {Category, Layouts, ResizedGlyph} from "@/app/jamo_layouts";
+import {Charstring, OS2, TTXWrapper} from "@/app/font_utils/TTXObject";
+import {Category, Layouts, ResizedGlyph} from "@/app/font_utils/jamo_layouts";
 import React from "react";
 import Konva from "konva";
-import {parseGlyph, Point} from "@/app/parse_glyph";
-import {findCharstringByCodepoint, glyphActualBounds} from "@/app/font_utils";
+import {parseGlyph, Point} from "@/app/font_utils/parse_glyph";
+import {findCharstringByCodepoint, glyphActualBounds} from "@/app/font_utils/font_utils";
 import {Accordion, AccordionDetails, AccordionSummary, MenuItem, Paper, Select, Stack, Typography} from "@mui/material";
 import {Layer, Line, Stage, Text} from "react-konva";
 import {brown} from "@mui/material/colors";
-import {ResizedGlyphView} from "@/app/ResizedGlyphView";
-import {getJamos} from "@/app/jamos";
+import {ResizedGlyphView} from "@/app/components/ResizedGlyphView";
+import {getJamos} from "@/app/font_utils/jamos";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import Grid from "@mui/material/Grid2";
-import {LayoutView} from "@/app/LayoutView";
+import {LayoutView} from "@/app/components/LayoutView";
 
 export function CompositionLayouts(
     {ttx, curLayouts, setCurLayouts}: Readonly<{

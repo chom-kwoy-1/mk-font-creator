@@ -1,4 +1,4 @@
-import {JamoKind, JamoSubkind, Layout, Layouts} from "@/app/jamo_layouts";
+import {JamoKind, JamoSubkind, Layout, Layouts} from "@/app/font_utils/jamo_layouts";
 
 type JamoSpec = {
     subkinds: Array<JamoSubkind>;

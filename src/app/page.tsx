@@ -6,11 +6,11 @@ import UploadFileIcon from '@mui/icons-material/UploadFile';
 import prettyBytes from 'pretty-bytes';
 import {XMLParser} from "fast-xml-parser";
 
-import {TTXWrapper} from "@/app/TTXObject";
-import {Layouts} from "@/app/jamo_layouts";
-import {initLayouts} from "@/app/init_layouts";
-import {DownloadFontButton} from "@/app/DownloadFontButton";
-import {CompositionLayouts} from "@/app/CompositionLayouts";
+import {TTXWrapper} from "@/app/font_utils/TTXObject";
+import {Layouts} from "@/app/font_utils/jamo_layouts";
+import {initLayouts} from "@/app/font_utils/init_layouts";
+import {DownloadFontButton} from "@/app/components/DownloadFontButton";
+import {CompositionLayouts} from "@/app/components/CompositionLayouts";
 
 export default function Home() {
     const [file, setFile] = React.useState<File | null>(null);

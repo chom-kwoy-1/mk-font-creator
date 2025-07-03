@@ -1,11 +1,10 @@
-import {ResizedGlyph} from "@/app/jamo_layouts";
-import {Point} from "@/app/parse_glyph";
+import {ResizedGlyph} from "@/app/font_utils/jamo_layouts";
+import {Point} from "@/app/font_utils/parse_glyph";
 import {amber, grey, orange} from "@mui/material/colors";
 import React from "react";
-import Konva from "konva";
-import {ResizedGlyphView} from "@/app/ResizedGlyphView";
-import {ResizeableRect} from "@/app/ResizeableRect";
-import {DrawBounds} from "@/app/DrawBounds";
+import {ResizedGlyphView} from "@/app/components/ResizedGlyphView";
+import {ResizeableRect} from "@/app/components/ResizeableRect";
+import {DrawBounds} from "@/app/components/DrawBounds";
 import {Portal} from 'react-konva-utils';
 
 export function ResizeableJamo(

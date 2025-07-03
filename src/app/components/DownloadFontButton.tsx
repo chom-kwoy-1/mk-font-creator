@@ -1,7 +1,7 @@
-import {TTXWrapper} from "@/app/TTXObject";
-import {Layouts} from "@/app/jamo_layouts";
+import {TTXWrapper} from "@/app/font_utils/TTXObject";
+import {Layouts} from "@/app/font_utils/jamo_layouts";
 import React from "react";
-import {generateTtx, OrientationMode} from "@/app/make_ttx";
+import {generateTtx, OrientationMode} from "@/app/font_utils/make_ttx";
 import prettyBytes from "pretty-bytes";
 import {Box, Button, FormControlLabel, LinearProgress, Radio, RadioGroup, Stack} from "@mui/material";
 import DownloadIcon from "@mui/icons-material/Download";
@@ -19,7 +19,7 @@ export function DownloadFontButton(
 
     const workerRef = React.useRef<Worker>(null);
     React.useEffect(() => {
-        workerRef.current = new Worker(new URL("../xml_serializer_worker.ts", import.meta.url));
+        workerRef.current = new Worker(new URL("../../xml_serializer_worker.ts", import.meta.url));
         workerRef.current.onmessage = (event: MessageEvent<number>) =>
             alert(`WebWorker Response => ${typeof (event.data)}`);
         return () => {

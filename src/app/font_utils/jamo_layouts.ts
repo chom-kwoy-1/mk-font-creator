@@ -1,6 +1,6 @@
-import {Glyph} from "@/app/parse_glyph";
-import {Bounds} from "@/app/font_utils";
-import {getJamos} from "@/app/jamos";
+import {Glyph} from "@/app/font_utils/parse_glyph";
+import {Bounds} from "@/app/font_utils/font_utils";
+import {getJamos} from "@/app/font_utils/jamos";
 
 export type JamoKind = (
     'leading' | 'leading-1' | 'leading-2'
