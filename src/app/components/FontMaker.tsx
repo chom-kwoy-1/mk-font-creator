@@ -33,13 +33,16 @@ export function FontMaker(props: Readonly<{}>) {
 
     // handle what happens on key press
     const handleKeyPress = React.useCallback((event: KeyboardEvent) => {
-        if (event.key === 'z' && event.ctrlKey) {
-            // Ctrl + Z pressed
+        if (event.key === 'z' && event.ctrlKey && !event.shiftKey) {
+            // Ctrl+Z pressed
             if (undoLayouts()) {
                 setNeedStore(false);
             }
-        } else if (event.key === 'y' && event.ctrlKey) {
-            // Ctrl + Y pressed
+        } else if (
+            event.key === 'y' && event.ctrlKey ||
+            event.key === 'Z' && event.ctrlKey && event.shiftKey
+        ) {
+            // Ctrl+Y / Ctrl+Shift+Z pressed
             if (redoLayouts()) {
                 setNeedStore(false);
             }
