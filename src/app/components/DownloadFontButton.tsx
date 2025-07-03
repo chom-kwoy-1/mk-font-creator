@@ -61,11 +61,8 @@ export function DownloadFontButton(
                 body: blob,
             });
 
-            const streamSaver = await import('streamsaver');
-            const fileStream = streamSaver.createWriteStream(origFilename);
-
             let downloadLength = 0;
-            await response.body
+            const stream = response.body
                 ?.pipeThrough(new DecompressionStream('gzip'))
                 .pipeThrough(new TransformStream({
                     transform(chunk, controller) {
@@ -73,13 +70,25 @@ export function DownloadFontButton(
                         controller.enqueue(chunk);
                         setDownloadState("Downloading: " + prettyBytes(downloadLength));
                     },
-                }))
-                .pipeTo(fileStream);
+                }));
+
+            if (!stream) {
+                throw new Error("Invalid Response body");
+            }
+
+            const downloadedBlob = await readableStreamToBlob(stream);
+            const link = document.createElement('a');
+            link.href = window.URL.createObjectURL(downloadedBlob);
+            link.download = origFilename;
+            link.click();
+            link.remove();
 
             setDownloadState("Download complete");
             setDownloadDone(true);
         } catch (err) {
-            console.error(err);
+            if (err instanceof Error) {
+                console.error(err.name, err.message, err.cause, err.stack);
+            }
             setDownloadState("Error: " + err);
         }
     }
@@ -113,4 +122,17 @@ export function DownloadFontButton(
                 <Box>Download status: {downloadState}</Box>}
         </Stack>
     );
+}
+
+async function readableStreamToBlob(
+    readableStream: ReadableStream<any>,
+    mimeType: string | null = null
+) {
+    // Create a Response object from the ReadableStream
+    const response = new Response(readableStream, {
+        headers: { 'Content-Type': mimeType || 'application/octet-stream' }
+    });
+
+    // Get the Blob from the Response object
+    return await response.blob();
 }
