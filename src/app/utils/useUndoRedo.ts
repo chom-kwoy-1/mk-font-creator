@@ -16,7 +16,7 @@ export function useUndoRedo<T>(initialState: T): [
         const newUndoStack = [...undoStack, document];
         setUndoStack(newUndoStack);
         setRedoStack([]);
-    }, [undoStack, redoStack, document]);
+    }, [undoStack, document]);
 
     const undo = React.useCallback(() => {
         if(undoStack.length > 1) {
@@ -28,7 +28,7 @@ export function useUndoRedo<T>(initialState: T): [
             return true;
         }
         return false;
-    }, [undoStack, redoStack, document]);
+    }, [undoStack, redoStack]);
 
     const redo = React.useCallback(() => {
         if(redoStack.length > 0) {
@@ -39,13 +39,13 @@ export function useUndoRedo<T>(initialState: T): [
             return true;
         }
         return false;
-    }, [undoStack, redoStack, document]);
+    }, [undoStack, redoStack]);
 
     const reset = React.useCallback((document: T) => {
         setDocument(document);
         setUndoStack([document]);
         setRedoStack([]);
-    }, [undoStack, redoStack, document]);
+    }, []);
 
     return [ document, setDocument, undo, redo, store, reset ];
 }

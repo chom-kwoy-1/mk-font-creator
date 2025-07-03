@@ -21,15 +21,20 @@ export function FontMaker(props: Readonly<{}>) {
         undoLayouts, redoLayouts,
         storeLayouts, resetLayouts,
     ] = useUndoRedo<Layouts | null>(null);
+    const lastLayouts = React.useRef<Layouts | null>(null);
 
     const [needStore, setNeedStore] = React.useState(false);
     React.useEffect(() => {
         if (needStore) {
-            console.log("Storing layouts");
-            storeLayouts();
+            if (curLayouts !== lastLayouts.current) {
+                console.log("Storing layouts");
+                storeLayouts();
+            }
+        } else {
+            setNeedStore(true);
         }
-        setNeedStore(true);
-    }, [curLayouts]);
+        lastLayouts.current = curLayouts;
+    }, [curLayouts, needStore, storeLayouts]);
 
     // handle what happens on key press
     const handleKeyPress = React.useCallback((event: KeyboardEvent) => {
