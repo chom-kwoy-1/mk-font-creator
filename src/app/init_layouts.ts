@@ -23,7 +23,7 @@ export function initLayouts(ttx: TTXWrapper): Layouts {
                     const jamos = getJamos(focusSubkind!);
                     const glyphs = new Map<string, ResizedGlyph>();
                     for (const jamo of jamos) {
-                        const syllable = genSyllables(layout.dividers, layout.focus, jamo)
+                        const syllable = genExampleSyllables(layout.dividers, layout.focus, jamo)
                             .find((s) => uniToPua(s).length === 1);
                         if (!syllable) {
                             continue;
@@ -184,7 +184,7 @@ function getIntersectingGlyph(
     }
 }
 
-function* genSyllables(
+function* genExampleSyllables(
     divider: Divider | JamoElement,
     focusKind: JamoKind,
     focusJamo: string,
@@ -199,22 +199,22 @@ function* genSyllables(
             }
             break;
         case 'vertical':
-            for (const left of genSyllables(divider.left, focusKind, focusJamo)) {
-                for (const right of genSyllables(divider.right, focusKind, focusJamo)) {
+            for (const left of genExampleSyllables(divider.left, focusKind, focusJamo)) {
+                for (const right of genExampleSyllables(divider.right, focusKind, focusJamo)) {
                     yield left + right;
                 }
             }
             break;
         case 'horizontal':
-            for (const top of genSyllables(divider.top, focusKind, focusJamo)) {
-                for (const bottom of genSyllables(divider.bottom, focusKind, focusJamo)) {
+            for (const top of genExampleSyllables(divider.top, focusKind, focusJamo)) {
+                for (const bottom of genExampleSyllables(divider.bottom, focusKind, focusJamo)) {
                     yield top + bottom;
                 }
             }
             break;
         case 'mixed':
-            for (const topLeft of genSyllables(divider.topLeft, focusKind, focusJamo)) {
-                for (const rest of genSyllables(divider.rest, focusKind, focusJamo)) {
+            for (const topLeft of genExampleSyllables(divider.topLeft, focusKind, focusJamo)) {
+                for (const rest of genExampleSyllables(divider.rest, focusKind, focusJamo)) {
                     yield topLeft + rest;
                 }
             }
