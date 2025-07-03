@@ -9,13 +9,52 @@ import {initLayouts} from "@/app/font_utils/init_layouts";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 import {DownloadFontButton} from "@/app/components/DownloadFontButton";
 import {CompositionLayouts} from "@/app/components/CompositionLayouts";
+import {useUndoRedo} from "@/app/utils/useUndoRedo";
 
 export function FontMaker(props: Readonly<{}>) {
     const [file, setFile] = React.useState<File | null>(null);
     const [loadingState, setLoadingState] = React.useState<string | null>(null);
     const [loadDone, setLoadDone] = React.useState<boolean>(false);
     const [ttx, setTTX] = React.useState<TTXWrapper | null>(null);
-    const [curLayouts, setCurLayouts] = React.useState<Layouts | null>(null);
+    const [
+        curLayouts, setCurLayouts,
+        undoLayouts, redoLayouts,
+        storeLayouts, resetLayouts,
+    ] = useUndoRedo<Layouts | null>(null);
+
+    const [needStore, setNeedStore] = React.useState(false);
+    React.useEffect(() => {
+        if (needStore) {
+            console.log("Storing layouts");
+            storeLayouts();
+        }
+        setNeedStore(true);
+    }, [curLayouts]);
+
+    // handle what happens on key press
+    const handleKeyPress = React.useCallback((event: KeyboardEvent) => {
+        if (event.key === 'z' && event.ctrlKey) {
+            // Ctrl + Z pressed
+            if (undoLayouts()) {
+                setNeedStore(false);
+            }
+        } else if (event.key === 'y' && event.ctrlKey) {
+            // Ctrl + Y pressed
+            if (redoLayouts()) {
+                setNeedStore(false);
+            }
+        }
+    }, [undoLayouts, redoLayouts, setNeedStore]);
+
+    React.useEffect(() => {
+        // attach the event listener
+        document.addEventListener('keydown', handleKeyPress);
+
+        // remove the event listener
+        return () => {
+            document.removeEventListener('keydown', handleKeyPress);
+        };
+    }, [handleKeyPress]);
 
     async function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
         if (event.target.files && event.target.files.length > 0) {
@@ -76,7 +115,8 @@ export function FontMaker(props: Readonly<{}>) {
                 setLoadingState("Initializing layouts...");
 
                 setTTX(ttx);
-                setCurLayouts(initLayouts(ttx));
+                setNeedStore(false);
+                resetLayouts(initLayouts(ttx));
                 setLoadDone(true);
 
                 setLoadingState("Loading Done.");
