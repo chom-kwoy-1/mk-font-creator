@@ -1,6 +1,6 @@
 import {ResizedGlyph} from "@/app/jamo_layouts";
 import {Point} from "@/app/parse_glyph";
-import {grey, orange} from "@mui/material/colors";
+import {amber, grey, orange} from "@mui/material/colors";
 import React from "react";
 import Konva from "konva";
 import {ResizedGlyphView} from "@/app/ResizedGlyphView";
@@ -24,6 +24,7 @@ export function ResizeableJamo(
         resizedGlyph: ResizedGlyph,
         setResizedGlyph: ((resizedGlyph: ResizedGlyph) => void) | null,
         showPoints?: boolean,
+        isHovering: boolean,
     }>
 ) {
     const {
@@ -32,6 +33,7 @@ export function ResizeableJamo(
         resizedGlyph,
         setResizedGlyph,
         showPoints,
+        isHovering,
     } = props;
 
     const outlineColor = grey[50];
@@ -72,8 +74,10 @@ export function ResizeableJamo(
                     }}
                     rescale={rescale}
                     xyScales={xyScales}
-                    stroke={orange[500]}
-                    strokeWidth={1}
+                    stroke={isHovering? orange[500] : grey[400]}
+                    strokeWidth={isHovering? 3 : 1}
+                    handleSize={isHovering? 7 : 0}
+                    handleColor={amber[500]}
                 >
                     <ResizedGlyphView
                         resizedGlyph={resizedGlyph}

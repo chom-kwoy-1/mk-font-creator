@@ -162,6 +162,8 @@ function EditGlyph(
         allLayouts,
         ttx,
         showPoints,
+        outlineColor = teal[500],
+        baselineColor = brown[500],
     }: Readonly<{
         layout: Layout;
         setLayout: (layout: Layout) => void;
@@ -169,6 +171,8 @@ function EditGlyph(
         allLayouts: Layouts;
         ttx: TTXWrapper;
         showPoints: boolean;
+        outlineColor?: string;
+        baselineColor?: string;
     }>
 ) {
     const os2 = ttx.getOS2();
@@ -185,6 +189,7 @@ function EditGlyph(
     const [left, setLeft] = React.useState<number>(-250);
     const [bottom, setBottom] = React.useState<number>(-400);
     const [viewWidth, setViewWidth] = React.useState<number>(1500);
+    const [isHovering, setIsHovering] = React.useState<boolean>(false);
 
     const minCanvasSide = Math.min(canvasWidth, canvasHeight);
     const scale = minCanvasSide / viewWidth;
@@ -198,11 +203,11 @@ function EditGlyph(
         return [x, y];
     }
 
-    const outlineColor = teal[500];
-
     return (
         <Stack ref={ref}>
-            <Stage width={canvasWidth} height={canvasHeight} >
+            <Stage width={canvasWidth} height={canvasHeight}
+                   onMouseEnter={(e) => { setIsHovering(true); }}
+                   onMouseLeave={(e) => { setIsHovering(false); }}>
                 <Layer name='background-layer'/>
                 <Layer name='nonclick-layer'/>
                 <Layer>
@@ -225,6 +230,7 @@ function EditGlyph(
                         curJamos={curAllJamos}
                         topLevel={true}
                         showPoints={showPoints}
+                        isHovering={isHovering}
                     />
                 </Layer>
 
@@ -251,7 +257,7 @@ function EditGlyph(
                             ...rescale({ x: -Infinity, y: 0 }),
                             ...rescale({ x: Infinity, y: 0 }),
                         ]}
-                        stroke={brown[500]}
+                        stroke={baselineColor}
                         strokeWidth={1}
                     />
                     <Line

@@ -30,6 +30,7 @@ export function LayoutControl(
         curJamos: string[],
         topLevel: boolean,
         showPoints?: boolean,
+        isHovering: boolean,
     }>
 ) {
     const {
@@ -37,6 +38,7 @@ export function LayoutControl(
         xyScales,
         allLayouts,
         showPoints,
+        isHovering,
     } = props;
 
     const [isDragging, setIsDragging] = React.useState<boolean>(false);
@@ -106,6 +108,7 @@ export function LayoutControl(
                         resizedGlyph={resizedGlyph}
                         setResizedGlyph={setResizedGlyph}
                         showPoints={showPoints}
+                        isHovering={isHovering}
                     />
                 </Portal>
             );

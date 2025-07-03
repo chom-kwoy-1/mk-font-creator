@@ -3,7 +3,7 @@ import {Point} from "@/app/parse_glyph";
 import Konva from "konva";
 import React from "react";
 import {Group, Line, Rect} from "react-konva";
-import {blue, amber} from "@mui/material/colors";
+import {blue, amber, orange} from "@mui/material/colors";
 
 export function ResizeableRect(
     {
@@ -18,6 +18,12 @@ export function ResizeableRect(
         rescale: (p: Point) => number[],
         xyScales: { x: number, y: number },
         children?: React.ReactNode,
+        stroke?: string,
+        strokeWidth?: number,
+        hoverStroke?: string,
+        hoverStrokeWidth?: number,
+        handleSize?: number,
+        handleColor?: string,
     } & Konva.LineConfig>
 ) {
     interface IsDragging {
@@ -203,14 +209,14 @@ export function ResizeableRect(
         }
     }
 
-    props = structuredClone(props);
-    if (isHovering) {
-        props.stroke = blue[500];
-        props.strokeWidth = 3;
-    }
-
-    const handleSize = 7;
-    const handleColor = amber[500];
+    const realProps = {
+        stroke: props.stroke ?? orange[500],
+        strokeWidth: props.strokeWidth ?? 3,
+        hoverStroke: props.hoverStroke ?? blue[500],
+        hoverStrokeWidth: props.hoverStrokeWidth ?? 3,
+        handleSize: props.handleSize ?? 7,
+        handleColor: props.handleColor ?? amber[500],
+    };
 
     return (
         <Group>
@@ -277,9 +283,8 @@ export function ResizeableRect(
                         key={idx}
                         ref={(ref) => { lineRefs.current[side] = ref; }}
                         points={lineCoords(x1, y1, x2, y2)[side]}
-                        {...props}
-                        stroke={props.stroke}
-                        strokeWidth={3}
+                        stroke={isHovering? realProps.hoverStroke : realProps.stroke}
+                        strokeWidth={isHovering ? realProps.hoverStrokeWidth : realProps.strokeWidth}
                     />
                 )}
                 {/* Resize handles for the corners */}
@@ -289,8 +294,8 @@ export function ResizeableRect(
                         ref={(handleRef) => { handleRefs.current[corner] = handleRef; }}
                         x={handleCoords(x1, y1, x2, y2)[corner].x}
                         y={handleCoords(x1, y1, x2, y2)[corner].y}
-                        handleSize={handleSize}
-                        handleColor={handleColor}
+                        handleSize={realProps.handleSize}
+                        handleColor={realProps.handleColor}
                         resizeCursor={handleCursors[corner]}
                         isDragging={isDragging[corner]}
                         setIsDragging={(dragging) => setIsDragging({...isDragging, [corner]: dragging})}
