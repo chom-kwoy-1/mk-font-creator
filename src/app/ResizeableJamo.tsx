@@ -75,7 +75,7 @@ export function ResizeableJamo(
                     rescale={rescale}
                     xyScales={xyScales}
                     stroke={isHovering? orange[500] : grey[400]}
-                    strokeWidth={isHovering? 3 : 1}
+                    strokeWidth={isHovering? 3 : 0.5}
                     handleSize={isHovering? 7 : 0}
                     handleColor={amber[500]}
                 >
